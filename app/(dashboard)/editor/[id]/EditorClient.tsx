@@ -1,0 +1,131 @@
+'use client'
+
+import { useEffect, useCallback, useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
+import { Save, Download, Printer, ChevronLeft, BarChart2 } from 'lucide-react'
+import { useEditorStore } from '@/lib/store/editor'
+import { saveLabel, logPrintJob } from '@/actions/labels'
+import { LABEL_SIZES, mmToPx } from '@/lib/label-sizes'
+import { getCanvas } from '@/components/editor/FabricCanvas'
+import DataImportPanel from '@/components/editor/DataImportPanel'
+import type { Canvas } from 'fabric'
+
+const FabricCanvas = dynamic(() => import('@/components/editor/FabricCanvas'), { ssr: false })
+const Toolbar = dynamic(() => import('@/components/editor/Toolbar'), { ssr: false })
+const PropertiesPanel = dynamic(() => import('@/components/editor/PropertiesPanel'), { ssr: false })
+
+type Label = {
+  id: string
+  name: string
+  canvas_json: object
+  size_config: { width: number; height: number; unit: string }
+}
+
+export default function EditorClient({ label }: { label: Label }) {
+  const router = useRouter()
+  const { setLabelId, setLabelName, setSelectedSize, labelName, selectedSize, dataRows, isDirty, setDirty } = useEditorStore()
+  const [isPending, startTransition] = useTransition()
+  const [showData, setShowData] = useState(false)
+
+  useEffect(() => {
+    setLabelId(label.id)
+    setLabelName(label.name)
+    const size = LABEL_SIZES.find(s =>
+      s.width === label.size_config.width && s.height === label.size_config.height
+    )
+    if (size) setSelectedSize(size)
+  }, [label, setLabelId, setLabelName, setSelectedSize])
+
+  const handleCanvasReady = useCallback((canvas: Canvas) => {
+    if (label.canvas_json && Object.keys(label.canvas_json).length) {
+      canvas.loadFromJSON(label.canvas_json).then(() => canvas.renderAll())
+    }
+    setDirty(false)
+  }, [label.canvas_json, setDirty])
+
+  function handleSave() {
+    const c = getCanvas()
+    if (!c) return
+    const json = c.toObject(['customData', 'id'])
+    startTransition(async () => {
+      await saveLabel(label.id, labelName, json, {
+        width: selectedSize.width, height: selectedSize.height, unit: 'mm',
+      })
+      setDirty(false)
+    })
+  }
+
+  function handleExportPNG() {
+    const c = getCanvas()
+    if (!c) return
+    const dataURL = c.toDataURL({ format: 'png', multiplier: 2 })
+    const a = document.createElement('a')
+    a.href = dataURL; a.download = `${labelName}.png`; a.click()
+  }
+
+  function handlePrint() {
+    const c = getCanvas()
+    if (!c) return
+    const dataURL = c.toDataURL({ format: 'png', multiplier: 3 })
+    const w = window.open('', '_blank')!
+    w.document.write(`
+      <html><head><title>Print — ${labelName}</title>
+      <style>
+        @page { margin: 0; size: ${selectedSize.width}mm ${selectedSize.height}mm; }
+        body { margin: 0; padding: 0; }
+        img { width: 100%; height: auto; display: block; }
+      </style></head>
+      <body><img src="${dataURL}" onload="window.print();window.close()" /></body></html>
+    `)
+    w.document.close()
+    startTransition(() => logPrintJob(label.id, labelName, Math.max(1, dataRows.length)))
+  }
+
+  return (
+    <div className="flex flex-col h-screen overflow-hidden">
+      {/* Header */}
+      <header className="flex items-center gap-3 px-4 py-2 bg-white border-b border-zinc-200 shrink-0">
+        <button type="button" title="Back to dashboard" onClick={() => router.push('/dashboard')} className="text-zinc-500 hover:text-zinc-900 transition-colors">
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        <input
+          value={labelName}
+          onChange={e => setLabelName(e.target.value)}
+          className="flex-1 text-sm font-medium bg-transparent border-none outline-none text-zinc-900"
+          placeholder="Label name"
+        />
+        {isDirty && <span className="text-xs text-zinc-400">Unsaved</span>}
+        <button
+          type="button" onClick={() => setShowData(p => !p)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${showData ? 'bg-blue-100 text-blue-700' : 'text-zinc-600 hover:bg-zinc-100'}`}
+        >
+          <BarChart2 className="w-4 h-4" /> Data
+        </button>
+        <button type="button" onClick={handleExportPNG} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
+          <Download className="w-4 h-4" /> PNG
+        </button>
+        <button type="button" onClick={handlePrint} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
+          <Printer className="w-4 h-4" /> Print
+        </button>
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={isPending}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+        >
+          <Save className="w-4 h-4" />
+          {isPending ? 'Saving…' : 'Save'}
+        </button>
+      </header>
+
+      <Toolbar />
+
+      <div className="flex flex-1 overflow-hidden">
+        <FabricCanvas onCanvasReady={handleCanvasReady} />
+        {showData && <DataImportPanel />}
+        <PropertiesPanel />
+      </div>
+    </div>
+  )
+}
