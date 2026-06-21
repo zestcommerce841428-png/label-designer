@@ -163,6 +163,35 @@ export default function PropertiesPanel() {
               value={textObj.lineHeight ?? 1.16}
               onChange={e => updateShape({ lineHeight: +e.target.value })} />
           </PRow>
+          <PRow label="V-align">
+            <div className="flex gap-0.5">
+              {(['top','middle','bottom'] as const).map(v => (
+                <button key={v} type="button" title={v}
+                  onClick={() => updateShape({ textBaseline: v })}
+                  className={`px-1.5 py-0.5 text-xs rounded transition-colors ${(textObj.textBaseline ?? 'top') === v ? 'bg-blue-100 text-blue-700' : 'text-zinc-500 hover:bg-zinc-100'}`}
+                >
+                  {v[0].toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </PRow>
+          <PRow label="Style">
+            <div className="flex gap-0.5">
+              <button type="button" title="Underline"
+                onClick={() => updateShape({ underline: !textObj.underline })}
+                className={`px-1.5 py-0.5 text-xs rounded underline transition-colors ${textObj.underline ? 'bg-blue-100 text-blue-700' : 'text-zinc-500 hover:bg-zinc-100'}`}
+              >U</button>
+              <button type="button" title="Strikethrough"
+                onClick={() => updateShape({ linethrough: !textObj.linethrough })}
+                className={`px-1.5 py-0.5 text-xs rounded line-through transition-colors ${textObj.linethrough ? 'bg-blue-100 text-blue-700' : 'text-zinc-500 hover:bg-zinc-100'}`}
+              >S</button>
+            </div>
+          </PRow>
+          <PRow label="Opacity">
+            <input type="range" min={0} max={1} step={0.05} title="Opacity"
+              value={textObj.opacity ?? 1}
+              onChange={e => updateShape({ opacity: +e.target.value })} />
+          </PRow>
         </div>
       )}
 
@@ -252,6 +281,14 @@ export default function PropertiesPanel() {
                 value={sObj.opacity ?? 1}
                 onChange={e => updateShape({ opacity: +e.target.value })} />
             </PRow>
+            {sObj.type === 'rect' && (
+              <PRow label="Corner radius">
+                <input type="number" min={0} max={200} title="Corner radius"
+                  className="w-16 text-sm border border-zinc-300 rounded px-2 py-1"
+                  value={sObj.rx ?? 0}
+                  onChange={e => updateShape({ rx: +e.target.value, ry: +e.target.value })} />
+              </PRow>
+            )}
           </div>
         )
       })()}
