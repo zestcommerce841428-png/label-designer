@@ -38,7 +38,12 @@ export default function TemplateGrid({ templates, categories }: Props) {
           user_id: user.id,
           name: template.name,
           canvas_json: template.canvas_json,
-          size_config: { width: template.size.width, height: template.size.height, unit: 'mm' },
+          size_config: {
+            width: template.size.width,
+            height: template.size.height,
+            unit: 'mm',
+            sampleData: template.sampleData ?? [],
+          },
         })
         .select('id')
         .single()

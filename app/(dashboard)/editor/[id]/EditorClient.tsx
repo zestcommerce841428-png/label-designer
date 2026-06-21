@@ -70,12 +70,12 @@ type Label = {
   id: string
   name: string
   canvas_json: object
-  size_config: { width: number; height: number; unit: string; bleedMm?: number }
+  size_config: { width: number; height: number; unit: string; bleedMm?: number; sampleData?: Record<string, string>[] }
 }
 
 export default function EditorClient({ label }: { label: Label }) {
   const router = useRouter()
-  const { setLabelId, setLabelName, setSelectedSize, setBleedMm, labelName, selectedSize, bleedMm, dataRows, previewRowIndex, isDirty, setDirty } = useEditorStore()
+  const { setLabelId, setLabelName, setSelectedSize, setBleedMm, setDataRows, labelName, selectedSize, bleedMm, dataRows, previewRowIndex, isDirty, setDirty } = useEditorStore()
   const [isPending, startTransition] = useTransition()
   const [showData, setShowData] = useState(false)
   const [snapToGrid, setSnapToGrid] = useState(false)
@@ -97,7 +97,12 @@ export default function EditorClient({ label }: { label: Label }) {
     )
     if (size) setSelectedSize(size)
     setBleedMm(label.size_config.bleedMm ?? 0)
-  }, [label, setLabelId, setLabelName, setSelectedSize, setBleedMm])
+    // Auto-load sample data if present and data panel is empty
+    if (label.size_config.sampleData?.length && dataRows.length === 0) {
+      setDataRows(label.size_config.sampleData)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [label.id])
 
   // Ctrl+S shortcut dispatched from FabricCanvas keyboard handler
   useEffect(() => {
@@ -358,6 +363,19 @@ export default function EditorClient({ label }: { label: Label }) {
     }
   }
 
+  function handleExportPrn() {
+    const c = getCanvas()
+    if (!c) return
+    resetToTemplates(c)
+    const raw = canvasToZpl(c, selectedSize.width, selectedSize.height)
+    const blob = new Blob([raw], { type: 'application/octet-stream' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `${labelName}.prn`
+    a.click()
+    URL.revokeObjectURL(a.href)
+  }
+
   function handleExportZpl(format: 'zpl' | 'tspl' | 'epl' | 'cpcl' | 'dpl') {
     const c = getCanvas()
     if (!c) return
@@ -515,6 +533,9 @@ export default function EditorClient({ label }: { label: Label }) {
         </button>
         <button type="button" onClick={() => handleExportZpl('dpl')} title="Download DPL (Datamax-O'Neil printers)" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
           <Terminal className="w-4 h-4" /> DPL
+        </button>
+        <button type="button" onClick={handleExportPrn} title="Download PRN raw print file (ZPL content, .prn extension)" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
+          <Terminal className="w-4 h-4" /> PRN
         </button>
         <button type="button" onClick={handlePrint} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
           <Printer className="w-4 h-4" /> Print

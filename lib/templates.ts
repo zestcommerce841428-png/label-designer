@@ -5,6 +5,8 @@ export type Template = {
   thumbnail: string
   size: { width: number; height: number }
   canvas_json: object
+  /** Optional pre-loaded sample data rows shown when the template is opened */
+  sampleData?: Record<string, string>[]
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -43,6 +45,13 @@ export const BUILT_IN_TEMPLATES: Template[] = [
         boldTxt(10, px(40) - 30, '${{price}}', 22, '#2563eb'),
       ],
     },
+    sampleData: [
+      { product_name: 'Wireless Earbuds Pro', sku: 'WEP-001-BLK', brand: 'TechSound', price: '49.99' },
+      { product_name: 'USB-C Hub 7-in-1', sku: 'UCH-007-SLV', brand: 'ConnectPro', price: '34.99' },
+      { product_name: 'Laptop Stand Aluminum', sku: 'LSA-002-SLV', brand: 'DeskMate', price: '29.99' },
+      { product_name: 'Wireless Mouse Slim', sku: 'WMS-003-WHT', brand: 'ClickPro', price: '24.99' },
+      { product_name: 'Mechanical Keyboard TKL', sku: 'MKT-004-BLK', brand: 'KeyForge', price: '79.99' },
+    ],
   },
   {
     id: 'product-dark',
@@ -260,6 +269,11 @@ export const BUILT_IN_TEMPLATES: Template[] = [
         txt(10, 82, 'Ingredients: {{ingredients}}', 10, '#374151', { customData: { template: 'Ingredients: {{ingredients}}' } }),
       ],
     },
+    sampleData: [
+      { product_name: 'Organic Granola', weight: '340g (12oz)', best_by: '2026-12-15', ingredients: 'Rolled oats, honey, almonds, raisins' },
+      { product_name: 'Almond Butter', weight: '250g (8.8oz)', best_by: '2027-03-01', ingredients: 'Dry roasted almonds, sea salt' },
+      { product_name: 'Trail Mix Deluxe', weight: '200g (7oz)', best_by: '2026-10-30', ingredients: 'Mixed nuts, dried fruits, dark chocolate chips' },
+    ],
   },
   {
     id: 'food-nutrition',
@@ -325,6 +339,11 @@ export const BUILT_IN_TEMPLATES: Template[] = [
         txt(10, 133, 'Weight: {{weight}}  Items: {{item_count}}', 10, '#6b7280', { customData: { template: 'Weight: {{weight}}  Items: {{item_count}}' } }),
       ],
     },
+    sampleData: [
+      { customer_name: 'Alice Johnson', address: '123 Main Street', city: 'Austin', state: 'TX', zip: '78701', order_number: 'ORD-10042', weight: '1.2 lbs', item_count: '2' },
+      { customer_name: 'Bob Martinez', address: '456 Oak Avenue', city: 'Seattle', state: 'WA', zip: '98101', order_number: 'ORD-10043', weight: '0.8 lbs', item_count: '1' },
+      { customer_name: 'Carol Smith', address: '789 Pine Road', city: 'Chicago', state: 'IL', zip: '60601', order_number: 'ORD-10044', weight: '2.5 lbs', item_count: '3' },
+    ],
   },
   {
     id: 'shipping-fragile',
@@ -359,6 +378,13 @@ export const BUILT_IN_TEMPLATES: Template[] = [
         boldTxt(10, 65, '${{price}}', 28, '#b45309'),
       ],
     },
+    sampleData: [
+      { product_name: 'Coffee Mug', price: '12.99' },
+      { product_name: 'Desk Organizer', price: '24.99' },
+      { product_name: 'Notebook A5', price: '8.99' },
+      { product_name: 'Pen Set (12)', price: '14.99' },
+      { product_name: 'Sticky Notes 400pk', price: '5.99' },
+    ],
   },
   {
     id: 'price-tag-two-price',
@@ -826,6 +852,13 @@ export const BUILT_IN_TEMPLATES: Template[] = [
         txt(px(50) - 62, px(25) - 14, '{{=today()}}', 6, '#9ca3af'),
       ],
     },
+    sampleData: [
+      { product_name: 'Wireless Bluetooth Headphones Pro', FNSKU: 'X001AB2CD3', condition: 'New', sku: 'WBH-PRO-BLK' },
+      { product_name: 'USB-C Fast Charger 65W', FNSKU: 'X002EF3GH4', condition: 'New', sku: 'USBC-65W-WHT' },
+      { product_name: 'Portable Power Bank 20000mAh', FNSKU: 'X003IJ4KL5', condition: 'New', sku: 'PPB-20K-BLK' },
+      { product_name: 'Smart LED Desk Lamp', FNSKU: 'X004MN5OP6', condition: 'New', sku: 'LED-DESK-WHT' },
+      { product_name: 'Mechanical Keyboard Compact TKL', FNSKU: 'X005QR6ST7', condition: 'New', sku: 'MK-TKL-BLK-RED' },
+    ],
   },
   {
     id: 'amazon-fnsku-thermal',
