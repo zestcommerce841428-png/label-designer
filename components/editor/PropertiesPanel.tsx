@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { IText, FabricImage, type FabricObject } from 'fabric'
 import { getCanvas } from './FabricCanvas'
-import { BARCODE_TYPES, generateBarcodeDataURL } from '@/lib/barcode'
+import { BARCODE_GROUPS, generateBarcodeDataURL } from '@/lib/barcode'
 import { LABEL_SIZES } from '@/lib/label-sizes'
 import { useEditorStore } from '@/lib/store/editor'
 import type { AnyFabricObj } from '@/types/fabric-extensions'
@@ -154,8 +154,12 @@ export default function PropertiesPanel() {
                 value={bObj.customData?.barcodeType ?? 'qrcode'}
                 onChange={e => updateBarcode(bObj.customData?.template ?? '', e.target.value)}
               >
-                {BARCODE_TYPES.map(t => (
-                  <option key={t.value} value={t.value}>{t.label}</option>
+                {BARCODE_GROUPS.map(g => (
+                  <optgroup key={g.label} label={g.label}>
+                    {g.types.map(t => (
+                      <option key={t.value} value={t.value}>{t.label}</option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
             </div>

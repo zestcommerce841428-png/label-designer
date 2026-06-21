@@ -3,7 +3,7 @@
 import { useEffect, useCallback, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
-import { Save, Download, Printer, ChevronLeft, BarChart2, Layers } from 'lucide-react'
+import { Save, Download, Printer, ChevronLeft, BarChart2, Layers, Terminal } from 'lucide-react'
 import { useEditorStore } from '@/lib/store/editor'
 import { saveLabel, logPrintJob } from '@/actions/labels'
 import { LABEL_SIZES, mmToPx } from '@/lib/label-sizes'
@@ -13,6 +13,7 @@ import ErrorBoundary from '@/components/ErrorBoundary'
 import { resetToTemplates } from '@/lib/merge'
 import { batchPrint } from '@/lib/canvas/batch'
 import { MAX_BATCH_ROWS } from '@/lib/constants'
+import { canvasToZpl, canvasToTspl } from '@/lib/export/zpl'
 import type { Canvas } from 'fabric'
 
 const FabricCanvas = dynamic(() => import('@/components/editor/FabricCanvas'), { ssr: false })
@@ -111,6 +112,21 @@ export default function EditorClient({ label }: { label: Label }) {
     a.click()
   }
 
+  function handleExportZpl(format: 'zpl' | 'tspl') {
+    const c = getCanvas()
+    if (!c) return
+    resetToTemplates(c)
+    const raw = format === 'zpl'
+      ? canvasToZpl(c, selectedSize.width, selectedSize.height)
+      : canvasToTspl(c, selectedSize.width, selectedSize.height)
+    const blob = new Blob([raw], { type: 'text/plain' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `${labelName}.${format === 'zpl' ? 'zpl' : 'tspl'}`
+    a.click()
+    URL.revokeObjectURL(a.href)
+  }
+
   function handlePrint() {
     const c = getCanvas()
     if (!c) return
@@ -158,6 +174,12 @@ export default function EditorClient({ label }: { label: Label }) {
         </button>
         <button type="button" onClick={handleExportPNG} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
           <Download className="w-4 h-4" /> PNG
+        </button>
+        <button type="button" onClick={() => handleExportZpl('zpl')} title="Download ZPL II (Zebra printers)" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
+          <Terminal className="w-4 h-4" /> ZPL
+        </button>
+        <button type="button" onClick={() => handleExportZpl('tspl')} title="Download TSPL (TSC printers)" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
+          <Terminal className="w-4 h-4" /> TSPL
         </button>
         <button type="button" onClick={handlePrint} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
           <Printer className="w-4 h-4" /> Print

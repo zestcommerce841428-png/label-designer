@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { Printer } from 'lucide-react'
-import ExportCsvButton from '@/components/history/ExportCsvButton'
+import ExportButtons from '@/components/history/ExportCsvButton'
 
 export default async function PrintHistory() {
   const supabase = await createClient()
@@ -25,7 +25,7 @@ export default async function PrintHistory() {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <ExportCsvButton jobs={jobs} />
+        <ExportButtons jobs={jobs} />
       </div>
       <div className="bg-white rounded-xl border border-zinc-200 overflow-hidden">
         <table className="w-full text-sm">

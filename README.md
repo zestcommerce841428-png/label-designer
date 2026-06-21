@@ -307,8 +307,8 @@ Run `lib/supabase/schema.sql` in the Supabase SQL Editor to create tables, RLS p
 | Print history CSV export | ✅ Phase 2 |
 | REST API with API keys | ✅ Phase 2 |
 | MySQL / PostgreSQL direct connection | 🔜 Phase 3 |
-| 95 barcode types (full bwip-js) | 🔜 Phase 3 |
-| ZPL / TSPL / EPL raw thermal output | 🔜 Phase 3 |
+| 95 barcode types (full bwip-js) | ✅ Phase 3 |
+| ZPL II + TSPL raw thermal output | ✅ Phase 3 |
 | NiceLabel / Loftware XML import | 🔜 Phase 3 |
 | Team workspaces + RBAC | 🔜 Phase 3 |
 | SSO / SAML | 🔜 Phase 3 |
@@ -333,8 +333,8 @@ Run `lib/supabase/schema.sql` in the Supabase SQL Editor to create tables, RLS p
 
 ### Phase 3 — Enterprise
 
-- [ ] 95 barcode types (full bwip-js: GS1, postal, healthcare)
-- [ ] ZPL / TSPL / EPL raw output for thermal printers
+- [x] 95 barcode types (7 groups: 2D, GS1, retail, industrial, postal, healthcare, specialty)
+- [x] ZPL II + TSPL raw output (`lib/export/zpl.ts`; ZPL and TSPL buttons in editor header)
 - [ ] NiceLabel / Loftware XML print job import
 - [ ] File trigger automation (watch folder → auto-print)
 - [ ] Webhook print server
