@@ -63,6 +63,13 @@ export default function PropertiesPanel() {
     }
   }
 
+  function updateCondition(condition: string) {
+    const c = getCanvas()
+    if (!c || !obj) return
+    ;(obj as AnyFabricObj).customData = { ...obj.customData, condition }
+    c.renderAll()
+  }
+
   const isText = obj instanceof IText
   const isBarcode = obj?.customData?.type === 'barcode'
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -195,6 +202,28 @@ export default function PropertiesPanel() {
           </div>
         )
       })()}
+
+      {obj && (
+        <div className="p-4 border-t border-zinc-100 space-y-2">
+          <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Logic</h3>
+          <div>
+            <label className="text-xs text-zinc-600 block mb-1">
+              Show when <span className="text-zinc-400">(JS expression)</span>
+            </label>
+            <input
+              type="text"
+              className="w-full text-xs border border-zinc-300 rounded-md px-2 py-1.5 font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+              placeholder={`row.status === "active"`}
+              value={obj.customData?.condition ?? ''}
+              onChange={e => updateCondition(e.target.value)}
+              title="Leave empty to always show. Use row.field to reference data."
+            />
+            <p className="text-xs text-zinc-400 mt-1">
+              e.g. <code className="bg-zinc-100 px-1 rounded">row.qty &gt; 0</code>
+            </p>
+          </div>
+        </div>
+      )}
     </aside>
   )
 }

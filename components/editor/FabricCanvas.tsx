@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useRef, useCallback } from 'react'
-import { Canvas, Circle, IText } from 'fabric'
+import { Canvas, Circle } from 'fabric'
 import { useEditorStore } from '@/lib/store/editor'
 import { mmToPx } from '@/lib/label-sizes'
 import { CANVAS_MAX_WIDTH_PX, CANVAS_MAX_HEIGHT_PX, CANVAS_MAX_SCALE } from '@/lib/constants'
+import { applyMerge } from '@/lib/merge'
 
 let _canvas: Canvas | null = null
 export function getCanvas() { return _canvas }
@@ -25,15 +26,7 @@ export default function FabricCanvas({ onCanvasReady }: Props) {
   const mergeData = useCallback((canvas: Canvas) => {
     if (!dataRows.length) return
     const row = dataRows[previewRowIndex] ?? dataRows[0]
-    canvas.getObjects().forEach((obj) => {
-      const custom = (obj as unknown as { customData?: { template?: string } }).customData
-      if (!custom?.template) return
-      const merged = custom.template.replace(/\{\{(\w+)\}\}/g, (_: string, key: string) => row[key] ?? '')
-      if (obj.type === 'i-text' || obj.type === 'text') {
-        (obj as IText).set({ text: merged })
-      }
-    })
-    canvas.renderAll()
+    applyMerge(canvas, row, previewRowIndex)
   }, [dataRows, previewRowIndex])
 
   useEffect(() => {

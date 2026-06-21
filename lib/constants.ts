@@ -16,3 +16,6 @@ export const MAX_IMAGE_BYTES = 5 * 1024 * 1024
 export const MAX_LABEL_NAME_LENGTH = 200
 export const MAX_CANVAS_JSON_BYTES = 2 * 1024 * 1024
 export const MAX_RECORD_COUNT = 100_000
+
+/** Maximum rows rendered in a single batch print job */
+export const MAX_BATCH_ROWS = 500

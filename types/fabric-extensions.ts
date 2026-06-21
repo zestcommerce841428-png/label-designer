@@ -5,6 +5,8 @@ export interface FabricCustomData {
   barcodeType?: string
   /** Raw template string before merge-tag substitution */
   template?: string
+  /** JS expression evaluated per row — element is hidden when falsy */
+  condition?: string
 }
 
 export interface FabricObjectWithCustomData extends FabricObject {

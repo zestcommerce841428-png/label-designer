@@ -3,13 +3,16 @@
 import { useEffect, useCallback, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
-import { Save, Download, Printer, ChevronLeft, BarChart2 } from 'lucide-react'
+import { Save, Download, Printer, ChevronLeft, BarChart2, Layers } from 'lucide-react'
 import { useEditorStore } from '@/lib/store/editor'
 import { saveLabel, logPrintJob } from '@/actions/labels'
 import { LABEL_SIZES, mmToPx } from '@/lib/label-sizes'
 import { getCanvas } from '@/components/editor/FabricCanvas'
 import DataImportPanel from '@/components/editor/DataImportPanel'
 import ErrorBoundary from '@/components/ErrorBoundary'
+import { resetToTemplates } from '@/lib/merge'
+import { batchPrint } from '@/lib/canvas/batch'
+import { MAX_BATCH_ROWS } from '@/lib/constants'
 import type { Canvas } from 'fabric'
 
 const FabricCanvas = dynamic(() => import('@/components/editor/FabricCanvas'), { ssr: false })
@@ -29,6 +32,7 @@ export default function EditorClient({ label }: { label: Label }) {
   const [isPending, startTransition] = useTransition()
   const [showData, setShowData] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [batchProgress, setBatchProgress] = useState<{ current: number; total: number } | null>(null)
 
   useEffect(() => {
     setLabelId(label.id)
@@ -49,6 +53,9 @@ export default function EditorClient({ label }: { label: Label }) {
   function handleSave() {
     const c = getCanvas()
     if (!c) return
+    // Reset merged preview text back to {{template}} before saving so the
+    // stored JSON always contains placeholders, not last-previewed values.
+    resetToTemplates(c)
     const json = c.toObject(['customData', 'id'])
     setSaveError(null)
     startTransition(async () => {
@@ -61,6 +68,37 @@ export default function EditorClient({ label }: { label: Label }) {
         setSaveError(err instanceof Error ? err.message : 'Save failed')
       }
     })
+  }
+
+  async function handleBatchPrint() {
+    const c = getCanvas()
+    if (!c) return
+    const capped = dataRows.slice(0, MAX_BATCH_ROWS)
+    if (dataRows.length > MAX_BATCH_ROWS) {
+      if (!confirm(`Only the first ${MAX_BATCH_ROWS} records will be printed. Continue?`)) return
+    }
+    const templateJson = (() => {
+      resetToTemplates(c)
+      return c.toObject(['customData', 'id'])
+    })()
+    setBatchProgress({ current: 0, total: Math.max(1, capped.length) })
+    try {
+      await batchPrint(
+        templateJson,
+        capped,
+        selectedSize.width,
+        selectedSize.height,
+        labelName,
+        (current, total) => setBatchProgress({ current, total }),
+      )
+      startTransition(async () => {
+        try {
+          await logPrintJob(label.id, labelName, Math.max(1, capped.length))
+        } catch { /* non-critical */ }
+      })
+    } finally {
+      setBatchProgress(null)
+    }
   }
 
   function handleExportPNG() {
@@ -123,6 +161,20 @@ export default function EditorClient({ label }: { label: Label }) {
         </button>
         <button type="button" onClick={handlePrint} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
           <Printer className="w-4 h-4" /> Print
+        </button>
+        <button
+          type="button"
+          onClick={handleBatchPrint}
+          disabled={!!batchProgress}
+          title={dataRows.length ? `Batch print ${dataRows.length} records` : 'Print single copy'}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 transition-colors"
+        >
+          <Layers className="w-4 h-4" />
+          {batchProgress
+            ? `${batchProgress.current}/${batchProgress.total}`
+            : dataRows.length
+              ? `Batch (${dataRows.length})`
+              : 'Batch'}
         </button>
         <button
           type="button"
