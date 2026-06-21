@@ -434,6 +434,17 @@ export default function PropertiesPanel() {
                 value={(imgObj as AnyFabricObj).opacity ?? 1}
                 onChange={e => updateShape({ opacity: +e.target.value })} />
             </PRow>
+            <PRow label="Border color">
+              <div className="flex items-center gap-1.5">
+                <input type="color" title="Image border color"
+                  value={String((imgObj as AnyFabricObj).stroke ?? '#000000')}
+                  onChange={e => updateShape({ stroke: e.target.value })} />
+                <input type="number" min={0} max={20} step={1} title="Border width"
+                  className="w-12 text-xs border border-zinc-300 rounded px-1.5 py-1"
+                  value={(imgObj as AnyFabricObj).strokeWidth ?? 0}
+                  onChange={e => updateShape({ strokeWidth: +e.target.value })} />
+              </div>
+            </PRow>
           </div>
         )
       })()}

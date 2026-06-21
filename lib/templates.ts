@@ -664,6 +664,151 @@ export const BUILT_IN_TEMPLATES: Template[] = [
     },
   },
 
+  // ── Events ────────────────────────────────────────────────────────────────
+  {
+    id: 'event-wristband',
+    name: 'Event Wristband',
+    category: 'Events',
+    thumbnail: '',
+    size: { width: 240, height: 25 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(240), px(25), '#1d4ed8'),
+        boldTxt(8, 6, '{{event_name}}', 12, '#ffffff'),
+        txt(8, 22, '{{event_date}}', 9, '#bfdbfe'),
+        boldTxt(px(240) / 2 - 30, 6, '{{ticket_type}}', 12, '#fbbf24'),
+        txt(px(240) - 100, 8, '#{{ticket_number}}', 11, '#dbeafe'),
+        txt(px(240) - 100, 24, '{{gate}}', 9, '#93c5fd'),
+      ],
+    },
+  },
+  {
+    id: 'event-badge',
+    name: 'Event Name Badge',
+    category: 'Events',
+    thumbnail: '',
+    size: { width: 86, height: 54 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(86), px(54), '#ffffff', { stroke: '#e5e7eb', strokeWidth: 1 }),
+        rect(0, 0, px(86), 18, '#7c3aed'),
+        boldTxt(8, 3, '{{event_name}}', 10, '#ede9fe'),
+        boldTxt(8, 28, '{{attendee_name}}', 18, '#111827'),
+        txt(8, 52, '{{company}}', 11, '#6b7280'),
+        txt(8, 68, '{{role}}', 10, '#9ca3af'),
+        txt(px(86) - 70, px(54) - 14, '{{ticket_type}}', 9, '#7c3aed'),
+      ],
+    },
+  },
+  {
+    id: 'event-entry-ticket',
+    name: 'Entry Ticket',
+    category: 'Events',
+    thumbnail: '',
+    size: { width: 150, height: 60 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(150), px(60), '#fdf2f8', { stroke: '#a855f7', strokeWidth: 2 }),
+        boldTxt(10, 8, '{{event_name}}', 16, '#6b21a8'),
+        txt(10, 32, '{{venue}}', 11, '#7e22ce'),
+        txt(10, 48, '{{event_date}} · {{event_time}}', 10, '#9333ea', { customData: { template: '{{event_date}} · {{event_time}}' } }),
+        { type: 'line', x1: px(100), y1: 4, x2: px(100), y2: px(60) - 4, stroke: '#d8b4fe', strokeWidth: 1, strokeDashArray: [4, 4] },
+        boldTxt(px(105), 10, '{{ticket_type}}', 10, '#7c3aed'),
+        txt(px(105), 30, '#{{ticket_number}}', 14, '#6b21a8'),
+        txt(px(105), 52, '{{gate}}', 10, '#9ca3af'),
+      ],
+    },
+  },
+
+  // ── Serial / Counter ──────────────────────────────────────────────────────
+  {
+    id: 'serial-counter',
+    name: 'Serial Number Label',
+    category: 'Serial',
+    thumbnail: '',
+    size: { width: 70, height: 35 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(70), px(35), '#f0f9ff', { stroke: '#0284c7', strokeWidth: 1 }),
+        boldTxt(6, 5, '{{product_name}}', 12, '#0c4a6e'),
+        txt(6, 22, 'S/N: {{=Left("000000", 6 - Len(String(rowIndex+1))) + String(rowIndex+1)}}', 10, '#0369a1'),
+        txt(6, 36, '{{#counter:1000:1:6}}', 10, '#075985', { customData: { template: '{{#counter:1000:1:6}}' } }),
+        txt(6, 52, 'Batch: {{batch_number}}', 9, '#64748b', { customData: { template: 'Batch: {{batch_number}}' } }),
+        boldTxt(px(70) - 50, px(35) - 18, '{{=today()}}', 9, '#94a3b8'),
+      ],
+    },
+  },
+  {
+    id: 'asset-serial-barcode',
+    name: 'Asset Tag with Counter',
+    category: 'Serial',
+    thumbnail: '',
+    size: { width: 80, height: 40 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(80), px(40), '#f8fafc', { stroke: '#1e40af', strokeWidth: 2 }),
+        rect(0, 0, px(80), 16, '#1e40af'),
+        boldTxt(6, 2, '{{company_name}}', 10, '#dbeafe'),
+        boldTxt(6, 22, 'ASSET #{{#counter}}', 14, '#0f172a'),
+        txt(6, 42, '{{description}}', 10, '#374151'),
+        txt(6, 58, 'Dept: {{department}}', 9, '#6b7280', { customData: { template: 'Dept: {{department}}' } }),
+        txt(px(80) - 80, px(40) - 16, '{{=today()}}', 9, '#94a3b8'),
+      ],
+    },
+  },
+
+  // ── Wine / Beverage ───────────────────────────────────────────────────────
+  {
+    id: 'wine-label',
+    name: 'Wine / Bottle Label',
+    category: 'Beverage',
+    thumbnail: '',
+    size: { width: 90, height: 120 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(90), px(120), '#faf5eb', { stroke: '#a16207', strokeWidth: 2 }),
+        rect(0, 0, px(90), 14, '#a16207'),
+        rect(0, px(120) - 14, px(90), 14, '#a16207'),
+        boldTxt(8, 18, '{{winery}}', 14, '#78350f'),
+        { type: 'line', x1: 8, y1: 40, x2: px(90) - 8, y2: 40, stroke: '#d97706', strokeWidth: 1 },
+        boldTxt(10, 48, '{{wine_name}}', 20, '#451a03'),
+        txt(10, 76, '{{vintage}} · {{varietal}}', 12, '#92400e', { customData: { template: '{{vintage}} · {{varietal}}' } }),
+        txt(10, 96, '{{region}}', 11, '#78350f'),
+        txt(10, 114, '{{volume}} · {{alcohol}}% ABV', 10, '#92400e', { customData: { template: '{{volume}} · {{alcohol}}% ABV' } }),
+        txt(10, 135, '{{description}}', 9, '#78350f', { italic: true }),
+        txt(8, px(120) - 12, '{{appellation}}', 9, '#fef3c7'),
+      ],
+    },
+  },
+  {
+    id: 'beer-label',
+    name: 'Craft Beer Label',
+    category: 'Beverage',
+    thumbnail: '',
+    size: { width: 80, height: 100 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(80), px(100), '#fef3c7', { stroke: '#d97706', strokeWidth: 2 }),
+        rect(0, 0, px(80), 20, '#92400e'),
+        rect(0, px(100) - 20, px(80), 20, '#92400e'),
+        boldTxt(8, 3, '{{brewery}}', 11, '#fef3c7'),
+        boldTxt(8, 28, '{{beer_name}}', 20, '#78350f'),
+        txt(8, 56, '{{style}}', 13, '#92400e'),
+        txt(8, 76, '{{description}}', 9, '#78350f'),
+        txt(8, 100, 'ABV: {{abv}}%  IBU: {{ibu}}', 10, '#92400e', { customData: { template: 'ABV: {{abv}}%  IBU: {{ibu}}' } }),
+        txt(8, 118, '{{volume}}', 10, '#78350f'),
+        txt(8, px(100) - 16, '{{brewery_location}}', 9, '#fef3c7'),
+      ],
+    },
+  },
+
   // ── Blank ─────────────────────────────────────────────────────────────────
   {
     id: 'blank-80x40',
