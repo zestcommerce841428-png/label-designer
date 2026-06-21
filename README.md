@@ -297,7 +297,7 @@ Run `lib/supabase/schema.sql` in the Supabase SQL Editor to create tables, RLS p
 | Browser print | ✅ MVP |
 | PDF export (VPS Puppeteer) | ✅ MVP |
 | Print history log | ✅ MVP |
-| 10-template library | ✅ MVP |
+| 28-template library (Amazon, Electronics, Clothes, Discounts, Food…) | ✅ Phase 3 |
 | Supabase auth + RLS | ✅ MVP |
 | Batch multi-page print (browser) | ✅ Phase 2 |
 | Serial number counters `{{#counter}}` | ✅ Phase 2 |

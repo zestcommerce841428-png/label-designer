@@ -7,7 +7,26 @@ export type Template = {
   canvas_json: object
 }
 
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+function px(mm: number) { return Math.round(mm * 3.7795275591) }
+
+// Shorthand object constructors
+function rect(left: number, top: number, width: number, height: number, fill: string, opts: object = {}) {
+  return { type: 'rect', left, top, width, height, fill, strokeWidth: 0, selectable: false, evented: false, ...opts }
+}
+function txt(left: number, top: number, text: string, size: number, color: string, opts: object = {}) {
+  return { type: 'i-text', left, top, text, fontSize: size, fontFamily: 'Arial', fill: color, customData: { template: text }, ...opts }
+}
+function boldTxt(left: number, top: number, text: string, size: number, color: string, opts: object = {}) {
+  return txt(left, top, text, size, color, { fontWeight: 'bold', ...opts })
+}
+
+// ─── Template catalogue ──────────────────────────────────────────────────────
+
 export const BUILT_IN_TEMPLATES: Template[] = [
+
+  // ── Product ──────────────────────────────────────────────────────────────
   {
     id: 'product-basic',
     name: 'Product Label',
@@ -17,146 +36,249 @@ export const BUILT_IN_TEMPLATES: Template[] = [
     canvas_json: {
       version: '5.3.0',
       objects: [
-        {
-          type: 'rect', left: 0, top: 0, width: 264, height: 151,
-          fill: '#ffffff', stroke: '#e5e7eb', strokeWidth: 1,
-          selectable: false, evented: false,
-        },
-        {
-          type: 'i-text', left: 10, top: 12, text: '{{product_name}}',
-          fontSize: 18, fontWeight: 'bold', fontFamily: 'Arial', fill: '#111827',
-          customData: { template: '{{product_name}}' },
-        },
-        {
-          type: 'i-text', left: 10, top: 38, text: 'SKU: {{sku}}',
-          fontSize: 11, fontFamily: 'Arial', fill: '#6b7280',
-          customData: { template: 'SKU: {{sku}}' },
-        },
-        {
-          type: 'i-text', left: 10, top: 110, text: '${{price}}',
-          fontSize: 22, fontWeight: 'bold', fontFamily: 'Arial', fill: '#2563eb',
-          customData: { template: '${{price}}' },
-        },
+        rect(0, 0, px(70), px(40), '#ffffff', { stroke: '#e5e7eb', strokeWidth: 1 }),
+        boldTxt(10, 12, '{{product_name}}', 18, '#111827'),
+        txt(10, 38, 'SKU: {{sku}}', 11, '#6b7280'),
+        txt(10, 55, '{{brand}}', 11, '#9ca3af'),
+        boldTxt(10, px(40) - 30, '${{price}}', 22, '#2563eb'),
       ],
     },
   },
   {
-    id: 'shipping-label',
-    name: 'Shipping Label',
-    category: 'Shipping',
+    id: 'product-dark',
+    name: 'Product Label (Dark)',
+    category: 'Product',
     thumbnail: '',
-    size: { width: 100, height: 150 },
+    size: { width: 70, height: 40 },
     canvas_json: {
       version: '5.3.0',
       objects: [
-        {
-          type: 'i-text', left: 10, top: 10, text: 'SHIP TO:',
-          fontSize: 10, fontWeight: 'bold', fontFamily: 'Arial', fill: '#6b7280',
-          customData: { template: 'SHIP TO:' },
-        },
-        {
-          type: 'i-text', left: 10, top: 26, text: '{{customer_name}}',
-          fontSize: 16, fontWeight: 'bold', fontFamily: 'Arial', fill: '#111827',
-          customData: { template: '{{customer_name}}' },
-        },
-        {
-          type: 'i-text', left: 10, top: 50, text: '{{address}}',
-          fontSize: 13, fontFamily: 'Arial', fill: '#374151',
-          customData: { template: '{{address}}' },
-        },
-        {
-          type: 'i-text', left: 10, top: 72, text: '{{city}}, {{state}} {{zip}}',
-          fontSize: 13, fontFamily: 'Arial', fill: '#374151',
-          customData: { template: '{{city}}, {{state}} {{zip}}' },
-        },
-        {
-          type: 'line', x1: 10, y1: 105, x2: 368, y2: 105,
-          stroke: '#d1d5db', strokeWidth: 1,
-        },
-        {
-          type: 'i-text', left: 10, top: 115, text: 'Order: {{order_number}}',
-          fontSize: 11, fontFamily: 'Arial', fill: '#6b7280',
-          customData: { template: 'Order: {{order_number}}' },
-        },
+        rect(0, 0, px(70), px(40), '#111827'),
+        boldTxt(10, 12, '{{product_name}}', 16, '#f9fafb'),
+        txt(10, 36, 'SKU: {{sku}}', 10, '#9ca3af'),
+        boldTxt(10, px(40) - 30, '${{price}}', 22, '#60a5fa'),
+        txt(px(70) - 70, px(40) - 18, '{{brand}}', 9, '#6b7280', { textAlign: 'right' }),
+      ],
+    },
+  },
+
+  // ── Amazon ───────────────────────────────────────────────────────────────
+  {
+    id: 'amazon-fnsku',
+    name: 'Amazon FNSKU',
+    category: 'Amazon',
+    thumbnail: '',
+    size: { width: 50, height: 25 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(50), px(25), '#ffffff', { stroke: '#e5e7eb', strokeWidth: 1 }),
+        boldTxt(4, 4, '{{product_name}}', 10, '#111827'),
+        txt(4, 18, 'FNSKU: {{fnsku}}', 9, '#374151'),
+        txt(4, 30, 'Condition: {{condition}}', 8, '#6b7280'),
+        txt(4, 42, 'ASIN: {{asin}}', 8, '#6b7280'),
+        txt(4, 56, 'Made in: {{country}}', 8, '#6b7280'),
       ],
     },
   },
   {
-    id: 'price-tag',
-    name: 'Price Tag',
-    category: 'Retail',
+    id: 'amazon-transparency',
+    name: 'Amazon Transparency',
+    category: 'Amazon',
+    thumbnail: '',
+    size: { width: 28.5, height: 28.5 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(28.5), px(28.5), '#ffffff', { stroke: '#cccccc', strokeWidth: 1 }),
+        boldTxt(4, 4, 'AZ', 14, '#FF9900'),
+        txt(4, 22, '{{transparency_code}}', 7, '#111827'),
+        txt(4, 34, '{{sku}}', 7, '#6b7280'),
+      ],
+    },
+  },
+  {
+    id: 'amazon-bundle',
+    name: 'Amazon Bundle',
+    category: 'Amazon',
+    thumbnail: '',
+    size: { width: 66, height: 38 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(66), px(38), '#FFF8E7', { stroke: '#FF9900', strokeWidth: 2 }),
+        boldTxt(6, 6, 'BUNDLE — {{bundle_count}} items', 12, '#B45309'),
+        txt(6, 24, '{{product_name}}', 11, '#111827'),
+        txt(6, 40, 'ASIN: {{asin}}', 9, '#6b7280'),
+        txt(6, 54, 'SKU: {{sku}}', 9, '#6b7280'),
+        boldTxt(6, px(38) - 20, 'Do not separate', 9, '#DC2626'),
+      ],
+    },
+  },
+
+  // ── Electronics ──────────────────────────────────────────────────────────
+  {
+    id: 'electronics-basic',
+    name: 'Electronics Label',
+    category: 'Electronics',
+    thumbnail: '',
+    size: { width: 80, height: 50 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(80), 8, '#1e40af'),
+        rect(0, 8, px(80), px(50) - 8, '#ffffff', { stroke: '#dbeafe', strokeWidth: 1 }),
+        boldTxt(6, 10, '{{brand}}', 9, '#f8fafc'),
+        boldTxt(6, 22, '{{product_name}}', 14, '#1e3a8a'),
+        txt(6, 44, 'Model: {{model}}', 10, '#374151'),
+        txt(6, 60, 'S/N: {{serial}}', 10, '#374151'),
+        txt(6, 76, '{{voltage}}  {{wattage}}', 9, '#6b7280'),
+        boldTxt(6, px(50) - 18, '${{price}}', 16, '#2563eb'),
+      ],
+    },
+  },
+  {
+    id: 'electronics-spec',
+    name: 'Electronics Spec Sheet',
+    category: 'Electronics',
+    thumbnail: '',
+    size: { width: 90, height: 55 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(90), px(55), '#f8fafc', { stroke: '#e2e8f0', strokeWidth: 1 }),
+        boldTxt(8, 8, '{{product_name}}', 15, '#0f172a'),
+        txt(8, 30, '{{model}} · {{sku}}', 10, '#64748b'),
+        { type: 'line', x1: 8, y1: 44, x2: px(90) - 8, y2: 44, stroke: '#e2e8f0', strokeWidth: 1 },
+        txt(8, 50, 'CPU: {{cpu}}', 9, '#374151', { customData: { template: 'CPU: {{cpu}}' } }),
+        txt(8, 64, 'RAM: {{ram}}   Storage: {{storage}}', 9, '#374151', { customData: { template: 'RAM: {{ram}}   Storage: {{storage}}' } }),
+        txt(8, 78, 'Display: {{display}}', 9, '#374151', { customData: { template: 'Display: {{display}}' } }),
+        txt(8, 92, 'Battery: {{battery}}', 9, '#374151', { customData: { template: 'Battery: {{battery}}' } }),
+        boldTxt(8, px(55) - 20, '${{price}}', 16, '#1d4ed8'),
+        txt(px(90) - 80, px(55) - 18, '{{warranty}} warranty', 8, '#64748b'),
+      ],
+    },
+  },
+
+  // ── Clothes ──────────────────────────────────────────────────────────────
+  {
+    id: 'clothes-hang-tag',
+    name: 'Clothes Hang Tag',
+    category: 'Clothes',
+    thumbnail: '',
+    size: { width: 45, height: 80 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(45), px(80), '#ffffff', { stroke: '#e5e7eb', strokeWidth: 1, rx: 4, ry: 4 }),
+        boldTxt(6, 10, '{{brand}}', 14, '#111827'),
+        txt(6, 30, '{{product_name}}', 11, '#374151'),
+        { type: 'line', x1: 6, y1: 46, x2: px(45) - 6, y2: 46, stroke: '#f3f4f6', strokeWidth: 1 },
+        txt(6, 52, 'Size: {{size}}', 12, '#374151', { customData: { template: 'Size: {{size}}' } }),
+        txt(6, 68, 'Color: {{color}}', 11, '#374151', { customData: { template: 'Color: {{color}}' } }),
+        txt(6, 84, 'Material: {{material}}', 10, '#6b7280', { customData: { template: 'Material: {{material}}' } }),
+        { type: 'line', x1: 6, y1: 102, x2: px(45) - 6, y2: 102, stroke: '#f3f4f6', strokeWidth: 1 },
+        boldTxt(6, px(80) - 25, '${{price}}', 18, '#111827'),
+        txt(px(45) - 55, px(80) - 20, 'SKU: {{sku}}', 8, '#9ca3af'),
+      ],
+    },
+  },
+  {
+    id: 'clothes-jeans',
+    name: 'Jeans Label',
+    category: 'Clothes',
     thumbnail: '',
     size: { width: 50, height: 30 },
     canvas_json: {
       version: '5.3.0',
       objects: [
-        {
-          type: 'rect', left: 0, top: 0, width: 189, height: 113,
-          fill: '#fef3c7', stroke: '#f59e0b', strokeWidth: 2, rx: 6, ry: 6,
-          selectable: false, evented: false,
-        },
-        {
-          type: 'i-text', left: 10, top: 8, text: '{{product_name}}',
-          fontSize: 13, fontWeight: 'bold', fontFamily: 'Arial', fill: '#92400e',
-          customData: { template: '{{product_name}}' },
-        },
-        {
-          type: 'i-text', left: 10, top: 65, text: '${{price}}',
-          fontSize: 28, fontWeight: 'bold', fontFamily: 'Arial', fill: '#b45309',
-          customData: { template: '${{price}}' },
-        },
+        rect(0, 0, px(50), px(30), '#1e3a5f'),
+        boldTxt(8, 8, '{{brand}}', 16, '#f8fafc'),
+        txt(8, 30, '{{style}}', 10, '#93c5fd'),
+        txt(8, 44, 'W{{waist}} L{{length}}', 13, '#ffffff', { customData: { template: 'W{{waist}} L{{length}}' } }),
+        txt(8, 62, '{{material}}', 9, '#93c5fd'),
+        boldTxt(px(50) - 55, 8, '${{price}}', 15, '#fbbf24'),
       ],
     },
   },
   {
-    id: 'inventory-tag',
-    name: 'Inventory Tag',
-    category: 'Warehouse',
+    id: 'clothes-shoes',
+    name: 'Shoes Label',
+    category: 'Clothes',
     thumbnail: '',
-    size: { width: 80, height: 40 },
+    size: { width: 60, height: 35 },
     canvas_json: {
       version: '5.3.0',
       objects: [
-        {
-          type: 'i-text', left: 10, top: 8, text: '{{item_name}}',
-          fontSize: 15, fontWeight: 'bold', fontFamily: 'Arial', fill: '#111827',
-          customData: { template: '{{item_name}}' },
-        },
-        {
-          type: 'i-text', left: 10, top: 32, text: 'Qty: {{quantity}}  Loc: {{location}}',
-          fontSize: 11, fontFamily: 'Arial', fill: '#6b7280',
-          customData: { template: 'Qty: {{quantity}}  Loc: {{location}}' },
-        },
+        rect(0, 0, px(60), px(35), '#fafafa', { stroke: '#e5e7eb', strokeWidth: 1 }),
+        boldTxt(8, 8, '{{brand}}', 14, '#111827'),
+        txt(8, 28, '{{product_name}}', 11, '#374151'),
+        txt(8, 44, 'Size EU {{size_eu}} / US {{size_us}}', 11, '#374151', { customData: { template: 'Size EU {{size_eu}} / US {{size_us}}' } }),
+        txt(8, 60, 'Color: {{color}}  Width: {{width}}', 9, '#6b7280', { customData: { template: 'Color: {{color}}  Width: {{width}}' } }),
+        boldTxt(8, px(35) - 22, '${{price}}', 16, '#111827'),
+        txt(px(60) - 65, px(35) - 16, 'SKU: {{sku}}', 8, '#9ca3af'),
+      ],
+    },
+  },
+
+  // ── Discounts ─────────────────────────────────────────────────────────────
+  {
+    id: 'discount-sale',
+    name: 'Sale Discount',
+    category: 'Discounts',
+    thumbnail: '',
+    size: { width: 60, height: 40 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(60), px(40), '#fef2f2', { stroke: '#fca5a5', strokeWidth: 2 }),
+        boldTxt(6, 6, 'SALE', 20, '#dc2626'),
+        boldTxt(6, 34, '{{discount}}% OFF', 16, '#dc2626'),
+        txt(6, 56, '{{product_name}}', 11, '#374151'),
+        txt(6, 72, 'Was: ${{original_price}}', 10, '#9ca3af'),
+        boldTxt(6, px(40) - 25, 'Now: ${{sale_price}}', 14, '#dc2626'),
       ],
     },
   },
   {
-    id: 'address-label',
-    name: 'Address Label',
-    category: 'Office',
+    id: 'discount-black-friday',
+    name: 'Black Friday',
+    category: 'Discounts',
     thumbnail: '',
-    size: { width: 66.7, height: 25.4 },
+    size: { width: 70, height: 45 },
     canvas_json: {
       version: '5.3.0',
       objects: [
-        {
-          type: 'i-text', left: 8, top: 6, text: '{{name}}',
-          fontSize: 12, fontWeight: 'bold', fontFamily: 'Arial', fill: '#111827',
-          customData: { template: '{{name}}' },
-        },
-        {
-          type: 'i-text', left: 8, top: 22, text: '{{street}}',
-          fontSize: 10, fontFamily: 'Arial', fill: '#374151',
-          customData: { template: '{{street}}' },
-        },
-        {
-          type: 'i-text', left: 8, top: 35, text: '{{city}}, {{state}} {{zip}}',
-          fontSize: 10, fontFamily: 'Arial', fill: '#374151',
-          customData: { template: '{{city}}, {{state}} {{zip}}' },
-        },
+        rect(0, 0, px(70), px(45), '#111827'),
+        boldTxt(6, 8, 'BLACK FRIDAY', 14, '#fbbf24'),
+        boldTxt(6, 28, '{{discount}}% OFF', 24, '#ffffff'),
+        txt(6, 58, '{{product_name}}', 11, '#d1d5db'),
+        boldTxt(6, 76, '${{sale_price}}', 18, '#fbbf24'),
+        txt(6, 100, 'Was ${{original_price}}', 10, '#6b7280'),
       ],
     },
   },
+  {
+    id: 'discount-conditional',
+    name: 'Show Discount if Lower',
+    category: 'Discounts',
+    thumbnail: '',
+    size: { width: 60, height: 35 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(60), px(35), '#ffffff', { stroke: '#e5e7eb', strokeWidth: 1 }),
+        boldTxt(6, 6, '{{product_name}}', 13, '#111827'),
+        boldTxt(6, 26, '${{price}}', 18, '#111827'),
+        txt(6, 50, 'Was ${{original_price}}', 10, '#9ca3af',
+          { customData: { template: 'Was ${{original_price}}', condition: 'parseFloat(row.price) < parseFloat(row.original_price)' } }),
+        txt(6, 64, '{{discount}}% off', 10, '#dc2626',
+          { customData: { template: '{{discount}}% off', condition: 'parseFloat(row.price) < parseFloat(row.original_price)' } }),
+      ],
+    },
+  },
+
+  // ── Food ──────────────────────────────────────────────────────────────────
   {
     id: 'food-label',
     name: 'Food / Ingredients',
@@ -166,31 +288,195 @@ export const BUILT_IN_TEMPLATES: Template[] = [
     canvas_json: {
       version: '5.3.0',
       objects: [
-        {
-          type: 'rect', left: 0, top: 0, width: 378, height: 227,
-          fill: '#f0fdf4', stroke: '#16a34a', strokeWidth: 2,
-          selectable: false, evented: false,
-        },
-        {
-          type: 'i-text', left: 10, top: 10, text: '{{product_name}}',
-          fontSize: 18, fontWeight: 'bold', fontFamily: 'Arial', fill: '#14532d',
-          customData: { template: '{{product_name}}' },
-        },
-        {
-          type: 'i-text', left: 10, top: 38, text: 'Net Wt: {{weight}}',
-          fontSize: 12, fontFamily: 'Arial', fill: '#166534',
-          customData: { template: 'Net Wt: {{weight}}' },
-        },
-        {
-          type: 'i-text', left: 10, top: 58, text: 'Best by: {{best_by}}',
-          fontSize: 12, fontFamily: 'Arial', fill: '#166534',
-          customData: { template: 'Best by: {{best_by}}' },
-        },
-        {
-          type: 'i-text', left: 10, top: 82, text: 'Ingredients: {{ingredients}}',
-          fontSize: 10, fontFamily: 'Arial', fill: '#374151',
-          customData: { template: 'Ingredients: {{ingredients}}' },
-        },
+        rect(0, 0, px(100), px(60), '#f0fdf4', { stroke: '#16a34a', strokeWidth: 2 }),
+        boldTxt(10, 10, '{{product_name}}', 18, '#14532d'),
+        txt(10, 38, 'Net Wt: {{weight}}', 12, '#166534'),
+        txt(10, 58, 'Best by: {{best_by}}', 12, '#166534', { customData: { template: 'Best by: {{best_by}}' } }),
+        txt(10, 82, 'Ingredients: {{ingredients}}', 10, '#374151', { customData: { template: 'Ingredients: {{ingredients}}' } }),
+      ],
+    },
+  },
+  {
+    id: 'food-nutrition',
+    name: 'Nutrition Facts',
+    category: 'Food',
+    thumbnail: '',
+    size: { width: 80, height: 100 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(80), px(100), '#ffffff', { stroke: '#000000', strokeWidth: 2 }),
+        boldTxt(6, 6, 'Nutrition Facts', 16, '#000000'),
+        txt(6, 28, 'Serving size: {{serving_size}}', 9, '#000000', { customData: { template: 'Serving size: {{serving_size}}' } }),
+        txt(6, 42, 'Servings per container: {{servings}}', 9, '#000000', { customData: { template: 'Servings per container: {{servings}}' } }),
+        { type: 'rect', left: 4, top: 52, width: px(80) - 8, height: 3, fill: '#000000', selectable: false, evented: false },
+        txt(6, 60, 'Calories: {{calories}}', 11, '#000000', { customData: { template: 'Calories: {{calories}}' } }),
+        { type: 'line', x1: 4, y1: 78, x2: px(80) - 4, y2: 78, stroke: '#cccccc', strokeWidth: 1 },
+        txt(6, 84, 'Total Fat: {{fat}}g', 9, '#000000', { customData: { template: 'Total Fat: {{fat}}g' } }),
+        txt(6, 98, 'Sodium: {{sodium}}mg', 9, '#000000', { customData: { template: 'Sodium: {{sodium}}mg' } }),
+        txt(6, 112, 'Total Carbs: {{carbs}}g', 9, '#000000', { customData: { template: 'Total Carbs: {{carbs}}g' } }),
+        txt(6, 126, 'Protein: {{protein}}g', 9, '#000000', { customData: { template: 'Protein: {{protein}}g' } }),
+        { type: 'line', x1: 4, y1: 142, x2: px(80) - 4, y2: 142, stroke: '#000000', strokeWidth: 2 },
+        txt(6, 148, 'Ingredients: {{ingredients}}', 8, '#374151', { customData: { template: 'Ingredients: {{ingredients}}' } }),
+        txt(6, 166, 'Best by: {{best_by}}', 8, '#374151', { customData: { template: 'Best by: {{best_by}}' } }),
+      ],
+    },
+  },
+  {
+    id: 'food-bakery',
+    name: 'Bakery Label',
+    category: 'Food',
+    thumbnail: '',
+    size: { width: 70, height: 35 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(70), px(35), '#fdf6ec', { stroke: '#d97706', strokeWidth: 1 }),
+        boldTxt(6, 6, '{{product_name}}', 15, '#92400e'),
+        txt(6, 28, '{{ingredients}}', 9, '#78350f'),
+        txt(6, 44, 'Weight: {{weight}}', 9, '#78350f', { customData: { template: 'Weight: {{weight}}' } }),
+        boldTxt(6, px(35) - 22, '${{price}}', 14, '#b45309'),
+        txt(px(70) - 80, px(35) - 16, 'Best by: {{best_by}}', 8, '#9ca3af'),
+      ],
+    },
+  },
+
+  // ── Shipping ──────────────────────────────────────────────────────────────
+  {
+    id: 'shipping-label',
+    name: 'Shipping Label',
+    category: 'Shipping',
+    thumbnail: '',
+    size: { width: 100, height: 150 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        boldTxt(10, 10, 'SHIP TO:', 10, '#6b7280'),
+        boldTxt(10, 26, '{{customer_name}}', 16, '#111827'),
+        txt(10, 50, '{{address}}', 13, '#374151'),
+        txt(10, 72, '{{city}}, {{state}} {{zip}}', 13, '#374151', { customData: { template: '{{city}}, {{state}} {{zip}}' } }),
+        { type: 'line', x1: 10, y1: 105, x2: px(100) - 10, y2: 105, stroke: '#d1d5db', strokeWidth: 1 },
+        txt(10, 115, 'Order: {{order_number}}', 11, '#6b7280', { customData: { template: 'Order: {{order_number}}' } }),
+        txt(10, 133, 'Weight: {{weight}}  Items: {{item_count}}', 10, '#6b7280', { customData: { template: 'Weight: {{weight}}  Items: {{item_count}}' } }),
+      ],
+    },
+  },
+  {
+    id: 'shipping-fragile',
+    name: 'Fragile / Handle with Care',
+    category: 'Shipping',
+    thumbnail: '',
+    size: { width: 100, height: 50 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(100), px(50), '#fef9c3', { stroke: '#eab308', strokeWidth: 3 }),
+        boldTxt(12, 10, '⚠ FRAGILE', 22, '#ca8a04'),
+        boldTxt(12, 40, 'Handle with Care', 14, '#854d0e'),
+        txt(12, 62, '{{product_name}}', 11, '#374151'),
+        txt(12, 80, 'Order: {{order_number}}', 10, '#6b7280', { customData: { template: 'Order: {{order_number}}' } }),
+      ],
+    },
+  },
+
+  // ── Retail ────────────────────────────────────────────────────────────────
+  {
+    id: 'price-tag',
+    name: 'Price Tag',
+    category: 'Retail',
+    thumbnail: '',
+    size: { width: 50, height: 30 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(50), px(30), '#fef3c7', { stroke: '#f59e0b', strokeWidth: 2, rx: 6, ry: 6 }),
+        boldTxt(10, 8, '{{product_name}}', 13, '#92400e'),
+        boldTxt(10, 65, '${{price}}', 28, '#b45309'),
+      ],
+    },
+  },
+  {
+    id: 'price-tag-two-price',
+    name: 'Sale vs Original Price',
+    category: 'Retail',
+    thumbnail: '',
+    size: { width: 55, height: 32 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(55), px(32), '#ffffff', { stroke: '#e5e7eb', strokeWidth: 1 }),
+        boldTxt(6, 6, '{{product_name}}', 12, '#111827'),
+        txt(6, 26, 'Was: ${{original_price}}', 10, '#9ca3af'),
+        boldTxt(6, 44, 'Now: ${{price}}', 18, '#dc2626'),
+        txt(px(55) - 55, px(32) - 16, '{{discount}}% off', 9, '#dc2626'),
+      ],
+    },
+  },
+
+  // ── Office ────────────────────────────────────────────────────────────────
+  {
+    id: 'address-label',
+    name: 'Address Label',
+    category: 'Office',
+    thumbnail: '',
+    size: { width: 66.7, height: 25.4 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        boldTxt(8, 6, '{{name}}', 12, '#111827'),
+        txt(8, 22, '{{street}}', 10, '#374151'),
+        txt(8, 35, '{{city}}, {{state}} {{zip}}', 10, '#374151', { customData: { template: '{{city}}, {{state}} {{zip}}' } }),
+      ],
+    },
+  },
+  {
+    id: 'name-badge',
+    name: 'Name Badge',
+    category: 'Office',
+    thumbnail: '',
+    size: { width: 86, height: 54 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(86), 20, '#2563eb'),
+        rect(0, 20, px(86), px(54) - 20, '#ffffff', { stroke: '#dbeafe', strokeWidth: 1 }),
+        boldTxt(8, 4, '{{company}}', 10, '#dbeafe'),
+        boldTxt(8, 30, '{{name}}', 22, '#111827'),
+        txt(8, 60, '{{title}}', 13, '#6b7280'),
+        txt(8, 80, '{{department}}', 11, '#9ca3af'),
+      ],
+    },
+  },
+  {
+    id: 'folder-label',
+    name: 'Folder / Binder Label',
+    category: 'Office',
+    thumbnail: '',
+    size: { width: 90, height: 38 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, 10, px(38), '#2563eb'),
+        rect(10, 0, px(90) - 10, px(38), '#ffffff', { stroke: '#e5e7eb', strokeWidth: 1 }),
+        boldTxt(18, 10, '{{title}}', 16, '#111827'),
+        txt(18, 34, '{{subtitle}}', 11, '#6b7280'),
+        txt(18, 52, '{{date}}', 10, '#9ca3af'),
+      ],
+    },
+  },
+
+  // ── Warehouse ─────────────────────────────────────────────────────────────
+  {
+    id: 'inventory-tag',
+    name: 'Inventory Tag',
+    category: 'Warehouse',
+    thumbnail: '',
+    size: { width: 80, height: 40 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        boldTxt(10, 8, '{{item_name}}', 15, '#111827'),
+        txt(10, 32, 'Qty: {{quantity}}  Loc: {{location}}', 11, '#6b7280', { customData: { template: 'Qty: {{quantity}}  Loc: {{location}}' } }),
       ],
     },
   },
@@ -203,24 +489,34 @@ export const BUILT_IN_TEMPLATES: Template[] = [
     canvas_json: {
       version: '5.3.0',
       objects: [
-        {
-          type: 'i-text', left: 10, top: 8, text: 'ASSET: {{asset_id}}',
-          fontSize: 14, fontWeight: 'bold', fontFamily: 'Arial', fill: '#111827',
-          customData: { template: 'ASSET: {{asset_id}}' },
-        },
-        {
-          type: 'i-text', left: 10, top: 30, text: '{{description}}',
-          fontSize: 11, fontFamily: 'Arial', fill: '#6b7280',
-          customData: { template: '{{description}}' },
-        },
-        {
-          type: 'i-text', left: 10, top: 50, text: 'Dept: {{department}}',
-          fontSize: 10, fontFamily: 'Arial', fill: '#6b7280',
-          customData: { template: 'Dept: {{department}}' },
-        },
+        boldTxt(10, 8, 'ASSET: {{asset_id}}', 14, '#111827'),
+        txt(10, 30, '{{description}}', 11, '#6b7280'),
+        txt(10, 50, 'Dept: {{department}}', 10, '#6b7280', { customData: { template: 'Dept: {{department}}' } }),
       ],
     },
   },
+  {
+    id: 'pallet-label',
+    name: 'Pallet / Box Label',
+    category: 'Warehouse',
+    thumbnail: '',
+    size: { width: 100, height: 70 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(100), 22, '#111827'),
+        boldTxt(8, 4, 'PALLET ID: {{pallet_id}}', 11, '#f9fafb'),
+        boldTxt(8, 28, '{{product_name}}', 16, '#111827'),
+        txt(8, 52, 'SKU: {{sku}}', 11, '#374151'),
+        txt(8, 70, 'Qty: {{quantity}}  Units: {{unit}}', 11, '#374151', { customData: { template: 'Qty: {{quantity}}  Units: {{unit}}' } }),
+        txt(8, 90, 'Lot: {{lot_number}}', 11, '#374151', { customData: { template: 'Lot: {{lot_number}}' } }),
+        txt(8, 108, 'Exp: {{expiry}}  Mfg: {{manufactured}}', 10, '#6b7280', { customData: { template: 'Exp: {{expiry}}  Mfg: {{manufactured}}' } }),
+        boldTxt(8, px(70) - 22, 'Location: {{location}}', 12, '#1d4ed8'),
+      ],
+    },
+  },
+
+  // ── Blank ─────────────────────────────────────────────────────────────────
   {
     id: 'blank-80x40',
     name: 'Blank 80×40mm',
@@ -235,6 +531,14 @@ export const BUILT_IN_TEMPLATES: Template[] = [
     category: 'Blank',
     thumbnail: '',
     size: { width: 100, height: 50 },
+    canvas_json: { version: '5.3.0', objects: [] },
+  },
+  {
+    id: 'blank-57x32',
+    name: 'Blank 57×32mm (Thermal)',
+    category: 'Blank',
+    thumbnail: '',
+    size: { width: 57, height: 32 },
     canvas_json: { version: '5.3.0', objects: [] },
   },
   {

@@ -5,9 +5,26 @@ import { MAX_BATCH_ROWS } from '@/lib/constants'
 
 export type BatchProgress = (current: number, total: number) => void
 
+/** Fields whose value specifies how many copies to print for this row */
+const QTY_FIELD_NAMES = ['PrintQuantity', 'Qty', 'Copies', 'Count', 'Quantity']
+
+/** Expand rows by PrintQuantity so row {name:"A", PrintQuantity:"3"} becomes 3 rows */
+export function expandRowsByQuantity(rows: DataRow[]): DataRow[] {
+  const out: DataRow[] = []
+  for (const row of rows) {
+    const qtyField = QTY_FIELD_NAMES.find(f => row[f] !== undefined)
+    const qty = qtyField ? Math.min(Math.max(1, parseInt(row[qtyField] ?? '1', 10) || 1), 999) : 1
+    for (let q = 0; q < qty; q++) out.push(row)
+  }
+  return out
+}
+
 /**
- * Renders one label image per data row and opens a multi-page browser print
- * dialog. Falls back to a single copy if `rows` is empty.
+ * Renders one label image per (expanded) data row and opens a multi-page
+ * browser print dialog. Falls back to a single copy if `rows` is empty.
+ *
+ * Supports PrintQuantity / Qty / Copies / Count / Quantity fields:
+ * a row with PrintQuantity=3 prints three identical copies of that label.
  *
  * @param templateJson  Canvas JSON from `canvas.toObject(['customData','id'])`
  * @param rows          Data rows to merge (empty = print once with no merge)
@@ -24,8 +41,8 @@ export async function batchPrint(
   labelName: string,
   onProgress?: BatchProgress,
 ): Promise<void> {
-  const effectiveRows: DataRow[] = rows.length ? rows : [{}]
-  const capped = effectiveRows.slice(0, MAX_BATCH_ROWS)
+  const expanded = rows.length ? expandRowsByQuantity(rows) : [{}]
+  const capped   = expanded.slice(0, MAX_BATCH_ROWS)
 
   const labelW = mmToPx(widthMm)
   const labelH = mmToPx(heightMm)
@@ -45,7 +62,6 @@ export async function batchPrint(
     c.setZoom(DPR)
 
     await c.loadFromJSON(templateJson)
-    // Reset conditional visibility before applying merge so every row starts fresh
     resetToTemplates(c)
     await applyMerge(c, capped[i], i)
 
@@ -78,7 +94,6 @@ export async function batchPrint(
   if (!w) return
   w.document.write(html)
   w.document.close()
-  // Wait for all images to decode before printing
   w.addEventListener('load', () => w.print())
 }
 

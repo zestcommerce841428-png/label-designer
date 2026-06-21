@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { IText, FabricImage, type FabricObject } from 'fabric'
+import { AlignLeft, AlignCenter, AlignRight } from 'lucide-react'
 import { getCanvas } from './FabricCanvas'
 import { BARCODE_GROUPS, generateBarcodeDataURL } from '@/lib/barcode'
 import { LABEL_SIZES } from '@/lib/label-sizes'
@@ -128,6 +129,24 @@ export default function PropertiesPanel() {
               value={String(textObj.fill ?? '#000000')}
               onChange={e => updateShape({ fill: e.target.value })} />
           </PRow>
+          <PRow label="Align">
+            <div className="flex gap-0.5">
+              {(['left','center','right'] as const).map(align => {
+                const Icon = align === 'left' ? AlignLeft : align === 'center' ? AlignCenter : AlignRight
+                return (
+                  <button
+                    key={align}
+                    type="button"
+                    title={align}
+                    onClick={() => updateShape({ textAlign: align })}
+                    className={`p-1 rounded transition-colors ${textObj.textAlign === align ? 'bg-blue-100 text-blue-700' : 'text-zinc-500 hover:bg-zinc-100'}`}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                  </button>
+                )
+              })}
+            </div>
+          </PRow>
           <PRow label="Bold">
             <input type="checkbox" title="Bold"
               checked={textObj.fontWeight === 'bold'}
@@ -137,6 +156,12 @@ export default function PropertiesPanel() {
             <input type="checkbox" title="Italic"
               checked={textObj.fontStyle === 'italic'}
               onChange={e => updateShape({ fontStyle: e.target.checked ? 'italic' : 'normal' })} />
+          </PRow>
+          <PRow label="Line height">
+            <input type="number" min={0.5} max={4} step={0.1} title="Line height"
+              className="w-16 text-sm border border-zinc-300 rounded px-2 py-1"
+              value={textObj.lineHeight ?? 1.16}
+              onChange={e => updateShape({ lineHeight: +e.target.value })} />
           </PRow>
         </div>
       )}
@@ -176,7 +201,31 @@ export default function PropertiesPanel() {
         )
       })()}
 
-      {obj && !isText && !isBarcode && (() => {
+      {obj && !isText && !isBarcode && obj instanceof FabricImage && (() => {
+        const imgObj = obj as AnyFabricObj
+        return (
+          <div className="p-4 space-y-3 border-b border-zinc-100">
+            <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Image</h3>
+            <div>
+              <label className="text-xs text-zinc-600 block mb-1">Source URL / Merge tag</label>
+              <input type="text"
+                className="w-full text-xs border border-zinc-300 rounded-md px-2 py-1.5 font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+                placeholder="https://… or {{image_url}}"
+                value={imgObj.customData?.template ?? ''}
+                onChange={e => {
+                  ;(obj as AnyFabricObj).customData = { ...imgObj.customData, template: e.target.value }
+                  getCanvas()?.renderAll()
+                }}
+              />
+              <p className="text-xs text-zinc-400 mt-1">
+                Use a merge tag to load a different image per data row.
+              </p>
+            </div>
+          </div>
+        )
+      })()}
+
+      {obj && !isText && !isBarcode && !(obj instanceof FabricImage) && (() => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const sObj = obj as any
         return (

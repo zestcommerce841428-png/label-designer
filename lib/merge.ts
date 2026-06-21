@@ -14,6 +14,70 @@ type WithCustomData = FabricObject & {
 }
 
 // ---------------------------------------------------------------------------
+// Built-in helpers exposed inside {{= }} formula expressions
+// ---------------------------------------------------------------------------
+
+/**
+ * Excel-style number/date formatter available as `fmt(value, pattern)` inside
+ * formula fields.
+ *
+ * Examples:
+ *   {{= fmt(row.price, '#,##0.00') }}  →  "1,234.56"
+ *   {{= fmt(row.price, '$#,##0.00') }} →  "$1,234.56"
+ *   {{= fmt(row.date,  'dd/MM/yyyy') }} →  "21/06/2026"
+ *   {{= fmt(row.price, '0%') }}         →  "75%"
+ */
+function fmt(value: unknown, pattern: string): string {
+  if (value === null || value === undefined || value === '') return ''
+
+  // Date pattern detection
+  if (/[dMyH]/.test(pattern) && !/[#0]/.test(pattern)) {
+    const d = value instanceof Date ? value : new Date(String(value))
+    if (!isNaN(d.getTime())) {
+      return pattern
+        .replace('yyyy', String(d.getFullYear()))
+        .replace('yy',   String(d.getFullYear()).slice(-2))
+        .replace('MM',   String(d.getMonth() + 1).padStart(2, '0'))
+        .replace('M',    String(d.getMonth() + 1))
+        .replace('dd',   String(d.getDate()).padStart(2, '0'))
+        .replace('d',    String(d.getDate()))
+        .replace('HH',   String(d.getHours()).padStart(2, '0'))
+        .replace('mm',   String(d.getMinutes()).padStart(2, '0'))
+        .replace('ss',   String(d.getSeconds()).padStart(2, '0'))
+    }
+  }
+
+  const num = parseFloat(String(value))
+  if (isNaN(num)) return String(value)
+
+  // Percentage
+  if (pattern.endsWith('%')) {
+    const decimals = (pattern.match(/0\.(0+)/) ?? [])[1]?.length ?? 0
+    return (num * (pattern.includes('0%') && num <= 1 ? 100 : 1)).toFixed(decimals) + '%'
+  }
+
+  // Detect decimal places from pattern
+  const decPart = (pattern.match(/\.(0+)/) ?? [])[1]
+  const decimals = decPart?.length ?? 0
+
+  // Group separator
+  const useGroup = pattern.includes(',')
+
+  // Currency prefix
+  const currencyMatch = pattern.match(/^([^#0]+)/)
+  const prefix = currencyMatch ? currencyMatch[1].replace(/[#,0.]/g, '') : ''
+
+  let formatted = num.toFixed(decimals)
+  if (useGroup) {
+    const [intPart, fracPart] = formatted.split('.')
+    const grouped = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+    formatted = fracPart !== undefined ? `${grouped}.${fracPart}` : grouped
+  }
+
+  return prefix + formatted
+}
+
+// ---------------------------------------------------------------------------
 // Template resolution
 // ---------------------------------------------------------------------------
 
@@ -22,9 +86,13 @@ type WithCustomData = FabricObject & {
  *
  * Supported syntax:
  *   {{field}}              — simple field substitution
- *   {{=row.price * 1.1}}   — JavaScript formula; `row` and `rowIndex` are in scope
+ *   {{=row.price * 1.1}}   — JavaScript formula; `row`, `rowIndex`, `fmt` are in scope
  *   {{#counter}}           — auto-increment starting at 1 (step 1, no padding)
  *   {{#counter:5:2:4}}     — start=5, step=2, pad to 4 digits → "0005", "0007", …
+ *
+ * Formula scope extras:
+ *   fmt(value, pattern)    — Excel-style number/date formatting
+ *   fmt(row.price, '#,##0.00') → "1,234.56"
  */
 export function resolveTemplate(template: string, row: DataRow, rowIndex: number): string {
   return template.replace(/\{\{([^}]+)\}\}/g, (_, inner: string) => {
@@ -37,8 +105,8 @@ export function resolveTemplate(template: string, row: DataRow, rowIndex: number
     if (t.startsWith('#counter')) {
       const parts = t.split(':')
       const start = parseInt(parts[1] ?? '1', 10)
-      const step = parseInt(parts[2] ?? '1', 10)
-      const pad = parseInt(parts[3] ?? '0', 10)
+      const step  = parseInt(parts[2] ?? '1', 10)
+      const pad   = parseInt(parts[3] ?? '0', 10)
       const value = start + rowIndex * step
       return pad > 0 ? String(value).padStart(pad, '0') : String(value)
     }
@@ -50,8 +118,8 @@ export function resolveTemplate(template: string, row: DataRow, rowIndex: number
 function evalFormula(expr: string, row: DataRow, rowIndex: number): string {
   try {
     // eslint-disable-next-line no-new-func
-    const fn = new Function('row', 'rowIndex', `"use strict"; return String(${expr})`)
-    return fn(row, rowIndex) as string
+    const fn = new Function('row', 'rowIndex', 'fmt', `"use strict"; return String(${expr})`)
+    return fn(row, rowIndex, fmt) as string
   } catch {
     return '#ERR'
   }
@@ -72,12 +140,15 @@ function evalCondition(condition: string, row: DataRow, rowIndex: number): boole
 // Canvas-level merge
 // ---------------------------------------------------------------------------
 
+const URL_RE = /^https?:\/\//i
+
 /**
  * Applies a data row to all objects on the canvas:
  *   - Sets visibility based on `customData.condition`
- *   - Resolves `customData.template` into the rendered text / barcode value
+ *   - Resolves `customData.template` into the rendered text / barcode / image
  *
- * This mutates the live canvas objects. Call `canvas.renderAll()` after.
+ * Dynamic image: if a FabricImage has a template that resolves to a URL,
+ * its src is updated (works for product photos stored in a CSV column).
  */
 export async function applyMerge(canvas: Canvas, row: DataRow, rowIndex: number): Promise<void> {
   const objects = canvas.getObjects() as WithCustomData[]
@@ -101,7 +172,14 @@ export async function applyMerge(canvas: Canvas, row: DataRow, rowIndex: number)
         const dataURL = await generateBarcodeDataURL(resolved, (cd.barcodeType ?? 'qrcode') as 'qrcode')
         await (obj as FabricImage).setSrc(dataURL)
       } catch {
-        // Invalid barcode value — leave the previous image intact
+        // Invalid barcode value — leave previous image intact
+      }
+    } else if (obj instanceof FabricImage && URL_RE.test(resolved)) {
+      // Dynamic image from URL field — e.g. {{product_image}} → https://...
+      try {
+        await (obj as FabricImage).setSrc(resolved, { crossOrigin: 'anonymous' })
+      } catch {
+        // Network failure or CORS — silently skip
       }
     }
   }
@@ -111,8 +189,8 @@ export async function applyMerge(canvas: Canvas, row: DataRow, rowIndex: number)
 
 /**
  * Resets all template-bearing text objects to show their raw template string.
- * Call this before serialising the canvas to JSON so saved files contain
- * `{{field}}` placeholders rather than merged values from a previous preview.
+ * Call before serialising the canvas so saved JSON contains `{{field}}`
+ * placeholders rather than last-previewed values.
  */
 export function resetToTemplates(canvas: Canvas): void {
   const objects = canvas.getObjects() as WithCustomData[]
@@ -122,7 +200,6 @@ export function resetToTemplates(canvas: Canvas): void {
     if (obj.type === 'i-text' || obj.type === 'text') {
       ;(obj as IText).set({ text: template })
     }
-    // Restore visibility so hidden conditional elements are saved as visible
     obj.set({ visible: true })
   }
 }
