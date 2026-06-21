@@ -9,6 +9,12 @@ import { LABEL_SIZES } from '@/lib/label-sizes'
 import { useEditorStore } from '@/lib/store/editor'
 import type { AnyFabricObj } from '@/types/fabric-extensions'
 
+const FONT_FAMILIES = [
+  'Arial', 'Arial Black', 'Comic Sans MS', 'Courier New', 'Georgia',
+  'Impact', 'Lucida Console', 'Lucida Sans Unicode', 'Palatino Linotype',
+  'Tahoma', 'Times New Roman', 'Trebuchet MS', 'Verdana',
+]
+
 export default function PropertiesPanel() {
   const { activeObjectId, selectedSize, setSelectedSize } = useEditorStore()
   const [obj, setObj] = useState<AnyFabricObj | null>(null)
@@ -76,6 +82,8 @@ export default function PropertiesPanel() {
   const isLayer   = obj instanceof Group && obj.customData?.type === 'layer'
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const textObj = isText ? (obj as any) : null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const anyObj = obj as any
 
   return (
     <aside className="w-60 bg-white border-l border-zinc-200 overflow-y-auto shrink-0">
@@ -101,6 +109,58 @@ export default function PropertiesPanel() {
         <div className="p-4 text-xs text-zinc-400">Select an element to edit properties.</div>
       )}
 
+      {/* Position / Size / Angle — shown for all selected elements */}
+      {obj && (
+        <div className="p-4 border-b border-zinc-100 space-y-2">
+          <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Transform</h3>
+          <div className="grid grid-cols-2 gap-x-2 gap-y-1.5">
+            <div>
+              <label className="text-[10px] text-zinc-400 block mb-0.5">X</label>
+              <input type="number" title="X position" step={1}
+                className="w-full text-xs border border-zinc-300 rounded px-1.5 py-1"
+                value={Math.round(anyObj.left ?? 0)}
+                onChange={e => updateShape({ left: +e.target.value })} />
+            </div>
+            <div>
+              <label className="text-[10px] text-zinc-400 block mb-0.5">Y</label>
+              <input type="number" title="Y position" step={1}
+                className="w-full text-xs border border-zinc-300 rounded px-1.5 py-1"
+                value={Math.round(anyObj.top ?? 0)}
+                onChange={e => updateShape({ top: +e.target.value })} />
+            </div>
+            <div>
+              <label className="text-[10px] text-zinc-400 block mb-0.5">W</label>
+              <input type="number" title="Width" min={1} step={1}
+                className="w-full text-xs border border-zinc-300 rounded px-1.5 py-1"
+                value={Math.round((anyObj.width ?? 0) * (anyObj.scaleX ?? 1))}
+                onChange={e => {
+                  const w = +e.target.value
+                  if (w > 0) updateShape({ scaleX: w / (anyObj.width ?? 1) })
+                }} />
+            </div>
+            <div>
+              <label className="text-[10px] text-zinc-400 block mb-0.5">H</label>
+              <input type="number" title="Height" min={1} step={1}
+                className="w-full text-xs border border-zinc-300 rounded px-1.5 py-1"
+                value={Math.round((anyObj.height ?? 0) * (anyObj.scaleY ?? 1))}
+                onChange={e => {
+                  const h = +e.target.value
+                  if (h > 0) updateShape({ scaleY: h / (anyObj.height ?? 1) })
+                }} />
+            </div>
+          </div>
+          <PRow label="Angle">
+            <div className="flex items-center gap-1">
+              <input type="number" min={-360} max={360} step={1} title="Rotation angle"
+                className="w-16 text-xs border border-zinc-300 rounded px-1.5 py-1"
+                value={Math.round(anyObj.angle ?? 0)}
+                onChange={e => updateShape({ angle: +e.target.value })} />
+              <span className="text-xs text-zinc-400">°</span>
+            </div>
+          </PRow>
+        </div>
+      )}
+
       {obj && isText && textObj && (
         <div className="p-4 space-y-3">
           <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Text</h3>
@@ -118,6 +178,18 @@ export default function PropertiesPanel() {
               }}
               placeholder="Text or {{field_name}}"
             />
+          </div>
+          <div>
+            <label className="text-xs text-zinc-600 block mb-1">Font</label>
+            <select title="Font family"
+              className="w-full text-sm border border-zinc-300 rounded-md px-2 py-1.5"
+              value={textObj.fontFamily ?? 'Arial'}
+              onChange={e => updateShape({ fontFamily: e.target.value })}
+            >
+              {FONT_FAMILIES.map(f => (
+                <option key={f} value={f}>{f}</option>
+              ))}
+            </select>
           </div>
           <PRow label="Font size">
             <input type="number" min={6} max={200} title="Font size"

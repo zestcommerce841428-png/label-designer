@@ -3,13 +3,14 @@
 import {
   Type, Square, Circle as CircleIcon, Minus, Image as ImageIcon,
   QrCode, Undo2, Redo2, Trash2, Copy, AlignLeft, AlignCenter, AlignRight,
-  Group, Ungroup,
+  Group, Ungroup, ChevronsUp, ChevronsDown, ChevronUp, ChevronDown,
 } from 'lucide-react'
 import { getCanvas } from './FabricCanvas'
 import {
   addText, addRect, addCircle, addLine, addBarcode, addQR,
   addImage, deleteSelected, duplicateSelected, setTextAlign,
   groupSelected, ungroupSelected,
+  bringToFront, sendToBack, bringForward, sendBackward,
 } from '@/lib/canvas/elements'
 import { undo, redo } from '@/lib/canvas/history'
 
@@ -67,6 +68,13 @@ export default function Toolbar() {
       <Sep />
       <Tool icon={Group}   label="Group (Layer)"  onClick={withCanvas(groupSelected)} />
       <Tool icon={Ungroup} label="Ungroup Layer"  onClick={withCanvas(ungroupSelected)} />
+
+      <Sep />
+      <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mr-1">Order</span>
+      <Tool icon={ChevronsUp}   label="Bring to Front"  onClick={withCanvas(bringToFront)} />
+      <Tool icon={ChevronUp}    label="Bring Forward"   onClick={withCanvas(bringForward)} />
+      <Tool icon={ChevronDown}  label="Send Backward"   onClick={withCanvas(sendBackward)} />
+      <Tool icon={ChevronsDown} label="Send to Back"    onClick={withCanvas(sendToBack)} />
 
       <Sep />
       <Tool icon={Copy}   label="Duplicate" onClick={withCanvas(duplicateSelected)} />

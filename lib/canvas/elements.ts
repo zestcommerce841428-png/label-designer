@@ -140,6 +140,36 @@ export function setTextAlign(canvas: Canvas, align: 'left' | 'center' | 'right')
   }
 }
 
+// ─── Z-order ──────────────────────────────────────────────────────────────────
+
+export function bringToFront(canvas: Canvas): void {
+  const obj = canvas.getActiveObject()
+  if (!obj) return
+  canvas.bringObjectToFront(obj)
+  canvas.renderAll()
+}
+
+export function sendToBack(canvas: Canvas): void {
+  const obj = canvas.getActiveObject()
+  if (!obj) return
+  canvas.sendObjectToBack(obj)
+  canvas.renderAll()
+}
+
+export function bringForward(canvas: Canvas): void {
+  const obj = canvas.getActiveObject()
+  if (!obj) return
+  canvas.bringObjectForward(obj)
+  canvas.renderAll()
+}
+
+export function sendBackward(canvas: Canvas): void {
+  const obj = canvas.getActiveObject()
+  if (!obj) return
+  canvas.sendObjectBackwards(obj)
+  canvas.renderAll()
+}
+
 /**
  * Group the currently selected objects into a single Layer group.
  * The group inherits the "Show when" condition field from PropertiesPanel,
