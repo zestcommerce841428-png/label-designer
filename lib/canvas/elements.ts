@@ -140,6 +140,103 @@ export function setTextAlign(canvas: Canvas, align: 'left' | 'center' | 'right')
   }
 }
 
+// ─── Alignment ────────────────────────────────────────────────────────────────
+
+type AlignDir = 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom'
+
+export function alignObjects(canvas: Canvas, dir: AlignDir): void {
+  const active = canvas.getActiveObject()
+  if (!active) return
+  const objs = canvas.getActiveObjects()
+  if (objs.length < 2) return
+
+  snapshot(canvas)
+
+  const bounds = {
+    left:   Math.min(...objs.map(o => o.left ?? 0)),
+    top:    Math.min(...objs.map(o => o.top  ?? 0)),
+    right:  Math.max(...objs.map(o => (o.left ?? 0) + (o.width  ?? 0) * (o.scaleX ?? 1))),
+    bottom: Math.max(...objs.map(o => (o.top  ?? 0) + (o.height ?? 0) * (o.scaleY ?? 1))),
+  }
+
+  for (const o of objs) {
+    const w = (o.width  ?? 0) * (o.scaleX ?? 1)
+    const h = (o.height ?? 0) * (o.scaleY ?? 1)
+    if (dir === 'left')   o.set({ left: bounds.left })
+    if (dir === 'right')  o.set({ left: bounds.right - w })
+    if (dir === 'center') o.set({ left: bounds.left + (bounds.right  - bounds.left - w) / 2 })
+    if (dir === 'top')    o.set({ top:  bounds.top })
+    if (dir === 'bottom') o.set({ top:  bounds.bottom - h })
+    if (dir === 'middle') o.set({ top:  bounds.top  + (bounds.bottom - bounds.top  - h) / 2 })
+    o.setCoords()
+  }
+  canvas.renderAll()
+}
+
+// Distribute evenly (horizontal or vertical)
+export function distributeObjects(canvas: Canvas, axis: 'h' | 'v'): void {
+  const active = canvas.getActiveObject()
+  if (!active) return
+  const objs = canvas.getActiveObjects()
+  if (objs.length < 3) return
+
+  snapshot(canvas)
+
+  if (axis === 'h') {
+    const sorted = [...objs].sort((a, b) => (a.left ?? 0) - (b.left ?? 0))
+    const totalW = sorted.reduce((s, o) => s + (o.width ?? 0) * (o.scaleX ?? 1), 0)
+    const span   = ((sorted.at(-1)?.left ?? 0) + (sorted.at(-1)?.width ?? 0) * (sorted.at(-1)?.scaleX ?? 1))
+                 - (sorted[0].left ?? 0)
+    const gap    = (span - totalW) / (sorted.length - 1)
+    let x = sorted[0].left ?? 0
+    for (const o of sorted) {
+      o.set({ left: x })
+      o.setCoords()
+      x += (o.width ?? 0) * (o.scaleX ?? 1) + gap
+    }
+  } else {
+    const sorted = [...objs].sort((a, b) => (a.top ?? 0) - (b.top ?? 0))
+    const totalH = sorted.reduce((s, o) => s + (o.height ?? 0) * (o.scaleY ?? 1), 0)
+    const span   = ((sorted.at(-1)?.top ?? 0) + (sorted.at(-1)?.height ?? 0) * (sorted.at(-1)?.scaleY ?? 1))
+                 - (sorted[0].top ?? 0)
+    const gap    = (span - totalH) / (sorted.length - 1)
+    let y = sorted[0].top ?? 0
+    for (const o of sorted) {
+      o.set({ top: y })
+      o.setCoords()
+      y += (o.height ?? 0) * (o.scaleY ?? 1) + gap
+    }
+  }
+  canvas.renderAll()
+}
+
+// ─── Clipboard paste ──────────────────────────────────────────────────────────
+
+export async function pasteFromClipboard(canvas: Canvas): Promise<void> {
+  try {
+    const items = await navigator.clipboard.read()
+    for (const item of items) {
+      const imageType = item.types.find(t => t.startsWith('image/'))
+      if (!imageType) continue
+      const blob = await item.getType(imageType)
+      const url  = URL.createObjectURL(blob)
+      snapshot(canvas)
+      const img = await FabricImage.fromURL(url)
+      const i   = img as FabricImage & { id: string }
+      i.id = uid()
+      i.scaleToWidth(Math.min(100, canvas.width ?? 100))
+      i.set({ left: 20, top: 20 })
+      canvas.add(i)
+      canvas.setActiveObject(i)
+      canvas.renderAll()
+      URL.revokeObjectURL(url)
+      return
+    }
+  } catch {
+    // Clipboard API not available or no image — silently ignore
+  }
+}
+
 // ─── Z-order ──────────────────────────────────────────────────────────────────
 
 export function bringToFront(canvas: Canvas): void {

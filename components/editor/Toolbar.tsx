@@ -4,6 +4,9 @@ import {
   Type, Square, Circle as CircleIcon, Minus, Image as ImageIcon,
   QrCode, Undo2, Redo2, Trash2, Copy, AlignLeft, AlignCenter, AlignRight,
   Group, Ungroup, ChevronsUp, ChevronsDown, ChevronUp, ChevronDown,
+  AlignStartVertical, AlignCenterVertical, AlignEndVertical,
+  AlignStartHorizontal, AlignCenterHorizontal, AlignEndHorizontal,
+  StretchHorizontal, StretchVertical, Clipboard,
 } from 'lucide-react'
 import { getCanvas } from './FabricCanvas'
 import {
@@ -11,6 +14,7 @@ import {
   addImage, deleteSelected, duplicateSelected, setTextAlign,
   groupSelected, ungroupSelected,
   bringToFront, sendToBack, bringForward, sendBackward,
+  alignObjects, distributeObjects, pasteFromClipboard,
 } from '@/lib/canvas/elements'
 import { undo, redo } from '@/lib/canvas/history'
 
@@ -60,10 +64,21 @@ export default function Toolbar() {
       </button>
 
       <Sep />
+      <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mr-1">Text</span>
+      <Tool icon={AlignLeft}   label="Text Left"   onClick={withCanvas(c => setTextAlign(c, 'left'))} />
+      <Tool icon={AlignCenter} label="Text Center" onClick={withCanvas(c => setTextAlign(c, 'center'))} />
+      <Tool icon={AlignRight}  label="Text Right"  onClick={withCanvas(c => setTextAlign(c, 'right'))} />
+
+      <Sep />
       <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mr-1">Align</span>
-      <Tool icon={AlignLeft}   label="Left"   onClick={withCanvas(c => setTextAlign(c, 'left'))} />
-      <Tool icon={AlignCenter} label="Center" onClick={withCanvas(c => setTextAlign(c, 'center'))} />
-      <Tool icon={AlignRight}  label="Right"  onClick={withCanvas(c => setTextAlign(c, 'right'))} />
+      <Tool icon={AlignStartHorizontal}  label="Align Top"    onClick={withCanvas(c => alignObjects(c, 'top'))} />
+      <Tool icon={AlignCenterHorizontal} label="Align Middle" onClick={withCanvas(c => alignObjects(c, 'middle'))} />
+      <Tool icon={AlignEndHorizontal}    label="Align Bottom" onClick={withCanvas(c => alignObjects(c, 'bottom'))} />
+      <Tool icon={AlignStartVertical}    label="Align Left"   onClick={withCanvas(c => alignObjects(c, 'left'))} />
+      <Tool icon={AlignCenterVertical}   label="Align Center" onClick={withCanvas(c => alignObjects(c, 'center'))} />
+      <Tool icon={AlignEndVertical}      label="Align Right"  onClick={withCanvas(c => alignObjects(c, 'right'))} />
+      <Tool icon={StretchHorizontal}     label="Distribute Horizontally" onClick={withCanvas(c => distributeObjects(c, 'h'))} />
+      <Tool icon={StretchVertical}       label="Distribute Vertically"   onClick={withCanvas(c => distributeObjects(c, 'v'))} />
 
       <Sep />
       <Tool icon={Group}   label="Group (Layer)"  onClick={withCanvas(groupSelected)} />
@@ -77,8 +92,9 @@ export default function Toolbar() {
       <Tool icon={ChevronsDown} label="Send to Back"    onClick={withCanvas(sendToBack)} />
 
       <Sep />
-      <Tool icon={Copy}   label="Duplicate" onClick={withCanvas(duplicateSelected)} />
-      <Tool icon={Trash2} label="Delete"    onClick={withCanvas(deleteSelected)} />
+      <Tool icon={Clipboard} label="Paste Image (Ctrl+V)" onClick={withCanvas(c => pasteFromClipboard(c))} />
+      <Tool icon={Copy}   label="Duplicate (Ctrl+D)" onClick={withCanvas(duplicateSelected)} />
+      <Tool icon={Trash2} label="Delete (Del)"       onClick={withCanvas(deleteSelected)} />
 
       <Sep />
       <Tool icon={Undo2}  label="Undo" onClick={withCanvas(undo)} />

@@ -10,6 +10,7 @@ import {
   deleteSelected, duplicateSelected,
   groupSelected, ungroupSelected,
   bringToFront, sendToBack, bringForward, sendBackward,
+  pasteFromClipboard,
 } from '@/lib/canvas/elements'
 import { undo, redo } from '@/lib/canvas/history'
 
@@ -107,6 +108,9 @@ export default function FabricCanvas({ onCanvasReady }: Props) {
         e.preventDefault()
         if (e.shiftKey) sendToBack(c)
         else sendBackward(c)
+      } else if (ctrl && e.key === 'v') {
+        e.preventDefault()
+        pasteFromClipboard(c)
       } else if (!ctrl && active && ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) {
         // Nudge selected element 1px (or 10px with Shift)
         e.preventDefault()
