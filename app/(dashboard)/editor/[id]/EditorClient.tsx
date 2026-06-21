@@ -3,7 +3,7 @@
 import { useEffect, useCallback, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
-import { Save, Download, Printer, ChevronLeft, BarChart2, Layers, Terminal, Grid2x2, X } from 'lucide-react'
+import { Save, Download, Printer, ChevronLeft, BarChart2, Layers, Terminal, Grid2x2, X, BookOpen, Magnet } from 'lucide-react'
 import { useEditorStore } from '@/lib/store/editor'
 import { saveLabel, logPrintJob } from '@/actions/labels'
 import { LABEL_SIZES } from '@/lib/label-sizes'
@@ -22,6 +22,45 @@ const FabricCanvas = dynamic(() => import('@/components/editor/FabricCanvas'), {
 const Toolbar = dynamic(() => import('@/components/editor/Toolbar'), { ssr: false })
 const PropertiesPanel = dynamic(() => import('@/components/editor/PropertiesPanel'), { ssr: false })
 
+const FORMULA_GROUPS: { label: string; helpers: [string, string][] }[] = [
+  { label: 'Text', helpers: [
+    ['Left(s, n)', 'First n characters'],
+    ['Right(s, n)', 'Last n characters'],
+    ['Mid(s, start, len?)', 'Substring from start'],
+    ['Trim(s)', 'Remove leading/trailing spaces'],
+    ['Upper(s)', 'Uppercase'],
+    ['Lower(s)', 'Lowercase'],
+    ['Len(s)', 'String length'],
+    ['Replace(s, find, rep)', 'Replace all occurrences'],
+    ['Pad(s, width, char?, align?)', 'Pad string to width (L/R/C)'],
+    ['Concat(...args)', 'Join values as string'],
+    ['Split(s, sep, index?)', 'Split and pick index'],
+    ['Contains(s, sub)', 'Returns true/false'],
+    ['StartsWith(s, prefix)', 'Returns true/false'],
+    ['EndsWith(s, suffix)', 'Returns true/false'],
+  ]},
+  { label: 'Numbers', helpers: [
+    ['FormatNumber(n, decimals?, locale?)', 'Locale decimal format — e.g. 1,234.56'],
+    ['FormatCurrency(n, currency?, locale?)', 'Currency format — e.g. $1,234.56'],
+    ['CalcDiscount(price, original)', 'Discount % string — e.g. "−25%"'],
+    ['Abs(n)', 'Absolute value'],
+    ['Round(n, decimals?)', 'Round to N decimals'],
+    ['Ceil(n, decimals?)', 'Round up'],
+    ['Floor(n, decimals?)', 'Round down'],
+    ['Min(...args)', 'Smallest value'],
+    ['Max(...args)', 'Largest value'],
+  ]},
+  { label: 'Date / Time', helpers: [
+    ['today(fmt?)', 'Today\'s date (default yyyy-MM-dd)'],
+    ['now(fmt?)', 'Current time (default HH:mm:ss)'],
+    ['fmt(value, pattern)', 'Format date — e.g. fmt(new Date(), "dd/MM/yyyy")'],
+  ]},
+  { label: 'GS1 / Barcode', helpers: [
+    ['gs1(barcode, ai)', 'Parse GS1 AI — e.g. gs1(row.barcode, "gtin")'],
+    ['If(cond, a, b)', 'Ternary — e.g. If(row.qty>0,"In stock","Out")'],
+  ]},
+]
+
 type Label = {
   id: string
   name: string
@@ -34,6 +73,8 @@ export default function EditorClient({ label }: { label: Label }) {
   const { setLabelId, setLabelName, setSelectedSize, labelName, selectedSize, dataRows, isDirty, setDirty } = useEditorStore()
   const [isPending, startTransition] = useTransition()
   const [showData, setShowData] = useState(false)
+  const [snapToGrid, setSnapToGrid] = useState(false)
+  const [showFormulas, setShowFormulas] = useState(false)
   const [batchProgress, setBatchProgress] = useState<{ current: number; total: number } | null>(null)
   const [showSheetDialog, setShowSheetDialog] = useState(false)
   const [sheetPresetId, setSheetPresetId] = useState('avery-5160')
@@ -51,12 +92,40 @@ export default function EditorClient({ label }: { label: Label }) {
     if (size) setSelectedSize(size)
   }, [label, setLabelId, setLabelName, setSelectedSize])
 
+  const SNAP_SIZE = 5 // mm grid size matches the visual dots
+
   const handleCanvasReady = useCallback((canvas: Canvas) => {
     if (label.canvas_json && Object.keys(label.canvas_json).length) {
       canvas.loadFromJSON(label.canvas_json).then(() => canvas.renderAll())
     }
     setDirty(false)
   }, [label.canvas_json, setDirty])
+
+  // Wire snap-to-grid on the live canvas whenever the toggle changes
+  useEffect(() => {
+    const canvas = getCanvas()
+    if (!canvas) return
+    const mmToPxLocal = (mm: number) => Math.round(mm * 3.7795275591)
+    const gridPx = mmToPxLocal(SNAP_SIZE)
+
+    function snapHandler(e: { target?: { left?: number; top?: number; setCoords?: () => void } | null }) {
+      const obj = e.target
+      if (!obj) return
+      obj.left = Math.round((obj.left ?? 0) / gridPx) * gridPx
+      obj.top  = Math.round((obj.top  ?? 0) / gridPx) * gridPx
+      obj.setCoords?.()
+    }
+
+    if (snapToGrid) {
+      canvas.on('object:moving', snapHandler as Parameters<typeof canvas.on>[1])
+    } else {
+      canvas.off('object:moving', snapHandler as Parameters<typeof canvas.on>[1])
+    }
+    return () => {
+      canvas.off('object:moving', snapHandler as Parameters<typeof canvas.on>[1])
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [snapToGrid])
 
   function handleSave() {
     const c = getCanvas()
@@ -147,6 +216,16 @@ export default function EditorClient({ label }: { label: Label }) {
     a.click()
   }
 
+  function handleExportJPEG() {
+    const c = getCanvas()
+    if (!c) return
+    const dataURL = c.toDataURL({ format: 'jpeg', multiplier: 2, quality: 0.92 })
+    const a = document.createElement('a')
+    a.href = dataURL
+    a.download = `${labelName}.jpg`
+    a.click()
+  }
+
   function handleExportZpl(format: 'zpl' | 'tspl') {
     const c = getCanvas()
     if (!c) return
@@ -206,8 +285,19 @@ export default function EditorClient({ label }: { label: Label }) {
         >
           <BarChart2 className="w-4 h-4" /> Data
         </button>
+        <button type="button" title="Formula reference" onClick={() => setShowFormulas(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
+          <BookOpen className="w-4 h-4" /> Formulas
+        </button>
+        <button type="button" onClick={() => setSnapToGrid(p => !p)} title="Snap to grid (5mm)"
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${snapToGrid ? 'bg-blue-100 text-blue-700' : 'text-zinc-600 hover:bg-zinc-100'}`}>
+          <Magnet className="w-4 h-4" /> Snap
+        </button>
         <button type="button" onClick={handleExportPNG} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
           <Download className="w-4 h-4" /> PNG
+        </button>
+        <button type="button" onClick={handleExportJPEG} title="Export as JPEG" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
+          <Download className="w-4 h-4" /> JPG
         </button>
         <button type="button" onClick={() => handleExportZpl('zpl')} title="Download ZPL II (Zebra printers)" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
           <Terminal className="w-4 h-4" /> ZPL
@@ -263,6 +353,61 @@ export default function EditorClient({ label }: { label: Label }) {
           <PropertiesPanel />
         </ErrorBoundary>
       </div>
+
+      {/* Formula cheat sheet */}
+      {showFormulas && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowFormulas(false)}>
+          <div className="bg-white rounded-xl shadow-xl w-[520px] max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100 sticky top-0 bg-white">
+              <h2 className="text-sm font-semibold text-zinc-900">Formula Reference</h2>
+              <button type="button" onClick={() => setShowFormulas(false)} className="text-zinc-400 hover:text-zinc-700"><X className="w-4 h-4" /></button>
+            </div>
+            <div className="px-5 py-4 space-y-5 text-xs">
+              <p className="text-zinc-500">Use <code className="bg-zinc-100 px-1 rounded">{'{{=expr}}'}</code> in any text element to run a JS formula. Access row data via <code className="bg-zinc-100 px-1 rounded">row.field</code>.</p>
+              {FORMULA_GROUPS.map(g => (
+                <div key={g.label}>
+                  <p className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2">{g.label}</p>
+                  <div className="space-y-1.5">
+                    {g.helpers.map(([sig, desc]) => (
+                      <div key={sig} className="flex gap-3">
+                        <code className="text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap">{sig}</code>
+                        <span className="text-zinc-500">{desc}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              <div>
+                <p className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2">Counters</p>
+                <div className="space-y-1.5">
+                  {[
+                    ['{{#counter}}', 'Auto-incrementing serial number (1, 2, 3…)'],
+                    ['{{#counter:10:2:4}}', 'Start 10, step 2, zero-pad to 4 digits → 0010'],
+                    ['{{#label_counter}}', 'Current label number in batch'],
+                    ['{{#record_counter}}', 'Same as label_counter'],
+                    ['{{#total_records}}', 'Total number of data rows'],
+                  ].map(([sig, desc]) => (
+                    <div key={sig} className="flex gap-3">
+                      <code className="text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap">{sig}</code>
+                      <span className="text-zinc-500">{desc}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2">HTTP Requests</p>
+                <div className="space-y-1.5">
+                  <div className="flex gap-3">
+                    <code className="text-green-700 bg-green-50 px-1.5 py-0.5 rounded shrink-0">await httpGet(url)</code>
+                    <span className="text-zinc-500">Fetch URL and return body as text (SSRF-protected, HTTPS only)</span>
+                  </div>
+                  <p className="text-zinc-400 italic">Example: <code className="bg-zinc-100 px-1 rounded">{'{{= JSON.parse(await httpGet("https://api.example.com/price?sku="+row.sku)).price }}'}</code></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Sheet print dialog */}
       {showSheetDialog && (
