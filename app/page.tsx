@@ -60,10 +60,10 @@ const features = [
 ]
 
 const pricing = [
-  { plan: 'Free',     price: '$0',  period: '/mo', limits: '3 labels · 50 prints · CSV import',           cta: 'Get started', href: '/signup', highlight: false },
-  { plan: 'Starter',  price: '$12', period: '/mo', limits: '50 labels · 500 prints · Google Sheets',      cta: 'Start trial',  href: '/signup', highlight: false },
-  { plan: 'Pro',      price: '$29', period: '/mo', limits: 'Unlimited labels · API access · 3 seats',      cta: 'Start trial',  href: '/signup', highlight: true  },
-  { plan: 'Business', price: '$79', period: '/mo', limits: '10 seats · DB connections · priority support', cta: 'Contact us',  href: '/signup', highlight: false },
+  { plan: 'Free',     price: '₹0',    period: '/mo', limits: '3 labels · 50 prints · CSV import',           cta: 'Get started', href: '/signup', highlight: false },
+  { plan: 'Starter',  price: '₹999',  period: '/mo', limits: '50 labels · 500 prints · Google Sheets',      cta: 'Start trial',  href: '/signup', highlight: false },
+  { plan: 'Pro',      price: '₹2,499', period: '/mo', limits: 'Unlimited labels · API access · 3 seats',     cta: 'Start trial',  href: '/signup', highlight: true  },
+  { plan: 'Business', price: '₹6,499', period: '/mo', limits: '10 seats · DB connections · priority support', cta: 'Contact us', href: '/signup', highlight: false },
 ]
 
 const jsonLd = {
@@ -72,7 +72,7 @@ const jsonLd = {
   name: 'LabelForge',
   applicationCategory: 'DesignApplication',
   operatingSystem: 'Any (web browser)',
-  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'INR' },
   description: 'Professional web-based label design and printing platform.',
   url: process.env.NEXT_PUBLIC_SITE_URL ?? 'https://labelforge.app',
 }
