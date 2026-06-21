@@ -14,6 +14,7 @@ import { resetToTemplates } from '@/lib/merge'
 import { batchPrint } from '@/lib/canvas/batch'
 import { MAX_BATCH_ROWS } from '@/lib/constants'
 import { canvasToZpl, canvasToTspl } from '@/lib/export/zpl'
+import { canvasToEpl } from '@/lib/export/epl'
 import { multiUpPrint, MULTIUP_PRESETS, type MultiUpLayout } from '@/lib/canvas/multiup'
 import { toast } from '@/lib/store/toasts'
 import type { Canvas } from 'fabric'
@@ -329,17 +330,26 @@ export default function EditorClient({ label }: { label: Label }) {
     }
   }
 
-  function handleExportZpl(format: 'zpl' | 'tspl') {
+  function handleExportZpl(format: 'zpl' | 'tspl' | 'epl') {
     const c = getCanvas()
     if (!c) return
     resetToTemplates(c)
-    const raw = format === 'zpl'
-      ? canvasToZpl(c, selectedSize.width, selectedSize.height)
-      : canvasToTspl(c, selectedSize.width, selectedSize.height)
+    let raw: string
+    let ext: string
+    if (format === 'zpl') {
+      raw = canvasToZpl(c, selectedSize.width, selectedSize.height)
+      ext = 'zpl'
+    } else if (format === 'tspl') {
+      raw = canvasToTspl(c, selectedSize.width, selectedSize.height)
+      ext = 'tspl'
+    } else {
+      raw = canvasToEpl(c, selectedSize.width, selectedSize.height)
+      ext = 'epl'
+    }
     const blob = new Blob([raw], { type: 'text/plain' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
-    a.download = `${labelName}.${format === 'zpl' ? 'zpl' : 'tspl'}`
+    a.download = `${labelName}.${ext}`
     a.click()
     URL.revokeObjectURL(a.href)
   }
@@ -418,6 +428,9 @@ export default function EditorClient({ label }: { label: Label }) {
         </button>
         <button type="button" onClick={() => handleExportZpl('tspl')} title="Download TSPL (TSC printers)" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
           <Terminal className="w-4 h-4" /> TSPL
+        </button>
+        <button type="button" onClick={() => handleExportZpl('epl')} title="Download EPL2 (legacy Zebra LP/TLP printers)" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
+          <Terminal className="w-4 h-4" /> EPL
         </button>
         <button type="button" onClick={handlePrint} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
           <Printer className="w-4 h-4" /> Print
