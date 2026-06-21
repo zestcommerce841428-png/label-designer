@@ -26,6 +26,7 @@ Inspired by [AzureLabel](https://azurelabel.com) (Windows desktop), LabelForge b
 - Properties panel: font size, colour, bold, italic, underline, strikethrough, fill, stroke, opacity
 - Text alignment: left / centre / right; vertical alignment top / middle / bottom
 - Corner radius for rectangle elements
+- **Shrink-to-fit** — auto-scales font size down to keep text within bounding box
 
 ### Barcode Engine
 
@@ -38,6 +39,9 @@ Inspired by [AzureLabel](https://azurelabel.com) (Windows desktop), LabelForge b
 - Import **CSV** or **Excel (.xlsx / .xls)** — up to 10 MB
 - Row-by-row preview with live canvas update
 - `{{field_name}}` merge tag system — click any tag to copy, paste into text or barcode elements
+- **Formula fields** `{{=expr}}` — full JS expression evaluation with helpers: `fmt`, `If`, `Left`, `Right`, `Mid`, `Trim`, `Upper`, `Lower`, `Len`, `Replace`, `Pad`, `CalcDiscount`, `gs1`, `today`, `now`
+- **HTTP requests** `{{= await httpGet("https://…") }}` — SSRF-safe proxy to external APIs per-row
+- **Counters** `{{#counter}}`, `{{#label_counter}}`, `{{#record_counter}}`, `{{#total_records}}`
 
 ### Print & Export
 
@@ -325,10 +329,17 @@ Run `lib/supabase/schema.sql` in the Supabase SQL Editor to create tables, RLS p
 - [x] Google Sheets live connection (paste share URL → auto-fetch CSV via `/api/sheets-proxy`)
 - [x] REST API with API key auth (`/api/v1/labels/[id]/print`, manage keys at `/settings/api`)
 - [x] Batch multi-page print (one record per page, up to 500 rows, DPR×3 quality)
+- [x] Sheet / multi-up print — Avery 5160, 5163, 5167, L7160 + custom grid layouts
 - [x] Serial number counters (`{{#counter:start:step:pad}}`)
 - [x] Conditional element visibility (`Show when` JS expression in Properties panel)
-- [x] JavaScript formula fields (`{{=row.price * 1.1}}`)
+- [x] JavaScript formula fields (`{{=row.price * 1.1}}`) — 14 built-in helpers
+- [x] HTTP requests in formulas (`{{= await httpGet("https://…") }}` — SSRF-protected proxy)
+- [x] Shrink-to-fit font auto-scaling
 - [x] Print history CSV export
+- [x] Toast notification system (save, error, info feedback)
+- [x] Security headers (HSTS, CSP, X-Frame-Options, Permissions-Policy)
+- [x] Rate limiting on all API routes (per-user sliding window)
+- [x] Health check endpoint (`GET /api/health`)
 - [ ] MySQL / PostgreSQL direct connection
 - [ ] Print history PDF download (re-render to PDF via sidecar)
 

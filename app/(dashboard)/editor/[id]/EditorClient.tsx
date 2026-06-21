@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect, useCallback, useState, useTransition, useRef } from 'react'
+import { useEffect, useCallback, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { Save, Download, Printer, ChevronLeft, BarChart2, Layers, Terminal, Grid2x2, X } from 'lucide-react'
 import { useEditorStore } from '@/lib/store/editor'
 import { saveLabel, logPrintJob } from '@/actions/labels'
-import { LABEL_SIZES, mmToPx } from '@/lib/label-sizes'
+import { LABEL_SIZES } from '@/lib/label-sizes'
 import { getCanvas } from '@/components/editor/FabricCanvas'
 import DataImportPanel from '@/components/editor/DataImportPanel'
 import ErrorBoundary from '@/components/ErrorBoundary'
@@ -15,6 +15,7 @@ import { batchPrint } from '@/lib/canvas/batch'
 import { MAX_BATCH_ROWS } from '@/lib/constants'
 import { canvasToZpl, canvasToTspl } from '@/lib/export/zpl'
 import { multiUpPrint, MULTIUP_PRESETS, type MultiUpLayout } from '@/lib/canvas/multiup'
+import { toast } from '@/lib/store/toasts'
 import type { Canvas } from 'fabric'
 
 const FabricCanvas = dynamic(() => import('@/components/editor/FabricCanvas'), { ssr: false })
@@ -33,7 +34,6 @@ export default function EditorClient({ label }: { label: Label }) {
   const { setLabelId, setLabelName, setSelectedSize, labelName, selectedSize, dataRows, isDirty, setDirty } = useEditorStore()
   const [isPending, startTransition] = useTransition()
   const [showData, setShowData] = useState(false)
-  const [saveError, setSaveError] = useState<string | null>(null)
   const [batchProgress, setBatchProgress] = useState<{ current: number; total: number } | null>(null)
   const [showSheetDialog, setShowSheetDialog] = useState(false)
   const [sheetPresetId, setSheetPresetId] = useState('avery-5160')
@@ -65,15 +65,15 @@ export default function EditorClient({ label }: { label: Label }) {
     // stored JSON always contains placeholders, not last-previewed values.
     resetToTemplates(c)
     const json = c.toObject(['customData', 'id'])
-    setSaveError(null)
     startTransition(async () => {
       try {
         await saveLabel(label.id, labelName, json, {
           width: selectedSize.width, height: selectedSize.height, unit: 'mm',
         })
         setDirty(false)
+        toast.success('Label saved')
       } catch (err) {
-        setSaveError(err instanceof Error ? err.message : 'Save failed')
+        toast.error(err instanceof Error ? err.message : 'Save failed')
       }
     })
   }
@@ -200,7 +200,6 @@ export default function EditorClient({ label }: { label: Label }) {
           placeholder="Label name"
         />
         {isDirty && <span className="text-xs text-zinc-400">Unsaved</span>}
-        {saveError && <span className="text-xs text-red-500">{saveError}</span>}
         <button
           type="button" onClick={() => setShowData(p => !p)}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${showData ? 'bg-blue-100 text-blue-700' : 'text-zinc-600 hover:bg-zinc-100'}`}

@@ -1,9 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
+import { rateLimit, rateLimitResponse } from '@/lib/ratelimit'
 
 const ALLOWED_ORIGIN = 'https://docs.google.com'
 const MAX_RESPONSE_BYTES = 10 * 1024 * 1024 // 10 MB
 
 export async function GET(req: NextRequest) {
+  // Auth gate — Google Sheets proxy requires a logged-in user
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  // Rate limit: 30 sheet fetches per minute per user
+  const rl = rateLimit(`sheets-proxy:${user.id}`, 30, 60_000)
+  const limited = rateLimitResponse(rl)
+  if (limited) return limited
   const url = req.nextUrl.searchParams.get('url')
   if (!url) {
     return NextResponse.json({ error: 'Missing url parameter' }, { status: 400 })

@@ -2,6 +2,9 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { rateLimit } from '@/lib/ratelimit'
+
+const MAX_KEYS_PER_USER = 20
 
 /** Generate a cryptographically random API key and return its SHA-256 hash */
 async function generateKey(): Promise<{ raw: string; hash: string; prefix: string }> {
@@ -22,6 +25,14 @@ export async function createApiKey(name: string): Promise<{ raw: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
+
+  // Throttle key creation: max 10 per hour per user
+  const rl = rateLimit(`create-api-key:${user.id}`, 10, 60 * 60_000)
+  if (!rl.allowed) throw new Error('Too many API key creation requests — try again later.')
+
+  // Hard cap: no more than 20 keys per user
+  const { count } = await supabase.from('api_keys').select('id', { count: 'exact', head: true }).eq('user_id', user.id)
+  if ((count ?? 0) >= MAX_KEYS_PER_USER) throw new Error(`Maximum of ${MAX_KEYS_PER_USER} API keys per account.`)
 
   const { raw, hash, prefix } = await generateKey()
 

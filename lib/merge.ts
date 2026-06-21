@@ -9,9 +9,20 @@ type WithCustomData = FabricObject & {
     condition?: string
     type?: string
     barcodeType?: string
+    shrinkToFit?: boolean
+    maxFontSize?: number
+    fixedWidth?: number
+    fixedHeight?: number
   }
   id?: string
 }
+
+// ---------------------------------------------------------------------------
+// AsyncFunction constructor — lets formula expressions use await
+// ---------------------------------------------------------------------------
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const AsyncFunction: new (...args: string[]) => (...a: unknown[]) => Promise<unknown> =
+  Object.getPrototypeOf(async function () {}).constructor
 
 // ---------------------------------------------------------------------------
 // Built-in formula helpers — available inside {{= }} expressions
@@ -26,7 +37,6 @@ type WithCustomData = FabricObject & {
  */
 function fmt(value: unknown, pattern: string): string {
   if (value === null || value === undefined || value === '') return ''
-  // Date pattern
   if (/[dMyH]/.test(pattern) && !/[#0]/.test(pattern)) {
     const d = value instanceof Date ? value : new Date(String(value))
     if (!isNaN(d.getTime())) {
@@ -62,10 +72,8 @@ function fmt(value: unknown, pattern: string): string {
   return prefix + formatted
 }
 
-/** Conditional: If(condition, trueValue, falseValue) */
 function If<T>(cond: unknown, a: T, b: T): T { return cond ? a : b }
 
-/** String helpers */
 function Left(s: string, n: number)  { return String(s ?? '').slice(0, n) }
 function Right(s: string, n: number) { const str = String(s ?? ''); return str.slice(Math.max(0, str.length - n)) }
 function Mid(s: string, start: number, len?: number) {
@@ -84,7 +92,6 @@ function Pad(s: string, width: number, char = ' ', align: 'L'|'R'|'C' = 'R') {
   return pad + str
 }
 
-/** calc percentage discount between two prices */
 function CalcDiscount(price: number | string, original: number | string): string {
   const p = parseFloat(String(price)); const o = parseFloat(String(original))
   if (!o || o <= p) return '0'
@@ -98,39 +105,67 @@ function CalcDiscount(price: number | string, original: number | string): string
  */
 function gs1(barcode: string, ai: string): string {
   if (!barcode) return ''
-  // Strip FNC1 markers and parentheses-style HRI
   const clean = String(barcode).replace(/[()]/g, '')
   const idx = clean.indexOf(ai)
   if (idx === -1) return ''
-  // Known fixed-length AIs
   const FIXED: Record<string, number> = {
     '00': 18, '01': 14, '02': 14, '03': 14, '04': 16,
-    '11': 6, '12': 6, '13': 6, '15': 6, '16': 6, '17': 6,
-    '20': 2, '31': 7, '32': 7, '33': 7, '34': 7, '35': 7, '36': 7,
+    '11': 6,  '12': 6,  '13': 6,  '15': 6,  '16': 6,  '17': 6,
+    '20': 2,  '31': 7,  '32': 7,  '33': 7,  '34': 7,  '35': 7,  '36': 7,
   }
   const len = FIXED[ai]
   const start = idx + ai.length
   return len ? clean.slice(start, start + len) : clean.slice(start).split('\x1D')[0]
 }
 
-/** Date/time helpers */
 function today(fmt_str = 'yyyy-MM-dd') { return fmt(new Date(), fmt_str) }
 function now(fmt_str = 'HH:mm:ss')     { return fmt(new Date(), fmt_str) }
 
+/**
+ * Fetch a remote URL and return the response body as a string.
+ *
+ * Routed through /api/script-fetch which enforces:
+ *   • HTTPS only
+ *   • No private/internal IP ranges (SSRF protection)
+ *   • 5 s timeout, 100 KB cap
+ *   • Auth required (user must be logged in)
+ *
+ * Usage in a merge formula:
+ *   {{= await httpGet("https://api.example.com/price?sku=" + row.sku) }}
+ *   {{= JSON.parse(await httpGet("https://api.example.com/data")).price }}
+ */
+async function httpGet(url: string, headers?: Record<string, string>): Promise<string> {
+  const res = await fetch('/api/script-fetch', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url, headers }),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }))
+    throw new Error(`httpGet ${res.status}: ${err.error ?? res.statusText}`)
+  }
+  return res.text()
+}
+
 // Helper bundle passed to formula scope
-const FORMULA_HELPERS = { fmt, If, Left, Right, Mid, Trim, Upper, Lower, Len, Replace, Pad, CalcDiscount, gs1, today, now }
+const FORMULA_HELPERS = {
+  fmt, If, Left, Right, Mid, Trim, Upper, Lower, Len, Replace, Pad,
+  CalcDiscount, gs1, today, now, httpGet,
+}
 
 // ---------------------------------------------------------------------------
 // Template resolution
 // ---------------------------------------------------------------------------
 
 /**
- * Resolves a template string against a data row.
+ * Resolves a template string against a data row. Returns a Promise because
+ * formula expressions may use `await httpGet(...)`.
  *
  * Syntax:
  *   {{field}}                  — field substitution
  *   {{=row.price * 1.1}}       — JS formula; `row`, `rowIndex`, `totalRows`,
  *                                and all helpers in scope
+ *   {{= await httpGet(url) }}  — async HTTP request (SSRF-protected proxy)
  *   {{#counter}}               — 1, 2, 3, … (auto-increment per row)
  *   {{#counter:5:2:4}}         — start=5 step=2 pad=4 → "0005","0007",…
  *   {{#label_counter}}         — alias for {{#counter}} (1-based)
@@ -138,48 +173,67 @@ const FORMULA_HELPERS = { fmt, If, Left, Right, Mid, Trim, Upper, Lower, Len, Re
  *   {{#total_records}}         — total row count (passed as totalRows)
  *
  * Formula helpers available inside {{= }}:
- *   fmt(val, pattern)          — Excel-style number/date format
- *   If(cond, a, b)             — conditional
+ *   fmt(val, pattern)                     — Excel-style number/date format
+ *   If(cond, a, b)                        — conditional
  *   Left(s,n), Right(s,n), Mid(s,start,len), Trim(s), Upper(s), Lower(s)
  *   Len(s), Replace(s,f,r), Pad(s,w,char,align)
- *   CalcDiscount(price,orig)   — discount percentage as string
- *   gs1(barcode, ai)           — extract GS1 application identifier value
- *   today(fmt?), now(fmt?)     — current date/time
+ *   CalcDiscount(price,orig)              — discount percentage as string
+ *   gs1(barcode, ai)                      — extract GS1 application identifier
+ *   today(fmt?), now(fmt?)                — current date/time
+ *   await httpGet(url, headers?)          — SSRF-safe HTTP GET
  */
-export function resolveTemplate(
+export async function resolveTemplate(
   template: string,
   row: DataRow,
   rowIndex: number,
   totalRows = 0,
-): string {
-  return template.replace(/\{\{([^}]+)\}\}/g, (_, inner: string) => {
-    const t = inner.trim()
+): Promise<string> {
+  const TAG_RE = /\{\{([^}]+)\}\}/g
+  const segments: Array<string | Promise<string>> = []
+  let lastIndex = 0
+  let match: RegExpExecArray | null
 
-    if (t.startsWith('=')) return evalFormula(t.slice(1).trim(), row, rowIndex, totalRows)
-
-    if (t.startsWith('#counter') || t === '#label_counter') {
-      const parts = t.split(':')
-      const start = parseInt(parts[1] ?? '1', 10)
-      const step  = parseInt(parts[2] ?? '1', 10)
-      const pad   = parseInt(parts[3] ?? '0', 10)
-      const value = start + rowIndex * step
-      return pad > 0 ? String(value).padStart(pad, '0') : String(value)
+  while ((match = TAG_RE.exec(template)) !== null) {
+    if (match.index > lastIndex) {
+      segments.push(template.slice(lastIndex, match.index))
     }
-    if (t === '#record_counter') return String(rowIndex + 1)
-    if (t === '#total_records')  return String(totalRows)
+    segments.push(resolveTag(match[1].trim(), row, rowIndex, totalRows))
+    lastIndex = TAG_RE.lastIndex
+  }
 
-    return row[t] ?? ''
-  })
+  if (lastIndex < template.length) {
+    segments.push(template.slice(lastIndex))
+  }
+
+  return (await Promise.all(segments)).join('')
 }
 
-function evalFormula(expr: string, row: DataRow, rowIndex: number, totalRows: number): string {
+async function resolveTag(t: string, row: DataRow, rowIndex: number, totalRows: number): Promise<string> {
+  if (t.startsWith('=')) return evalFormula(t.slice(1).trim(), row, rowIndex, totalRows)
+
+  if (t.startsWith('#counter') || t === '#label_counter') {
+    const parts = t.split(':')
+    const start = parseInt(parts[1] ?? '1', 10)
+    const step  = parseInt(parts[2] ?? '1', 10)
+    const pad   = parseInt(parts[3] ?? '0', 10)
+    const value = start + rowIndex * step
+    return pad > 0 ? String(value).padStart(pad, '0') : String(value)
+  }
+
+  if (t === '#record_counter') return String(rowIndex + 1)
+  if (t === '#total_records')  return String(totalRows)
+
+  return row[t] ?? ''
+}
+
+async function evalFormula(expr: string, row: DataRow, rowIndex: number, totalRows: number): Promise<string> {
   try {
     const helperNames  = Object.keys(FORMULA_HELPERS)
     const helperValues = Object.values(FORMULA_HELPERS)
-    // eslint-disable-next-line no-new-func
-    const fn = new Function('row', 'rowIndex', 'totalRows', ...helperNames,
-      `"use strict"; return String(${expr})`)
-    return fn(row, rowIndex, totalRows, ...helperValues) as string
+    // Wrap in await so httpGet() and other async helpers work transparently
+    const fn = new AsyncFunction('row', 'rowIndex', 'totalRows', ...helperNames,
+      `"use strict"; return String(await (${expr}))`)
+    return await fn(row, rowIndex, totalRows, ...helperValues) as string
   } catch {
     return '#ERR'
   }
@@ -220,10 +274,24 @@ export async function applyMerge(
 
     if (!cd?.template) continue
 
-    const resolved = resolveTemplate(cd.template, row, rowIndex, totalRows)
+    const resolved = await resolveTemplate(cd.template, row, rowIndex, totalRows)
 
     if (obj.type === 'i-text' || obj.type === 'text') {
-      ;(obj as IText).set({ text: resolved })
+      const textObj = obj as IText
+      textObj.set({ text: resolved })
+
+      // Shrink-to-fit: reduce font size until the text fits within the stored box
+      if (cd.shrinkToFit && cd.maxFontSize && cd.fixedWidth) {
+        let size = cd.maxFontSize
+        textObj.set({ fontSize: size })
+        const maxW = cd.fixedWidth
+        const maxH = cd.fixedHeight ?? Infinity
+        while (size > 6) {
+          if ((textObj.width ?? 0) <= maxW && (textObj.height ?? 0) <= maxH) break
+          size = Math.max(6, size - 0.5)
+          textObj.set({ fontSize: size })
+        }
+      }
     } else if (cd.type === 'barcode') {
       try {
         const dataURL = await generateBarcodeDataURL(resolved, (cd.barcodeType ?? 'qrcode') as 'qrcode')
@@ -247,10 +315,15 @@ export async function applyMerge(
 export function resetToTemplates(canvas: Canvas): void {
   const objects = canvas.getObjects() as WithCustomData[]
   for (const obj of objects) {
-    const template = obj.customData?.template
-    if (!template) continue
+    const cd = obj.customData
+    if (!cd?.template) continue
     if (obj.type === 'i-text' || obj.type === 'text') {
-      ;(obj as IText).set({ text: template })
+      const textObj = obj as IText
+      textObj.set({ text: cd.template })
+      // Restore original font size so saved JSON isn't shrunken
+      if (cd.shrinkToFit && cd.maxFontSize) {
+        textObj.set({ fontSize: cd.maxFontSize })
+      }
     }
     obj.set({ visible: true })
   }

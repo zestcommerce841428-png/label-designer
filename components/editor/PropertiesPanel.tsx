@@ -192,6 +192,35 @@ export default function PropertiesPanel() {
               value={textObj.opacity ?? 1}
               onChange={e => updateShape({ opacity: +e.target.value })} />
           </PRow>
+          <PRow label="Shrink to fit">
+            <input type="checkbox" title="Shrink font to fit bounding box"
+              checked={!!(obj as AnyFabricObj).customData?.shrinkToFit}
+              onChange={e => {
+                const c = getCanvas()
+                if (!c) return
+                const cd = obj.customData ?? {}
+                if (e.target.checked) {
+                  // Capture current size as the reference box and max font size
+                  ;(obj as AnyFabricObj).customData = {
+                    ...cd,
+                    shrinkToFit: true,
+                    maxFontSize: textObj.fontSize ?? 16,
+                    fixedWidth:  textObj.width  ?? 120,
+                    fixedHeight: textObj.height ?? 40,
+                  }
+                } else {
+                  const next = { ...cd }
+                  delete next.shrinkToFit
+                  delete next.maxFontSize
+                  delete next.fixedWidth
+                  delete next.fixedHeight
+                  ;(obj as AnyFabricObj).customData = next
+                }
+                c.renderAll()
+                setVersion(v => v + 1)
+              }}
+            />
+          </PRow>
         </div>
       )}
 

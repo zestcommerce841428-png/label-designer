@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { rateLimit, rateLimitResponse } from '@/lib/ratelimit'
 
 const MAX_API_ROWS = 500
 
@@ -57,6 +58,11 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
   if (!userId) {
     return NextResponse.json({ error: 'Invalid or missing API key' }, { status: 401 })
   }
+
+  // Rate limit: 120 print requests per minute per API key owner
+  const rl = rateLimit(`v1-print:${userId}`, 120, 60_000)
+  const limited = rateLimitResponse(rl)
+  if (limited) return limited
 
   // Validate label ID format
   const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
