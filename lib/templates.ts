@@ -911,6 +911,195 @@ export const BUILT_IN_TEMPLATES: Template[] = [
       ],
     },
   },
+
+  // ── Retail ───────────────────────────────────────────────────────────────
+  {
+    id: 'retail-circle-sale',
+    name: 'Circle Sale Badge',
+    category: 'Retail',
+    thumbnail: '',
+    size: { width: 50, height: 50 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        { type: 'circle', left: 0, top: 0, radius: px(25), fill: '#DC2626', strokeWidth: 0, selectable: false, evented: false },
+        boldTxt(px(25) - 30, px(12), 'SALE', 18, '#ffffff', { textAlign: 'center', fontFamily: 'Arial' }),
+        boldTxt(px(25) - 40, px(24), '{{discount}}% OFF', 22, '#FEF08A', { textAlign: 'center', fontFamily: 'Arial' }),
+        txt(px(25) - 38, px(36), 'Was ${{original_price}}', 11, '#fca5a5', { textAlign: 'center' }),
+        boldTxt(px(25) - 32, px(44), 'Now ${{sale_price}}', 14, '#ffffff', { textAlign: 'center' }),
+      ],
+    },
+  },
+  {
+    id: 'retail-shelf-talker',
+    name: 'Shelf Talker',
+    category: 'Retail',
+    thumbnail: '',
+    size: { width: 80, height: 30 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(80), px(30), '#1e3a5f'),
+        rect(px(52), 0, px(28), px(30), '#f59e0b'),
+        boldTxt(6, 6, '{{product_name}}', 13, '#ffffff'),
+        txt(6, 26, '{{brand}}', 9, '#93c5fd'),
+        txt(6, 40, 'SKU: {{sku}}', 8, '#bfdbfe'),
+        boldTxt(px(54), 5, '$', 10, '#1e3a5f'),
+        boldTxt(px(55), 10, '{{price}}', 28, '#1e3a5f', { fontFamily: 'Arial' }),
+      ],
+    },
+  },
+
+  // ── Healthcare / Pharma ──────────────────────────────────────────────────
+  {
+    id: 'pharma-rx-label',
+    name: 'Rx Prescription Label',
+    category: 'Healthcare',
+    thumbnail: '',
+    size: { width: 101.6, height: 50.8 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(101.6), px(50.8), '#ffffff', { stroke: '#000000', strokeWidth: 1 }),
+        rect(0, 0, px(101.6), px(10), '#1e40af'),
+        boldTxt(4, 2, '{{pharmacy_name}}', 10, '#ffffff'),
+        txt(px(101.6) - 100, 2, 'Ph: {{pharmacy_phone}}', 8, '#bfdbfe', { textAlign: 'right' }),
+        txt(4, 14, 'Rx# {{rx_number}}', 9, '#374151'),
+        txt(4, 24, 'Patient: {{patient_name}}', 10, '#111827'),
+        boldTxt(4, 36, '{{drug_name}} {{strength}}', 13, '#111827'),
+        txt(4, 52, '{{directions}}', 9, '#374151'),
+        txt(4, 65, 'Qty: {{quantity}}   Refills: {{refills}}', 9, '#374151'),
+        txt(4, 77, 'Dr. {{prescriber}}   Exp: {{expiry_date}}', 9, '#374151'),
+        txt(4, 90, 'Dispensed: {{dispensed_date}}', 8, '#6b7280'),
+        { type: 'rect', left: px(70), top: px(28), width: px(28), height: px(20), fill: '#fff', stroke: '#d1d5db', strokeWidth: 1, selectable: false, evented: false },
+        txt(px(71), px(29), '[Barcode:\n{{rx_number}}]', 7, '#9ca3af'),
+      ],
+    },
+  },
+  {
+    id: 'lab-specimen',
+    name: 'Lab Specimen (Cryogenic)',
+    category: 'Healthcare',
+    thumbnail: '',
+    size: { width: 38, height: 13 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(38), px(13), '#ffffff', { stroke: '#000000', strokeWidth: 0.5 }),
+        boldTxt(2, 2, '{{patient_id}}', 8, '#111827'),
+        txt(2, 12, '{{sample_type}}', 6, '#374151'),
+        txt(2, 20, '{{collected_date}}', 6, '#374151'),
+        txt(px(20), 2, '{{test_code}}', 8, '#1d4ed8'),
+        txt(px(20), 12, 'Lab: {{lab_id}}', 6, '#374151'),
+      ],
+    },
+  },
+
+  // ── Logistics / Warehouse ─────────────────────────────────────────────────
+  {
+    id: 'warehouse-location',
+    name: 'Warehouse Location',
+    category: 'Logistics',
+    thumbnail: '',
+    size: { width: 100, height: 50 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(100), px(50), '#111827'),
+        rect(0, 0, px(100), px(14), '#2563eb'),
+        boldTxt(5, 2, '{{warehouse_name}}', 10, '#ffffff'),
+        txt(px(100) - 80, 2, 'Zone {{zone}}', 9, '#bfdbfe', { textAlign: 'right' }),
+        boldTxt(5, px(14) + 4, '{{aisle}}-{{bay}}-{{level}}', 40, '#f9fafb', { fontFamily: 'Arial' }),
+        txt(5, px(50) - 20, 'Cap: {{capacity}} units', 9, '#9ca3af'),
+        txt(px(60), px(50) - 20, '{{product_category}}', 9, '#6b7280', { textAlign: 'right' }),
+      ],
+    },
+  },
+  {
+    id: 'pallet-label',
+    name: 'Pallet / Carton Label',
+    category: 'Logistics',
+    thumbnail: '',
+    size: { width: 101.6, height: 152.4 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(101.6), px(152.4), '#ffffff', { stroke: '#000000', strokeWidth: 1 }),
+        rect(0, 0, px(101.6), px(20), '#1f2937'),
+        boldTxt(5, 4, 'SHIP TO:', 10, '#9ca3af'),
+        boldTxt(5, 14, '{{ship_to_name}}', 13, '#ffffff'),
+        txt(5, px(20) + 4, '{{ship_to_address}}', 10, '#111827'),
+        txt(5, px(20) + 17, '{{ship_to_city}}, {{ship_to_state}} {{ship_to_zip}}', 10, '#111827'),
+        { type: 'rect', left: 0, top: px(45), width: px(101.6), height: 1, fill: '#d1d5db', strokeWidth: 0, selectable: false, evented: false },
+        txt(5, px(47), 'PO#: {{po_number}}', 10, '#374151'),
+        txt(5, px(57), 'Item: {{item_number}}', 10, '#374151'),
+        txt(5, px(67), 'Qty: {{quantity}} {{unit}}', 10, '#374151'),
+        txt(5, px(77), 'Lot: {{lot_number}}', 10, '#374151'),
+        txt(5, px(87), 'Exp: {{expiry_date}}', 10, '#374151'),
+        { type: 'rect', left: 0, top: px(100), width: px(101.6), height: 1, fill: '#d1d5db', strokeWidth: 0, selectable: false, evented: false },
+        boldTxt(5, px(103), 'Carton {{carton_number}} of {{total_cartons}}', 14, '#111827'),
+        txt(5, px(120), 'Weight: {{weight_lbs}} lbs / {{weight_kg}} kg', 9, '#374151'),
+        txt(5, px(130), 'Shipped: {{ship_date}}', 9, '#374151'),
+        txt(5, px(140), '[Add barcode for {{po_number}} here]', 8, '#9ca3af'),
+      ],
+    },
+  },
+
+  // ── Food / Beverage extras ────────────────────────────────────────────────
+  {
+    id: 'food-allergen',
+    name: 'Allergen Warning Label',
+    category: 'Food',
+    thumbnail: '',
+    size: { width: 70, height: 35 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(70), px(35), '#FEF9C3', { stroke: '#CA8A04', strokeWidth: 2 }),
+        rect(0, 0, px(70), px(10), '#CA8A04'),
+        boldTxt(5, 1, '⚠ ALLERGEN WARNING', 10, '#ffffff'),
+        boldTxt(5, px(12), 'Contains: {{allergens}}', 11, '#78350F'),
+        txt(5, px(23), '{{product_name}}', 9, '#92400E'),
+        txt(5, px(31), 'Lot: {{lot_number}}   Mfg: {{mfg_date}}', 8, '#92400E'),
+      ],
+    },
+  },
+  {
+    id: 'food-restaurant',
+    name: 'Restaurant / Prep Label',
+    category: 'Food',
+    thumbnail: '',
+    size: { width: 57, height: 32 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(57), px(32), '#ffffff', { stroke: '#d1d5db', strokeWidth: 1 }),
+        rect(0, 0, px(57), px(9), '#065F46'),
+        boldTxt(4, 1, '{{item_name}}', 10, '#ffffff'),
+        txt(4, px(10), 'Prep: {{prep_date}}  {{prep_time}}', 9, '#111827'),
+        txt(4, px(19), 'Use by: {{use_by_date}}', 10, '#DC2626', { fontWeight: 'bold' }),
+        txt(4, px(28), 'Prep by: {{staff_name}}', 8, '#6b7280'),
+      ],
+    },
+  },
+
+  // ── Serial Number extras ──────────────────────────────────────────────────
+  {
+    id: 'serial-prefixed',
+    name: 'Serial with Prefix/Suffix',
+    category: 'Serial',
+    thumbnail: '',
+    size: { width: 80, height: 25 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(80), px(25), '#f8fafc', { stroke: '#cbd5e1', strokeWidth: 1 }),
+        txt(5, 4, '{{company}}', 8, '#6b7280'),
+        boldTxt(5, 14, '{{#counter:1:1:6:SN-:}}', 20, '#111827', { fontFamily: 'Courier New' }),
+        txt(px(80) - 70, px(25) - 16, '{{product_model}}', 8, '#94a3b8', { textAlign: 'right' }),
+      ],
+    },
+  },
 ]
 
 export const TEMPLATE_CATEGORIES = [...new Set(BUILT_IN_TEMPLATES.map(t => t.category))]

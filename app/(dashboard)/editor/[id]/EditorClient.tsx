@@ -164,12 +164,15 @@ export default function EditorClient({ label }: { label: Label }) {
     }
 
     if (snapToGrid) {
-      canvas.on('object:moving', snapHandler as Parameters<typeof canvas.on>[1])
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      canvas.on('object:moving', snapHandler as any)
     } else {
-      canvas.off('object:moving', snapHandler as Parameters<typeof canvas.on>[1])
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      canvas.off('object:moving', snapHandler as any)
     }
     return () => {
-      canvas.off('object:moving', snapHandler as Parameters<typeof canvas.on>[1])
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      canvas.off('object:moving', snapHandler as any)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [snapToGrid])

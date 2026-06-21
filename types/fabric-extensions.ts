@@ -1,12 +1,25 @@
 import type { FabricObject, FabricImage, IText } from 'fabric'
 
 export interface FabricCustomData {
-  type?: 'barcode'
+  type?: 'barcode' | 'layer'
   barcodeType?: string
   /** Raw template string before merge-tag substitution */
   template?: string
   /** JS expression evaluated per row — element is hidden when falsy */
   condition?: string
+  /** Barcode display options */
+  showText?: boolean
+  barColor?: string
+  bgColor?: string
+  textColor?: string
+  /** Shrink-to-fit text options */
+  shrinkToFit?: boolean
+  maxFontSize?: number
+  fixedWidth?: number
+  fixedHeight?: number
+  /** Layer group options */
+  layerName?: string
+  _alblPlaceholder?: boolean
 }
 
 export interface FabricObjectWithCustomData extends FabricObject {

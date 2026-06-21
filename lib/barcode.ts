@@ -140,7 +140,7 @@ export async function generateBarcodeDataURL(
   const showText = opts.showText !== undefined ? opts.showText : !NO_TEXT_SET.has(type)
   const canvas = document.createElement('canvas')
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const bwipOpts: Record<string, any> = {
+  const bwipOpts: any = {
     bcid: type,
     text: value || ' ',
     scale: opts.scale ?? 3,
@@ -148,10 +148,10 @@ export async function generateBarcodeDataURL(
     width: opts.width,
     includetext: showText,
     textxalign: 'center',
+    barcolor:         opts.barColor  ? opts.barColor.replace('#', '')  : undefined,
+    backgroundcolor:  opts.bgColor   ? opts.bgColor.replace('#', '')   : undefined,
+    textcolor:        opts.textColor ? opts.textColor.replace('#', '') : undefined,
   }
-  if (opts.barColor) bwipOpts.barcolor = opts.barColor.replace('#', '')
-  if (opts.bgColor)  bwipOpts.backgroundcolor = opts.bgColor.replace('#', '')
-  if (opts.textColor) bwipOpts.textcolor = opts.textColor.replace('#', '')
   await bwipjs.toCanvas(canvas, bwipOpts)
   return canvas.toDataURL('image/png')
 }
