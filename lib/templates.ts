@@ -62,41 +62,6 @@ export const BUILT_IN_TEMPLATES: Template[] = [
     },
   },
 
-  // ── Amazon ───────────────────────────────────────────────────────────────
-  {
-    id: 'amazon-fnsku',
-    name: 'Amazon FNSKU',
-    category: 'Amazon',
-    thumbnail: '',
-    size: { width: 50, height: 25 },
-    canvas_json: {
-      version: '5.3.0',
-      objects: [
-        rect(0, 0, px(50), px(25), '#ffffff', { stroke: '#e5e7eb', strokeWidth: 1 }),
-        boldTxt(4, 4, '{{product_name}}', 10, '#111827'),
-        txt(4, 18, 'FNSKU: {{fnsku}}', 9, '#374151'),
-        txt(4, 30, 'Condition: {{condition}}', 8, '#6b7280'),
-        txt(4, 42, 'ASIN: {{asin}}', 8, '#6b7280'),
-        txt(4, 56, 'Made in: {{country}}', 8, '#6b7280'),
-      ],
-    },
-  },
-  {
-    id: 'amazon-transparency',
-    name: 'Amazon Transparency',
-    category: 'Amazon',
-    thumbnail: '',
-    size: { width: 28.5, height: 28.5 },
-    canvas_json: {
-      version: '5.3.0',
-      objects: [
-        rect(0, 0, px(28.5), px(28.5), '#ffffff', { stroke: '#cccccc', strokeWidth: 1 }),
-        boldTxt(4, 4, 'AZ', 14, '#FF9900'),
-        txt(4, 22, '{{transparency_code}}', 7, '#111827'),
-        txt(4, 34, '{{sku}}', 7, '#6b7280'),
-      ],
-    },
-  },
   {
     id: 'amazon-bundle',
     name: 'Amazon Bundle',

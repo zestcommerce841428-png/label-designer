@@ -3,7 +3,7 @@
 import { useEffect, useCallback, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
-import { Save, Download, Printer, ChevronLeft, BarChart2, Layers, Terminal, Grid2x2, X, BookOpen, Magnet, ZoomIn, ZoomOut, FileDown, Copy } from 'lucide-react'
+import { Save, Download, Printer, ChevronLeft, BarChart2, Layers, Terminal, Grid2x2, X, BookOpen, Magnet, ZoomIn, ZoomOut, FileDown, Copy, Upload } from 'lucide-react'
 import { useEditorStore } from '@/lib/store/editor'
 import { saveLabel, logPrintJob, saveAsNewLabel } from '@/actions/labels'
 import { LABEL_SIZES } from '@/lib/label-sizes'
@@ -18,6 +18,7 @@ import { canvasToEpl } from '@/lib/export/epl'
 import { canvasToCpcl } from '@/lib/export/cpcl'
 import { canvasToDpl } from '@/lib/export/dpl'
 import { exportBatchPdf } from '@/lib/export/batchPdf'
+import { parseAlbl } from '@/lib/import/albl'
 import { multiUpPrint, MULTIUP_PRESETS, type MultiUpLayout } from '@/lib/canvas/multiup'
 import { toast } from '@/lib/store/toasts'
 import type { Canvas } from 'fabric'
@@ -384,6 +385,31 @@ export default function EditorClient({ label }: { label: Label }) {
     URL.revokeObjectURL(a.href)
   }
 
+  function handleImportAlbl() {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.albl'
+    input.onchange = async () => {
+      const file = input.files?.[0]
+      if (!file) return
+      const text = await file.text()
+      const result = parseAlbl(text)
+      if (!result) { toast.error('Invalid .albl file'); return }
+      const c = getCanvas()
+      if (!c) return
+      // Update label size if it differs
+      const match = LABEL_SIZES.find(s =>
+        Math.abs(s.width - result.widthMm) < 0.5 && Math.abs(s.height - result.heightMm) < 0.5
+      )
+      if (match) setSelectedSize(match)
+      await c.loadFromJSON(result.canvasJson)
+      c.renderAll()
+      setDirty(true)
+      toast.success(`Imported ${file.name} — barcode placeholders need to be converted via the toolbar`)
+    }
+    input.click()
+  }
+
   function handlePrint() {
     const c = getCanvas()
     if (!c) return
@@ -522,6 +548,10 @@ export default function EditorClient({ label }: { label: Label }) {
             <ZoomIn className="w-4 h-4" aria-hidden />
           </button>
         </div>
+        <button type="button" onClick={handleImportAlbl} title="Import AzureLabel .albl design file"
+          className="flex items-center gap-1.5 px-3 py-1.5 border border-zinc-300 text-zinc-600 rounded-lg text-sm font-medium hover:bg-zinc-50 transition-colors">
+          <Upload className="w-4 h-4" /> .albl
+        </button>
         <button
           type="button"
           onClick={handleSaveAsCopy}
