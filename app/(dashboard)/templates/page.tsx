@@ -7,7 +7,7 @@ export default async function TemplatesPage() {
   cacheLife('hours')
 
   return (
-    <div className="p-8">
+    <div className="px-4 py-6 sm:p-8">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-zinc-900">Template Library</h1>
         <p className="text-zinc-500 mt-1 text-sm">Choose a template to start your label design</p>

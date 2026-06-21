@@ -27,8 +27,8 @@ export default async function PrintHistory() {
       <div className="flex justify-end">
         <ExportButtons jobs={jobs} />
       </div>
-      <div className="bg-white rounded-xl border border-zinc-200 overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="bg-white rounded-xl border border-zinc-200 overflow-hidden overflow-x-auto">
+        <table className="w-full text-sm min-w-[540px]">
           <thead>
             <tr className="border-b border-zinc-100">
               <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Label</th>

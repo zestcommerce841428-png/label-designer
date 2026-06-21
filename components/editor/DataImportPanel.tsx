@@ -3,7 +3,7 @@
 import { useCallback, useState } from 'react'
 import Papa from 'papaparse'
 import * as XLSX from 'xlsx'
-import { Upload, ChevronLeft, ChevronRight, Sheet, RefreshCw, Braces } from 'lucide-react'
+import { Upload, ChevronLeft, ChevronRight, Sheet, RefreshCw, Braces, ChevronDown } from 'lucide-react'
 import { useEditorStore, type DataRow } from '@/lib/store/editor'
 import { MAX_IMPORT_FILE_BYTES } from '@/lib/constants'
 
