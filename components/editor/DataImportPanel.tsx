@@ -121,8 +121,52 @@ export default function DataImportPanel() {
       const parseErr = doc.querySelector('parsererror')
       if (parseErr) { const msg = 'Invalid XML.'; (onError ?? (() => alert(msg)))(msg); return false }
 
-      // Find repeating child elements — the first child of root that repeats
       const root = doc.documentElement
+
+      // ── NiceLabel / Loftware print job XML ──────────────────────────────────
+      // <PrintJob> or <NiceLabelPrintJob> with <Label> + repeating <Variables>/<Record>
+      const isNiceLabel = /PrintJob|NiceLabel/i.test(root.tagName)
+      if (isNiceLabel) {
+        const jobNodes = root.tagName.toLowerCase().includes('printjob')
+          ? [root]
+          : Array.from(root.querySelectorAll('PrintJob'))
+
+        const rows: DataRow[] = []
+        for (const job of jobNodes) {
+          // Each <Variables> or <Record> block becomes one row
+          const varBlocks = Array.from(job.querySelectorAll('Variables, Record'))
+          if (varBlocks.length === 0) {
+            // Single-job with Variables as direct children
+            const row: DataRow = {}
+            for (const el of Array.from(job.querySelectorAll('Variable'))) {
+              const name = el.getAttribute('Name') ?? el.getAttribute('name') ?? el.tagName
+              row[name] = el.textContent ?? ''
+            }
+            const qty = parseInt(job.querySelector('Quantity')?.textContent ?? '1', 10)
+            for (let q = 0; q < Math.max(1, qty); q++) rows.push({ ...row })
+          } else {
+            for (const block of varBlocks) {
+              const row: DataRow = {}
+              for (const el of Array.from(block.querySelectorAll('Variable'))) {
+                const name = el.getAttribute('Name') ?? el.getAttribute('name') ?? el.tagName
+                row[name] = el.textContent ?? ''
+              }
+              if (!Object.keys(row).length) {
+                for (const child of Array.from(block.children)) row[child.tagName] = child.textContent ?? ''
+              }
+              rows.push(row)
+            }
+          }
+        }
+        if (!rows.length) { const msg = 'No variable records found in NiceLabel XML.'; (onError ?? (() => alert(msg)))(msg); return false }
+        const cols = [...new Set(rows.flatMap(r => Object.keys(r)))]
+        setColumns(cols)
+        setDataRows(rows)
+        setPreviewRowIndex(0)
+        return true
+      }
+
+      // ── Generic XML: find repeating child elements ───────────────────────────
       const children = Array.from(root.children)
       if (!children.length) { const msg = 'XML root has no child elements.'; (onError ?? (() => alert(msg)))(msg); return false }
 
