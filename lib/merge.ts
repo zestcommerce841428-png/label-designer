@@ -261,12 +261,16 @@ async function resolveTag(t: string, row: DataRow, rowIndex: number, totalRows: 
   if (t.startsWith('=')) return evalFormula(t.slice(1).trim(), row, rowIndex, totalRows)
 
   if (t.startsWith('#counter') || t === '#label_counter') {
-    const parts = t.split(':')
-    const start = parseInt(parts[1] ?? '1', 10)
-    const step  = parseInt(parts[2] ?? '1', 10)
-    const pad   = parseInt(parts[3] ?? '0', 10)
-    const value = start + rowIndex * step
-    return pad > 0 ? String(value).padStart(pad, '0') : String(value)
+    // Syntax: {{#counter:start:step:pad:prefix:suffix}}
+    const parts  = t.split(':')
+    const start  = parseInt(parts[1] ?? '1', 10)
+    const step   = parseInt(parts[2] ?? '1', 10)
+    const pad    = parseInt(parts[3] ?? '0', 10)
+    const prefix = parts[4] ?? ''
+    const suffix = parts[5] ?? ''
+    const value  = start + rowIndex * step
+    const numStr = pad > 0 ? String(value).padStart(pad, '0') : String(value)
+    return `${prefix}${numStr}${suffix}`
   }
 
   if (t === '#record_counter') return String(rowIndex + 1)

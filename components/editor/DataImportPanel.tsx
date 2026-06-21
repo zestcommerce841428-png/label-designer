@@ -1,13 +1,14 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import Papa from 'papaparse'
 import * as XLSX from 'xlsx'
-import { Upload, ChevronLeft, ChevronRight, Sheet, RefreshCw, Braces, FileCode } from 'lucide-react'
+import { Upload, ChevronLeft, ChevronRight, Sheet, RefreshCw, Braces, FileCode, ArrowUpDown, Search, Trash2 } from 'lucide-react'
 import { useEditorStore, type DataRow } from '@/lib/store/editor'
 import { MAX_IMPORT_FILE_BYTES } from '@/lib/constants'
 
 type Tab = 'file' | 'json' | 'xml' | 'sheets'
+type SortDir = 'asc' | 'desc'
 
 /** Convert a Google Sheets share/edit URL to a CSV export URL */
 function sheetsUrlToCsvUrl(input: string): string | null {
@@ -39,6 +40,27 @@ export default function DataImportPanel() {
   const [sheetsError, setSheetsError] = useState<string | null>(null)
   const [xmlText, setXmlText] = useState('')
   const [xmlError, setXmlError] = useState<string | null>(null)
+  const [filterText, setFilterText] = useState('')
+  const [sortCol, setSortCol] = useState<string>('')
+  const [sortDir, setSortDir] = useState<SortDir>('asc')
+
+  /** Filtered + sorted view of dataRows — used for display and navigation only */
+  const visibleRows = useMemo(() => {
+    let rows = dataRows
+    if (filterText.trim()) {
+      const q = filterText.trim().toLowerCase()
+      rows = rows.filter(r => Object.values(r).some(v => String(v ?? '').toLowerCase().includes(q)))
+    }
+    if (sortCol) {
+      rows = [...rows].sort((a, b) => {
+        const av = String(a[sortCol] ?? '').toLowerCase()
+        const bv = String(b[sortCol] ?? '').toLowerCase()
+        const cmp = av < bv ? -1 : av > bv ? 1 : 0
+        return sortDir === 'asc' ? cmp : -cmp
+      })
+    }
+    return rows
+  }, [dataRows, filterText, sortCol, sortDir])
 
   // ─── File import ───────────────────────────────────────────────────────────
 
@@ -450,8 +472,51 @@ export default function DataImportPanel() {
       {/* Data preview (shared between tabs) */}
       {hasData && (
         <>
+          {/* Filter + Sort bar */}
+          <div className="px-3 pt-2 pb-1 border-t border-zinc-100 space-y-1.5">
+            <div className="flex items-center gap-1.5">
+              <Search className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+              <input
+                type="text"
+                placeholder="Filter rows…"
+                value={filterText}
+                onChange={e => { setFilterText(e.target.value); setPreviewRowIndex(0) }}
+                className="flex-1 text-xs border border-zinc-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+              {filterText && (
+                <button type="button" onClick={() => setFilterText('')} className="text-xs text-zinc-400 hover:text-zinc-700">✕</button>
+              )}
+            </div>
+            <div className="flex items-center gap-1.5">
+              <ArrowUpDown className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+              <select
+                value={sortCol}
+                onChange={e => { setSortCol(e.target.value); setPreviewRowIndex(0) }}
+                aria-label="Sort by column"
+                className="flex-1 text-xs border border-zinc-200 rounded px-1 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="">Sort by…</option>
+                {columns.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+              {sortCol && (
+                <button
+                  type="button"
+                  onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}
+                  className="text-xs border border-zinc-200 rounded px-1.5 py-1 hover:bg-zinc-50"
+                  title="Toggle sort direction"
+                >
+                  {sortDir === 'asc' ? '↑ ASC' : '↓ DESC'}
+                </button>
+              )}
+            </div>
+          </div>
+
           <div className="px-4 py-2 border-y border-zinc-100 flex items-center justify-between">
-            <span className="text-xs text-zinc-500">{dataRows.length} records</span>
+            <span className="text-xs text-zinc-500">
+              {visibleRows.length !== dataRows.length
+                ? `${visibleRows.length} / ${dataRows.length} records`
+                : `${dataRows.length} records`}
+            </span>
             <div className="flex items-center gap-1">
               <button
                 type="button"
@@ -464,14 +529,14 @@ export default function DataImportPanel() {
                 <ChevronLeft className="w-3.5 h-3.5" />
               </button>
               <span className="text-xs text-zinc-600 min-w-[4rem] text-center">
-                Row {previewRowIndex + 1} of {dataRows.length}
+                Row {previewRowIndex + 1} of {visibleRows.length}
               </span>
               <button
                 type="button"
                 title="Next row"
                 aria-label="Next row"
-                onClick={() => setPreviewRowIndex(Math.min(dataRows.length - 1, previewRowIndex + 1))}
-                disabled={previewRowIndex >= dataRows.length - 1}
+                onClick={() => setPreviewRowIndex(Math.min(visibleRows.length - 1, previewRowIndex + 1))}
+                disabled={previewRowIndex >= visibleRows.length - 1}
                 className="p-1 rounded hover:bg-zinc-100 disabled:opacity-30"
               >
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -484,7 +549,7 @@ export default function DataImportPanel() {
               <div key={col} className="rounded-lg bg-zinc-50 px-3 py-2">
                 <p className="text-xs font-medium text-zinc-500">{col}</p>
                 <p className="text-sm text-zinc-900 truncate">
-                  {dataRows[previewRowIndex]?.[col] ?? '—'}
+                  {visibleRows[previewRowIndex]?.[col] ?? '—'}
                 </p>
               </div>
             ))}
@@ -505,6 +570,26 @@ export default function DataImportPanel() {
               ))}
             </div>
             <p className="text-xs text-zinc-400 mt-1.5">Click a tag to copy, paste into text elements</p>
+            <div className="flex gap-2 mt-2">
+              {visibleRows.length !== dataRows.length && (
+                <button
+                  type="button"
+                  onClick={() => { setDataRows(visibleRows); setFilterText(''); setSortCol(''); setPreviewRowIndex(0) }}
+                  className="flex-1 text-xs px-2 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  title="Replace data with current filtered/sorted view"
+                >
+                  Apply filter ({visibleRows.length} rows)
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => { setDataRows([]); setColumns([]); setFilterText(''); setSortCol(''); setPreviewRowIndex(0) }}
+                className="flex items-center gap-1 text-xs px-2 py-1.5 border border-zinc-200 text-zinc-500 rounded-lg hover:bg-zinc-50 transition-colors"
+                title="Clear all imported data"
+              >
+                <Trash2 className="w-3 h-3" /> Clear
+              </button>
+            </div>
           </div>
         </>
       )}
