@@ -1117,6 +1117,181 @@ export const BUILT_IN_TEMPLATES: Template[] = [
   },
 
   // ── Serial Number extras ──────────────────────────────────────────────────
+  // ── Amazon DIY ───────────────────────────────────────────────────────────
+  // Barcode objects use type:'image' + customData.type:'barcode' so the merge
+  // engine regenerates them from live data. BLANK_PNG is a 1×1 transparent
+  // placeholder so Fabric.js can load the image object at init time.
+  {
+    id: 'amazon-diy-fnsku-barcode',
+    name: 'Amazon FNSKU (with Barcode)',
+    category: 'Amazon',
+    thumbnail: '',
+    size: { width: 66, height: 38 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(66), px(38), '#ffffff', { stroke: '#d1d5db', strokeWidth: 1 }),
+        rect(0, 0, px(66), 10, '#FF9900'),
+        boldTxt(4, 1, 'amazon', 7, '#ffffff'),
+        boldTxt(px(66) - 44, 1, 'FBA', 7, '#ffffff'),
+        boldTxt(4, 14, '{{product_name}}', 8, '#111827', {
+          customData: { template: '{{product_name}}', shrinkToFit: true, maxFontSize: 8, fixedWidth: px(66) - 8 },
+        }),
+        { type: 'i-text', left: 4, top: 26, text: 'Condition: {{condition}}', fontSize: 6, fontFamily: 'Arial', fill: '#374151', customData: { template: 'Condition: {{condition}}' } },
+        { type: 'i-text', left: 4, top: 35, text: 'SKU: {{sku}}', fontSize: 6, fontFamily: 'Arial', fill: '#6b7280', customData: { template: 'SKU: {{sku}}' } },
+        {
+          type: 'image',
+          src: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQI12NgAAIABQAABjE+ibYAAAAASUVORK5CYII=',
+          left: 4, top: 44, scaleX: 1, scaleY: 1, width: px(58), height: 30,
+          customData: { type: 'barcode', template: '{{FNSKU}}', barcodeType: 'code128', showText: true, barColor: '#000000', bgColor: '#ffffff' },
+        },
+        { type: 'i-text', left: 4, top: px(38) - 10, text: '{{=today()}}', fontSize: 5, fontFamily: 'Arial', fill: '#9ca3af', customData: { template: '{{=today()}}' } },
+      ],
+    },
+    sampleData: [
+      { product_name: 'Wireless Bluetooth Headphones Pro', FNSKU: 'X001AB2CD3', condition: 'New', sku: 'WBH-PRO-BLK' },
+      { product_name: 'USB-C Fast Charger 65W', FNSKU: 'X002EF3GH4', condition: 'New', sku: 'USBC-65W-WHT' },
+      { product_name: 'Portable Power Bank 20000mAh', FNSKU: 'X003IJ4KL5', condition: 'New', sku: 'PPB-20K-BLK' },
+    ],
+  },
+  {
+    id: 'amazon-diy-ean-product',
+    name: 'Amazon Product (EAN-13 Barcode)',
+    category: 'Amazon',
+    thumbnail: '',
+    size: { width: 70, height: 50 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(70), px(50), '#ffffff', { stroke: '#e5e7eb', strokeWidth: 1 }),
+        rect(0, 0, px(70), 12, '#FF9900'),
+        boldTxt(4, 2, 'amazon.in', 8, '#ffffff'),
+        boldTxt(4, 16, '{{product_name}}', 9, '#111827', {
+          customData: { template: '{{product_name}}', shrinkToFit: true, maxFontSize: 9, fixedWidth: px(70) - 8 },
+        }),
+        { type: 'i-text', left: 4, top: 32, text: '{{brand}}  |  ASIN: {{ASIN}}', fontSize: 6, fontFamily: 'Arial', fill: '#6b7280', customData: { template: '{{brand}}  |  ASIN: {{ASIN}}' } },
+        boldTxt(4, 42, '₹{{price}}', 14, '#B12704', { customData: { template: '₹{{price}}' } }),
+        {
+          type: 'image',
+          src: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQI12NgAAIABQAABjE+ibYAAAAASUVORK5CYII=',
+          left: px(38), top: 24, scaleX: 1, scaleY: 1, width: px(28), height: 40,
+          customData: { type: 'barcode', template: '{{ean13}}', barcodeType: 'ean13', showText: true, barColor: '#000000', bgColor: '#ffffff' },
+        },
+        { type: 'i-text', left: 4, top: px(50) - 12, text: 'Sold by: {{seller}}  |  {{=today()}}', fontSize: 5, fontFamily: 'Arial', fill: '#9ca3af', customData: { template: 'Sold by: {{seller}}  |  {{=today()}}' } },
+      ],
+    },
+    sampleData: [
+      { product_name: 'Smart LED Desk Lamp 12W', brand: 'LumiTech', ASIN: 'B09XYZ1234', ean13: '8901234567890', price: '1499', seller: 'LumiTech Official' },
+      { product_name: 'Stainless Steel Water Bottle 1L', brand: 'AquaPure', ASIN: 'B08ABC5678', ean13: '8901234567891', price: '899', seller: 'AquaPure Store' },
+    ],
+  },
+  {
+    id: 'amazon-diy-suffocation',
+    name: 'Amazon Suffocation Warning',
+    category: 'Amazon',
+    thumbnail: '',
+    size: { width: 76, height: 51 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(76), px(51), '#ffffff', { stroke: '#374151', strokeWidth: 2 }),
+        boldTxt(px(76) / 2 - 40, 6, '⚠ WARNING', 14, '#DC2626', { textAlign: 'center' }),
+        { type: 'i-text', left: 6, top: 26, text: 'To avoid danger of suffocation, keep this', fontSize: 7, fontFamily: 'Arial', fill: '#111827', customData: { template: 'To avoid danger of suffocation, keep this' } },
+        { type: 'i-text', left: 6, top: 36, text: 'bag away from babies and children. Do not', fontSize: 7, fontFamily: 'Arial', fill: '#111827', customData: { template: 'bag away from babies and children. Do not' } },
+        { type: 'i-text', left: 6, top: 46, text: 'use in cribs, beds, carriages or playpens.', fontSize: 7, fontFamily: 'Arial', fill: '#111827', customData: { template: 'use in cribs, beds, carriages or playpens.' } },
+        { type: 'i-text', left: 6, top: 56, text: 'This bag is not a toy.', fontSize: 7, fontFamily: 'Arial', fill: '#111827', customData: { template: 'This bag is not a toy.' } },
+        { type: 'line', x1: 6, y1: 72, x2: px(76) - 6, y2: 72, stroke: '#d1d5db', strokeWidth: 0.5 },
+        { type: 'i-text', left: 6, top: 75, text: 'ASIN: {{ASIN}}  SKU: {{sku}}', fontSize: 6, fontFamily: 'Arial', fill: '#6b7280', customData: { template: 'ASIN: {{ASIN}}  SKU: {{sku}}' } },
+        { type: 'i-text', left: 6, top: 84, text: '{{product_name}}', fontSize: 6, fontFamily: 'Arial', fill: '#374151', customData: { template: '{{product_name}}' } },
+      ],
+    },
+    sampleData: [
+      { ASIN: 'B09XYZ1234', sku: 'POLYBAG-12x16', product_name: 'Clear Poly Bag 12×16 inch' },
+      { ASIN: 'B08ABC5678', sku: 'POLYBAG-6x9', product_name: 'Clear Poly Bag 6×9 inch' },
+    ],
+  },
+  {
+    id: 'amazon-diy-sold-as-set',
+    name: 'Amazon Sold as Set / Bundle',
+    category: 'Amazon',
+    thumbnail: '',
+    size: { width: 66, height: 25 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(66), px(25), '#FFF3CD', { stroke: '#FF9900', strokeWidth: 2 }),
+        boldTxt(6, 4, 'SOLD AS SET — DO NOT SEPARATE', 9, '#92400E', { textAlign: 'center' }),
+        boldTxt(6, 20, '{{bundle_count}} items', 11, '#B45309'),
+        { type: 'i-text', left: 6, top: 36, text: '{{product_name}}', fontSize: 7, fontFamily: 'Arial', fill: '#374151', customData: { template: '{{product_name}}' } },
+        { type: 'i-text', left: 6, top: px(25) - 12, text: 'ASIN: {{ASIN}}  FNSKU: {{FNSKU}}', fontSize: 6, fontFamily: 'Arial', fill: '#6b7280', customData: { template: 'ASIN: {{ASIN}}  FNSKU: {{FNSKU}}' } },
+      ],
+    },
+    sampleData: [
+      { product_name: 'Kitchen Knife Set', bundle_count: '5', ASIN: 'B07KNIFE05', FNSKU: 'X001KNF5PC' },
+      { product_name: 'Baby Clothing Set', bundle_count: '3', ASIN: 'B08BABY03P', FNSKU: 'X002BAB3PC' },
+    ],
+  },
+  {
+    id: 'amazon-diy-removal',
+    name: 'Amazon Removal Order Label',
+    category: 'Amazon',
+    thumbnail: '',
+    size: { width: 101.6, height: 50.8 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(101.6), px(50.8), '#ffffff', { stroke: '#374151', strokeWidth: 1 }),
+        rect(0, 0, px(101.6), 14, '#DC2626'),
+        boldTxt(6, 2, 'AMAZON FBA REMOVAL ORDER', 9, '#ffffff'),
+        { type: 'i-text', left: 6, top: 20, text: 'Removal ID: {{removal_id}}', fontSize: 8, fontFamily: 'Arial', fill: '#111827', customData: { template: 'Removal ID: {{removal_id}}' } },
+        boldTxt(6, 34, '{{product_name}}', 10, '#111827', { customData: { template: '{{product_name}}', shrinkToFit: true, maxFontSize: 10, fixedWidth: px(101.6) - 12 } }),
+        { type: 'i-text', left: 6, top: 50, text: 'FNSKU: {{FNSKU}}   ASIN: {{ASIN}}', fontSize: 7, fontFamily: 'Arial', fill: '#374151', customData: { template: 'FNSKU: {{FNSKU}}   ASIN: {{ASIN}}' } },
+        { type: 'i-text', left: 6, top: 62, text: 'Qty: {{quantity}}   Condition: {{condition}}', fontSize: 7, fontFamily: 'Arial', fill: '#374151', customData: { template: 'Qty: {{quantity}}   Condition: {{condition}}' } },
+        {
+          type: 'image',
+          src: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQI12NgAAIABQAABjE+ibYAAAAASUVORK5CYII=',
+          left: px(65), top: 18, scaleX: 1, scaleY: 1, width: px(32), height: 44,
+          customData: { type: 'barcode', template: '{{removal_id}}', barcodeType: 'code128', showText: false, barColor: '#000000', bgColor: '#ffffff' },
+        },
+        { type: 'i-text', left: 6, top: px(50.8) - 14, text: 'Ship to: {{return_address}}', fontSize: 6, fontFamily: 'Arial', fill: '#6b7280', customData: { template: 'Ship to: {{return_address}}' } },
+        { type: 'i-text', left: px(65), top: px(50.8) - 14, text: '{{=today()}}', fontSize: 6, fontFamily: 'Arial', fill: '#9ca3af', customData: { template: '{{=today()}}' } },
+      ],
+    },
+    sampleData: [
+      { removal_id: 'REM-2024-001234', product_name: 'Wireless Earbuds Pro', FNSKU: 'X001AB2CD3', ASIN: 'B09XYZ1234', quantity: '12', condition: 'Unsellable', return_address: 'Your Warehouse, Mumbai' },
+    ],
+  },
+  {
+    id: 'amazon-diy-mto-label',
+    name: 'Amazon MTO / Made to Order',
+    category: 'Amazon',
+    thumbnail: '',
+    size: { width: 101.6, height: 38 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(101.6), px(38), '#ffffff', { stroke: '#d1d5db', strokeWidth: 1 }),
+        rect(0, 0, 10, px(38), '#FF9900'),
+        boldTxt(14, 4, '{{product_name}}', 10, '#111827', {
+          customData: { template: '{{product_name}}', shrinkToFit: true, maxFontSize: 10, fixedWidth: px(101.6) - 80 },
+        }),
+        { type: 'i-text', left: 14, top: 20, text: 'Order: {{order_id}}', fontSize: 7, fontFamily: 'Arial', fill: '#374151', customData: { template: 'Order: {{order_id}}' } },
+        { type: 'i-text', left: 14, top: 32, text: 'ASIN: {{ASIN}}  Qty: {{quantity}}', fontSize: 7, fontFamily: 'Arial', fill: '#6b7280', customData: { template: 'ASIN: {{ASIN}}  Qty: {{quantity}}' } },
+        { type: 'i-text', left: 14, top: 44, text: 'Customization: {{customization}}', fontSize: 7, fontFamily: 'Arial', fill: '#374151', customData: { template: 'Customization: {{customization}}' } },
+        {
+          type: 'image',
+          src: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQI12NgAAIABQAABjE+ibYAAAAASUVORK5CYII=',
+          left: px(65), top: 6, scaleX: 1, scaleY: 1, width: px(33), height: 46,
+          customData: { type: 'barcode', template: '{{order_id}}', barcodeType: 'code128', showText: false, barColor: '#000000', bgColor: '#ffffff' },
+        },
+        { type: 'i-text', left: 14, top: px(38) - 14, text: 'Ship by: {{ship_date}}  |  {{=today()}}', fontSize: 6, fontFamily: 'Arial', fill: '#9ca3af', customData: { template: 'Ship by: {{ship_date}}  |  {{=today()}}' } },
+      ],
+    },
+    sampleData: [
+      { product_name: 'Custom Engraved Mug', order_id: '114-1234567-8901234', ASIN: 'B08MUG0001', quantity: '2', customization: 'Name: Rahul, Color: Red', ship_date: '2026-06-25' },
+    ],
+  },
+
   {
     id: 'serial-prefixed',
     name: 'Serial with Prefix/Suffix',
