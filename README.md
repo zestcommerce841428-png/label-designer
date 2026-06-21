@@ -23,8 +23,9 @@ Inspired by [AzureLabel](https://azurelabel.com) (Windows desktop), LabelForge b
 - Elements: text (inline editing), rectangles, circles, lines, uploaded images
 - Full undo / redo history (capped at 50 states, stored in Zustand)
 - 14 label size presets — Avery 5160/5163/5164/5167/5371, thermal 57×32 / 80×40 / 100×150, A4, Letter, custom
-- Properties panel: font size, colour, bold, italic, fill, stroke, opacity
-- Text alignment: left / centre / right
+- Properties panel: font size, colour, bold, italic, underline, strikethrough, fill, stroke, opacity
+- Text alignment: left / centre / right; vertical alignment top / middle / bottom
+- Corner radius for rectangle elements
 
 ### Barcode Engine
 
@@ -63,7 +64,7 @@ Inspired by [AzureLabel](https://azurelabel.com) (Windows desktop), LabelForge b
 ## Tech Stack
 
 | Layer | Technology |
-|---|---|
+| --- | --- |
 | Framework | Next.js 16.2 · App Router · Turbopack · Cache Components · React Compiler |
 | Canvas | Fabric.js 6 |
 | Styling | Tailwind CSS v4 |
@@ -135,7 +136,7 @@ label-designer/
 ### Key design decisions
 
 | Decision | Rationale |
-|---|---|
+| --- | --- |
 | `proxy.ts` not `middleware.ts` | Next.js 16 renamed the auth guard entrypoint |
 | Canvas actions in `lib/canvas/` | Keeps components thin; canvas logic is testable in isolation |
 | History stack in Zustand | Avoids module-level globals that survive across React re-mounts |
@@ -272,7 +273,7 @@ Run `lib/supabase/schema.sql` in the Supabase SQL Editor to create tables, RLS p
 ## Next.js 16 Patterns
 
 | Pattern | Where used |
-|---|---|
+| --- | --- |
 | `proxy.ts` auth guard | `proxy.ts` — replaces deprecated `middleware.ts` |
 | `"use cache"` + `cacheLife('hours')` | `app/(dashboard)/templates/page.tsx` |
 | `<Suspense>` for all dynamic data | Editor, dashboard, history pages, sidebar |
@@ -286,7 +287,7 @@ Run `lib/supabase/schema.sql` in the Supabase SQL Editor to create tables, RLS p
 ## AzureLabel Parity
 
 | Feature | Status |
-|---|---|
+| --- | --- |
 | Visual drag-and-drop designer | ✅ MVP |
 | Text, shapes, image elements | ✅ MVP |
 | 8 barcode types (QR, EAN, Code 128…) | ✅ MVP |
@@ -350,7 +351,7 @@ Run `lib/supabase/schema.sql` in the Supabase SQL Editor to create tables, RLS p
 ### Pricing model (planned)
 
 | Plan | Price | Limits |
-|---|---|---|
+| --- | --- | --- |---|
 | Free | $0 / mo | 3 labels, 50 prints / mo |
 | Starter | $12 / mo | 50 labels, 500 prints, CSV import |
 | Pro | $29 / mo | Unlimited labels, API access, 3 team seats |
