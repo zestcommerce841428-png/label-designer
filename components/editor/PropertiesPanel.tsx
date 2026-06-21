@@ -60,15 +60,21 @@ export default function PropertiesPanel() {
     setVersion(v => v + 1)
   }
 
-  async function updateBarcode(value: string, type: string) {
+  async function updateBarcode(value: string, type: string, extra?: Record<string, unknown>) {
     const c = getCanvas()
     if (!c || !obj) return
     try {
-      const dataURL = await generateBarcodeDataURL(value, type as 'qrcode')
+      const bObj = obj as AnyFabricObj
+      const cd = { ...bObj.customData, template: value, barcodeType: type, ...extra }
+      const dataURL = await generateBarcodeDataURL(value, type as 'qrcode', {
+        showText: cd.showText as boolean | undefined,
+        barColor: cd.barColor as string | undefined,
+        bgColor:  cd.bgColor  as string | undefined,
+      })
       if (obj instanceof FabricImage) {
         const imgObj = obj as FabricImage & { customData?: Record<string, unknown> }
         await imgObj.setSrc(dataURL)
-        imgObj.customData = { ...imgObj.customData, template: value, barcodeType: type }
+        imgObj.customData = cd
         c.renderAll()
         setVersion(v => v + 1)
       }
@@ -409,6 +415,21 @@ export default function PropertiesPanel() {
               <input type="range" min={0} max={1} step={0.05} title="Opacity"
                 value={(bObj as AnyFabricObj).opacity ?? 1}
                 onChange={e => updateShape({ opacity: +e.target.value })} />
+            </PRow>
+            <PRow label="Show text">
+              <input type="checkbox" title="Show human-readable text below barcode"
+                checked={bObj.customData?.showText !== false}
+                onChange={e => updateBarcode(bObj.customData?.template ?? '', bObj.customData?.barcodeType ?? 'qrcode', { showText: e.target.checked })} />
+            </PRow>
+            <PRow label="Bar color">
+              <input type="color" title="Barcode bar color"
+                value={String(bObj.customData?.barColor ?? '#000000')}
+                onChange={e => updateBarcode(bObj.customData?.template ?? '', bObj.customData?.barcodeType ?? 'qrcode', { barColor: e.target.value })} />
+            </PRow>
+            <PRow label="BG color">
+              <input type="color" title="Barcode background color"
+                value={String(bObj.customData?.bgColor ?? '#ffffff')}
+                onChange={e => updateBarcode(bObj.customData?.template ?? '', bObj.customData?.barcodeType ?? 'qrcode', { bgColor: e.target.value })} />
             </PRow>
           </div>
         )

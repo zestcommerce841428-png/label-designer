@@ -127,17 +127,31 @@ const NO_TEXT_SET = new Set(
 export async function generateBarcodeDataURL(
   value: string,
   type: BarcodeType = 'qrcode',
-  opts: { width?: number; height?: number; scale?: number } = {}
+  opts: {
+    width?: number
+    height?: number
+    scale?: number
+    showText?: boolean
+    barColor?: string
+    bgColor?: string
+    textColor?: string
+  } = {}
 ): Promise<string> {
+  const showText = opts.showText !== undefined ? opts.showText : !NO_TEXT_SET.has(type)
   const canvas = document.createElement('canvas')
-  await bwipjs.toCanvas(canvas, {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const bwipOpts: Record<string, any> = {
     bcid: type,
     text: value || ' ',
     scale: opts.scale ?? 3,
     height: opts.height ?? 10,
     width: opts.width,
-    includetext: !NO_TEXT_SET.has(type),
+    includetext: showText,
     textxalign: 'center',
-  })
+  }
+  if (opts.barColor) bwipOpts.barcolor = opts.barColor.replace('#', '')
+  if (opts.bgColor)  bwipOpts.backgroundcolor = opts.bgColor.replace('#', '')
+  if (opts.textColor) bwipOpts.textcolor = opts.textColor.replace('#', '')
+  await bwipjs.toCanvas(canvas, bwipOpts)
   return canvas.toDataURL('image/png')
 }
