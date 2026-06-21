@@ -1,7 +1,7 @@
 'use client'
 
 import {
-  Type, Square, Circle as CircleIcon, Minus, Triangle as TriangleIcon, Image as ImageIcon,
+  Type, AlignJustify, Square, Circle as CircleIcon, Minus, Triangle as TriangleIcon, Image as ImageIcon,
   QrCode, Undo2, Redo2, Trash2, Copy, AlignLeft, AlignCenter, AlignRight,
   Group, Ungroup, ChevronsUp, ChevronsDown, ChevronUp, ChevronDown,
   AlignStartVertical, AlignCenterVertical, AlignEndVertical,
@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import { getCanvas } from './FabricCanvas'
 import {
-  addText, addRect, addCircle, addTriangle, addLine, addBarcode, addQR,
+  addText, addTextbox, addRect, addCircle, addTriangle, addLine, addBarcode, addQR,
   addImage, deleteSelected, duplicateSelected, setTextAlign,
   groupSelected, ungroupSelected,
   bringToFront, sendToBack, bringForward, sendBackward,
@@ -47,7 +47,8 @@ export default function Toolbar() {
   return (
     <div className="flex items-center gap-0.5 px-3 py-2 bg-white border-b border-zinc-200 flex-wrap shrink-0">
       <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mr-2">Add</span>
-      <Tool icon={Type}        label="Text"      onClick={withCanvas(addText)} />
+      <Tool icon={Type}           label="Text"      onClick={withCanvas(addText)} />
+      <Tool icon={AlignJustify}   label="Textbox"   onClick={withCanvas(addTextbox)} />
       <Tool icon={Square}      label="Rectangle" onClick={withCanvas(addRect)} />
       <Tool icon={CircleIcon}   label="Circle"    onClick={withCanvas(addCircle)} />
       <Tool icon={TriangleIcon} label="Triangle"  onClick={withCanvas(addTriangle)} />

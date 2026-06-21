@@ -1,4 +1,4 @@
-import { IText, Rect, Circle, Line, Triangle, FabricImage, Group, ActiveSelection, type Canvas, type FabricObject } from 'fabric'
+import { IText, Textbox, Rect, Circle, Line, Triangle, FabricImage, Group, ActiveSelection, type Canvas, type FabricObject } from 'fabric'
 import { generateBarcodeDataURL } from '@/lib/barcode'
 import { MAX_IMAGE_BYTES } from '@/lib/constants'
 import { snapshot } from './history'
@@ -14,6 +14,18 @@ export function addText(canvas: Canvas): void {
   }) as IText & { id: string; customData: object }
   obj.id = uid()
   obj.customData = { template: 'Click to edit text' }
+  canvas.add(obj)
+  canvas.setActiveObject(obj)
+  canvas.renderAll()
+}
+
+export function addTextbox(canvas: Canvas): void {
+  snapshot(canvas)
+  const obj = new Textbox('Multi-line text here', {
+    left: 30, top: 30, width: 120, fontSize: 14, fontFamily: 'Arial', fill: '#000000',
+  }) as Textbox & { id: string; customData: object }
+  obj.id = uid()
+  obj.customData = { template: 'Multi-line text here' }
   canvas.add(obj)
   canvas.setActiveObject(obj)
   canvas.renderAll()

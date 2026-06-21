@@ -322,7 +322,7 @@ async function applyMergeToObject(
 
   const resolved = await resolveTemplate(cd.template, row, rowIndex, totalRows)
 
-  if (obj.type === 'i-text' || obj.type === 'text') {
+  if (obj.type === 'i-text' || obj.type === 'text' || obj.type === 'textbox') {
     const textObj = obj as IText
     textObj.set({ text: resolved })
 
@@ -384,7 +384,7 @@ export async function applyMerge(
 
 function resetObject(obj: WithCustomData): void {
   const cd = obj.customData
-  if (cd?.template && (obj.type === 'i-text' || obj.type === 'text')) {
+  if (cd?.template && (obj.type === 'i-text' || obj.type === 'text' || obj.type === 'textbox')) {
     const textObj = obj as IText
     textObj.set({ text: cd.template })
     if (cd.shrinkToFit && cd.maxFontSize) textObj.set({ fontSize: cd.maxFontSize })

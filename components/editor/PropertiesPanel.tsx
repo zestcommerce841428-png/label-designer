@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { IText, FabricImage, Group } from 'fabric'
+import { IText, Textbox, FabricImage, Group } from 'fabric'
 import { AlignLeft, AlignCenter, AlignRight } from 'lucide-react'
 import { getCanvas } from './FabricCanvas'
 import { BARCODE_GROUPS, generateBarcodeDataURL } from '@/lib/barcode'
@@ -84,7 +84,7 @@ export default function PropertiesPanel() {
     c.renderAll()
   }
 
-  const isText    = obj instanceof IText
+  const isText    = obj instanceof IText || obj instanceof Textbox
   const isBarcode = obj?.customData?.type === 'barcode'
   const isLayer   = obj instanceof Group && obj.customData?.type === 'layer'
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -487,6 +487,21 @@ export default function PropertiesPanel() {
                   className="w-16 text-sm border border-zinc-300 rounded px-2 py-1"
                   value={sObj.rx ?? 0}
                   onChange={e => updateShape({ rx: +e.target.value, ry: +e.target.value })} />
+              </PRow>
+            )}
+            {(sObj.type === 'line' || sObj.type === 'rect' || sObj.type === 'circle' || sObj.type === 'triangle') && (
+              <PRow label="Dash">
+                <select title="Stroke dash pattern"
+                  className="text-xs border border-zinc-300 rounded px-1.5 py-1 focus:outline-none"
+                  value={JSON.stringify(sObj.strokeDashArray ?? [])}
+                  onChange={e => updateShape({ strokeDashArray: JSON.parse(e.target.value) })}
+                >
+                  <option value="[]">Solid</option>
+                  <option value="[4,4]">Dashed</option>
+                  <option value="[2,3]">Dotted</option>
+                  <option value="[8,4]">Long dash</option>
+                  <option value="[8,4,2,4]">Dash dot</option>
+                </select>
               </PRow>
             )}
           </div>
