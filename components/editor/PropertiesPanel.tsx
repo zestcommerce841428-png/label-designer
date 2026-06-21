@@ -332,6 +332,24 @@ export default function PropertiesPanel() {
               value={textObj.opacity ?? 1}
               onChange={e => updateShape({ opacity: +e.target.value })} />
           </PRow>
+          <PRow label="Shadow">
+            <div className="flex items-center gap-1">
+              <input type="checkbox" title="Enable text shadow"
+                checked={!!(textObj.shadow)}
+                onChange={e => {
+                  if (e.target.checked) {
+                    updateShape({ shadow: { color: 'rgba(0,0,0,0.3)', blur: 4, offsetX: 2, offsetY: 2 } })
+                  } else {
+                    updateShape({ shadow: null })
+                  }
+                }} />
+              {textObj.shadow && (
+                <input type="color" title="Shadow color"
+                  value={String(typeof textObj.shadow === 'object' ? (textObj.shadow as { color?: string }).color ?? '#000000' : '#000000')}
+                  onChange={e => updateShape({ shadow: { ...(typeof textObj.shadow === 'object' ? textObj.shadow as object : {}), color: e.target.value } })} />
+              )}
+            </div>
+          </PRow>
           <PRow label="Background">
             <input type="color" title="Text background/highlight color"
               value={String(textObj.backgroundColor ?? '#ffffff')}

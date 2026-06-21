@@ -1,7 +1,7 @@
 'use client'
 
 import {
-  Type, AlignJustify, Square, Circle as CircleIcon, Minus, Triangle as TriangleIcon, Image as ImageIcon, Maximize2, Crosshair,
+  Type, AlignJustify, Square, Circle as CircleIcon, Minus, Triangle as TriangleIcon, Image as ImageIcon, Maximize2, Crosshair, FlipHorizontal2, FlipVertical2,
   QrCode, Undo2, Redo2, Trash2, Copy, AlignLeft, AlignCenter, AlignRight,
   Group, Ungroup, ChevronsUp, ChevronsDown, ChevronUp, ChevronDown,
   AlignStartVertical, AlignCenterVertical, AlignEndVertical,
@@ -15,7 +15,7 @@ import {
   groupSelected, ungroupSelected,
   bringToFront, sendToBack, bringForward, sendBackward,
   alignObjects, distributeObjects, pasteFromClipboard,
-  centerOnLabel, fitToLabel,
+  centerOnLabel, fitToLabel, flipHorizontal, flipVertical,
 } from '@/lib/canvas/elements'
 import { undo, redo } from '@/lib/canvas/history'
 
@@ -95,8 +95,10 @@ export default function Toolbar() {
       <Tool icon={ChevronsDown} label="Send to Back"    onClick={withCanvas(sendToBack)} />
 
       <Sep />
-      <Tool icon={Crosshair}  label="Center on label"  onClick={withCanvas(centerOnLabel)} />
-      <Tool icon={Maximize2}  label="Fit to label"     onClick={withCanvas(fitToLabel)} />
+      <Tool icon={Crosshair}       label="Center on label"   onClick={withCanvas(centerOnLabel)} />
+      <Tool icon={Maximize2}       label="Fit to label"      onClick={withCanvas(fitToLabel)} />
+      <Tool icon={FlipHorizontal2} label="Flip horizontal"   onClick={withCanvas(flipHorizontal)} />
+      <Tool icon={FlipVertical2}   label="Flip vertical"     onClick={withCanvas(flipVertical)} />
 
       <Sep />
       <Tool icon={Clipboard} label="Paste Image (Ctrl+V)" onClick={withCanvas(c => pasteFromClipboard(c))} />

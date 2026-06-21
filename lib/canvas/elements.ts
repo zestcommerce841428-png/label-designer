@@ -236,6 +236,24 @@ export function distributeObjects(canvas: Canvas, axis: 'h' | 'v'): void {
 
 // ─── Label-relative positioning ──────────────────────────────────────────────
 
+export function flipHorizontal(canvas: Canvas): void {
+  const obj = canvas.getActiveObject()
+  if (!obj) return
+  snapshot(canvas)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ;(obj as any).set({ flipX: !(obj as any).flipX })
+  canvas.renderAll()
+}
+
+export function flipVertical(canvas: Canvas): void {
+  const obj = canvas.getActiveObject()
+  if (!obj) return
+  snapshot(canvas)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ;(obj as any).set({ flipY: !(obj as any).flipY })
+  canvas.renderAll()
+}
+
 export function centerOnLabel(canvas: Canvas): void {
   const obj = canvas.getActiveObject()
   if (!obj) return
