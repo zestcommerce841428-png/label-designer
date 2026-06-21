@@ -3,14 +3,40 @@
 import { useCallback, useState } from 'react'
 import Papa from 'papaparse'
 import * as XLSX from 'xlsx'
-import { Upload, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Upload, ChevronLeft, ChevronRight, Sheet, RefreshCw } from 'lucide-react'
 import { useEditorStore, type DataRow } from '@/lib/store/editor'
 import { MAX_IMPORT_FILE_BYTES } from '@/lib/constants'
+
+type Tab = 'file' | 'sheets'
+
+/** Convert a Google Sheets share/edit URL to a CSV export URL */
+function sheetsUrlToCsvUrl(input: string): string | null {
+  // Already a published CSV link
+  if (input.includes('output=csv')) return input
+
+  // Extract spreadsheet ID from standard share/edit URL
+  // e.g. https://docs.google.com/spreadsheets/d/<ID>/edit#gid=0
+  const match = input.match(/spreadsheets\/d\/([a-zA-Z0-9_-]+)/)
+  if (!match) return null
+
+  const id = match[1]
+  // Extract optional gid (sheet tab)
+  const gidMatch = input.match(/[#&?]gid=(\d+)/)
+  const gid = gidMatch ? gidMatch[1] : '0'
+
+  return `https://docs.google.com/spreadsheets/d/${id}/export?format=csv&gid=${gid}`
+}
 
 export default function DataImportPanel() {
   const { dataRows, setDataRows, previewRowIndex, setPreviewRowIndex } = useEditorStore()
   const [columns, setColumns] = useState<string[]>([])
   const [dragging, setDragging] = useState(false)
+  const [tab, setTab] = useState<Tab>('file')
+  const [sheetsUrl, setSheetsUrl] = useState('')
+  const [sheetsLoading, setSheetsLoading] = useState(false)
+  const [sheetsError, setSheetsError] = useState<string | null>(null)
+
+  // ─── File import ───────────────────────────────────────────────────────────
 
   const processFile = useCallback((file: File) => {
     if (file.size > MAX_IMPORT_FILE_BYTES) {
@@ -58,25 +84,111 @@ export default function DataImportPanel() {
     input.click()
   }
 
+  // ─── Google Sheets import ──────────────────────────────────────────────────
+
+  async function loadFromSheets() {
+    const csvUrl = sheetsUrlToCsvUrl(sheetsUrl.trim())
+    if (!csvUrl) {
+      setSheetsError('Paste a Google Sheets share link or published CSV URL.')
+      return
+    }
+    setSheetsLoading(true)
+    setSheetsError(null)
+    try {
+      // Proxy through our Next.js route to avoid CORS
+      const res = await fetch(`/api/sheets-proxy?url=${encodeURIComponent(csvUrl)}`)
+      if (!res.ok) throw new Error(`Failed to fetch (${res.status})`)
+      const text = await res.text()
+      Papa.parse<DataRow>(text, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (result) => {
+          if (!result.data.length) {
+            setSheetsError('Sheet is empty or has no header row.')
+            return
+          }
+          setColumns(result.meta.fields ?? [])
+          setDataRows(result.data)
+          setPreviewRowIndex(0)
+        },
+      })
+    } catch (err) {
+      setSheetsError(err instanceof Error ? err.message : 'Failed to load sheet.')
+    } finally {
+      setSheetsLoading(false)
+    }
+  }
+
+  // ─── Shared render helpers ─────────────────────────────────────────────────
+
+  const hasData = dataRows.length > 0
+
   return (
     <div className="w-72 bg-white border-l border-zinc-200 flex flex-col shrink-0 overflow-hidden">
-      <div className="px-4 py-3 border-b border-zinc-100">
-        <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Data Import</h3>
+      {/* Header + tabs */}
+      <div className="px-4 pt-3 pb-0 border-b border-zinc-100">
+        <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Data Import</h3>
+        <div className="flex gap-0">
+          <TabBtn active={tab === 'file'} onClick={() => setTab('file')}>
+            <Upload className="w-3 h-3" /> File
+          </TabBtn>
+          <TabBtn active={tab === 'sheets'} onClick={() => setTab('sheets')}>
+            <Sheet className="w-3 h-3" /> Google Sheets
+          </TabBtn>
+        </div>
       </div>
 
-      <div
-        className={`m-3 rounded-xl border-2 border-dashed p-5 text-center cursor-pointer transition-colors ${dragging ? 'border-blue-400 bg-blue-50' : 'border-zinc-300 hover:border-zinc-400'}`}
-        onDragOver={e => { e.preventDefault(); setDragging(true) }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={onDrop}
-        onClick={openPicker}
-      >
-        <Upload className="w-6 h-6 text-zinc-400 mx-auto mb-2" />
-        <p className="text-sm font-medium text-zinc-600">Drop CSV or Excel file</p>
-        <p className="text-xs text-zinc-400 mt-0.5">or click to browse</p>
-      </div>
+      {/* File tab */}
+      {tab === 'file' && (
+        <div
+          className={`m-3 rounded-xl border-2 border-dashed p-5 text-center cursor-pointer transition-colors ${dragging ? 'border-blue-400 bg-blue-50' : 'border-zinc-300 hover:border-zinc-400'}`}
+          onDragOver={e => { e.preventDefault(); setDragging(true) }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={onDrop}
+          onClick={openPicker}
+        >
+          <Upload className="w-6 h-6 text-zinc-400 mx-auto mb-2" />
+          <p className="text-sm font-medium text-zinc-600">Drop CSV or Excel file</p>
+          <p className="text-xs text-zinc-400 mt-0.5">or click to browse</p>
+        </div>
+      )}
 
-      {dataRows.length > 0 && (
+      {/* Google Sheets tab */}
+      {tab === 'sheets' && (
+        <div className="m-3 space-y-3">
+          <div>
+            <label className="text-xs text-zinc-600 block mb-1 font-medium">Spreadsheet URL</label>
+            <textarea
+              className="w-full text-xs border border-zinc-300 rounded-lg px-2 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
+              rows={3}
+              placeholder="https://docs.google.com/spreadsheets/d/…"
+              value={sheetsUrl}
+              onChange={e => { setSheetsUrl(e.target.value); setSheetsError(null) }}
+            />
+            <p className="text-xs text-zinc-400 mt-0.5">
+              The sheet must be shared as <strong>Anyone with the link can view</strong>.
+            </p>
+          </div>
+          {sheetsError && (
+            <p className="text-xs text-red-600 bg-red-50 rounded px-2 py-1.5">{sheetsError}</p>
+          )}
+          <button
+            type="button"
+            onClick={loadFromSheets}
+            disabled={sheetsLoading || !sheetsUrl.trim()}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${sheetsLoading ? 'animate-spin' : ''}`} />
+            {sheetsLoading ? 'Loading…' : hasData ? 'Refresh from Sheets' : 'Load Sheet'}
+          </button>
+          <p className="text-xs text-zinc-400">
+            Tip: use <strong>Refresh</strong> to re-pull live data without re-pasting the URL.
+          </p>
+        </div>
+      )}
+
+      {/* Data preview (shared between tabs) */}
+      {hasData && (
         <>
           <div className="px-4 py-2 border-y border-zinc-100 flex items-center justify-between">
             <span className="text-xs text-zinc-500">{dataRows.length} records</span>
@@ -137,5 +249,21 @@ export default function DataImportPanel() {
         </>
       )}
     </div>
+  )
+}
+
+function TabBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border-b-2 transition-colors ${
+        active
+          ? 'border-blue-600 text-blue-700'
+          : 'border-transparent text-zinc-500 hover:text-zinc-700'
+      }`}
+    >
+      {children}
+    </button>
   )
 }

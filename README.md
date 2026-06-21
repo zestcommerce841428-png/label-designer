@@ -299,13 +299,14 @@ Run `lib/supabase/schema.sql` in the Supabase SQL Editor to create tables, RLS p
 | Print history log | ✅ MVP |
 | 10-template library | ✅ MVP |
 | Supabase auth + RLS | ✅ MVP |
-| Batch multi-page PDF print | 🔜 Phase 2 |
-| Google Sheets live connection | 🔜 Phase 2 |
-| MySQL / PostgreSQL direct connection | 🔜 Phase 2 |
-| REST API with API keys | 🔜 Phase 2 |
-| Serial number counters | 🔜 Phase 2 |
-| Conditional element visibility | 🔜 Phase 2 |
-| JavaScript formula fields | 🔜 Phase 2 |
+| Batch multi-page print (browser) | ✅ Phase 2 |
+| Serial number counters `{{#counter}}` | ✅ Phase 2 |
+| Conditional element visibility | ✅ Phase 2 |
+| JavaScript formula fields `{{=expr}}` | ✅ Phase 2 |
+| Google Sheets live connection | ✅ Phase 2 |
+| Print history CSV export | ✅ Phase 2 |
+| REST API with API keys | ✅ Phase 2 |
+| MySQL / PostgreSQL direct connection | 🔜 Phase 3 |
 | 95 barcode types (full bwip-js) | 🔜 Phase 3 |
 | ZPL / TSPL / EPL raw thermal output | 🔜 Phase 3 |
 | NiceLabel / Loftware XML import | 🔜 Phase 3 |
@@ -320,14 +321,15 @@ Run `lib/supabase/schema.sql` in the Supabase SQL Editor to create tables, RLS p
 
 ### Phase 2 — Data and Integrations
 
-- [ ] Google Sheets live connection
+- [x] Google Sheets live connection (paste share URL → auto-fetch CSV via `/api/sheets-proxy`)
+- [x] REST API with API key auth (`/api/v1/labels/[id]/print`, manage keys at `/settings/api`)
+- [x] Batch multi-page print (one record per page, up to 500 rows, DPR×3 quality)
+- [x] Serial number counters (`{{#counter:start:step:pad}}`)
+- [x] Conditional element visibility (`Show when` JS expression in Properties panel)
+- [x] JavaScript formula fields (`{{=row.price * 1.1}}`)
+- [x] Print history CSV export
 - [ ] MySQL / PostgreSQL direct connection
-- [ ] REST API with API key auth (external print triggers)
-- [ ] Batch multi-page PDF print (one record per page)
-- [ ] Serial number counters (prefix, suffix, padding, auto-increment)
-- [ ] Conditional element visibility (show/hide by field value)
-- [ ] JavaScript formula fields
-- [ ] Print history PDF download
+- [ ] Print history PDF download (re-render to PDF via sidecar)
 
 ### Phase 3 — Enterprise
 

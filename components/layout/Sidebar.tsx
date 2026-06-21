@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, Tag, FileText, Clock, Database, LogOut } from 'lucide-react'
+import { LayoutDashboard, Tag, Clock, Database, Key, LogOut } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 
@@ -11,6 +11,7 @@ const nav = [
   { href: '/templates', label: 'Templates', icon: Tag },
   { href: '/history', label: 'Print History', icon: Clock },
   { href: '/data', label: 'Data Sources', icon: Database },
+  { href: '/settings/api', label: 'API Keys', icon: Key },
 ]
 
 export default function Sidebar() {
