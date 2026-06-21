@@ -20,34 +20,16 @@ export const metadata: Metadata = {
   description:
     "Design, merge, and print professional labels from your browser. Import CSV or Excel data, add barcodes, and print on Avery sheets — no install required.",
   keywords: [
-    "label designer",
-    "label maker",
-    "online label printing",
-    "barcode label",
-    "Avery label",
-    "CSV merge print",
-    "thermal label",
-    "ZPL label",
-    "product label design",
+    "label designer", "label maker", "online label printing", "barcode label",
+    "Avery label", "CSV merge print", "thermal label", "ZPL label", "product label design",
   ],
   authors: [{ name: "LabelForge" }],
   creator: "LabelForge",
   openGraph: {
-    type: "website",
-    locale: "en_US",
-    url: SITE_URL,
-    siteName: "LabelForge",
+    type: "website", locale: "en_US", url: SITE_URL, siteName: "LabelForge",
     title: "LabelForge — Professional Web Label Designer",
-    description:
-      "Design, merge, and print professional labels from your browser. No install required.",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "LabelForge — Web Label Designer",
-      },
-    ],
+    description: "Design, merge, and print professional labels from your browser. No install required.",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "LabelForge — Web Label Designer" }],
   },
   twitter: {
     card: "summary_large_image",
@@ -56,20 +38,31 @@ export const metadata: Metadata = {
     images: ["/og-image.png"],
   },
   robots: {
-    index: true,
-    follow: true,
+    index: true, follow: true,
     googleBot: { index: true, follow: true, "max-image-preview": "large" },
   },
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+// Inline script: set `dark` class before first paint to prevent flash
+const themeScript = `
+(function(){
+  try {
+    var stored = localStorage.getItem('lf-theme');
+    var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (stored === 'dark' || (!stored && prefersDark)) {
+      document.documentElement.classList.add('dark');
+    }
+  } catch(e) {}
+})();
+`;
+
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">
+    <html lang="en" className={`${geistSans.variable} h-full antialiased`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
+      <body className="min-h-full flex flex-col bg-[var(--bg)] text-[var(--fg)]">
         {children}
         <Toaster />
       </body>

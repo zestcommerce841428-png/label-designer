@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import ThemeToggle from '@/components/ui/ThemeToggle'
 
 const YEAR = 2026
 
@@ -34,7 +35,7 @@ const features = [
   {
     icon: '⚡',
     title: 'Formula Engine',
-    desc: 'Use {{= row.price * 1.1 }} or await httpGet() to pull live data. Built-in helpers: fmt(), If(), Left(), CalcDiscount(), gs1().',
+    desc: 'Use {{= row.price * 1.1 }} or await httpGet() to pull live data. Built-in helpers: fmt(), If(), Left(), CalcDiscount().',
   },
   {
     icon: '📄',
@@ -59,13 +60,12 @@ const features = [
 ]
 
 const pricing = [
-  { plan: 'Free',       price: '$0',  period: '/mo', limits: '3 labels · 50 prints · CSV import',             cta: 'Get started', href: '/signup', highlight: false },
-  { plan: 'Starter',    price: '$12', period: '/mo', limits: '50 labels · 500 prints · Google Sheets',        cta: 'Start trial',  href: '/signup', highlight: false },
-  { plan: 'Pro',        price: '$29', period: '/mo', limits: 'Unlimited labels · API access · 3 seats',        cta: 'Start trial',  href: '/signup', highlight: true  },
-  { plan: 'Business',   price: '$79', period: '/mo', limits: '10 seats · DB connections · priority support',   cta: 'Contact us',  href: '/signup', highlight: false },
+  { plan: 'Free',     price: '$0',  period: '/mo', limits: '3 labels · 50 prints · CSV import',           cta: 'Get started', href: '/signup', highlight: false },
+  { plan: 'Starter',  price: '$12', period: '/mo', limits: '50 labels · 500 prints · Google Sheets',      cta: 'Start trial',  href: '/signup', highlight: false },
+  { plan: 'Pro',      price: '$29', period: '/mo', limits: 'Unlimited labels · API access · 3 seats',      cta: 'Start trial',  href: '/signup', highlight: true  },
+  { plan: 'Business', price: '$79', period: '/mo', limits: '10 seats · DB connections · priority support', cta: 'Contact us',  href: '/signup', highlight: false },
 ]
 
-// JSON-LD structured data for SEO
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
@@ -85,26 +85,30 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
         {/* Nav */}
-        <header>
+        <header className="sticky top-0 z-30 bg-[var(--bg)]/80 backdrop-blur-md border-b border-[var(--border)]">
           <nav
-            className="flex items-center justify-between px-6 sm:px-8 py-4 border-b border-zinc-100"
+            className="flex items-center justify-between px-6 sm:px-8 py-3.5 max-w-7xl mx-auto"
             aria-label="Main navigation"
           >
-            <Link href="/" className="text-xl font-bold text-blue-600 tracking-tight" aria-label="LabelForge home">
-              LabelForge
+            <Link href="/" className="flex items-center gap-2" aria-label="LabelForge home">
+              <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center shrink-0">
+                <span className="text-white text-xs font-bold">LF</span>
+              </div>
+              <span className="text-base font-bold text-[var(--fg)] tracking-tight">LabelForge</span>
             </Link>
-            <div className="flex items-center gap-3 sm:gap-4">
-              <Link href="/templates" className="hidden sm:block text-sm text-zinc-600 hover:text-zinc-900 transition-colors">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Link href="/templates" className="hidden sm:block text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors px-2 py-1">
                 Templates
               </Link>
-              <Link href="/login" className="text-sm text-zinc-600 hover:text-zinc-900 transition-colors">
+              <ThemeToggle compact />
+              <Link href="/login" className="text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors px-2 py-1">
                 Sign in
               </Link>
               <Link
                 href="/signup"
-                className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors"
+                className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-all shadow-sm"
               >
                 Get started free
               </Link>
@@ -114,56 +118,37 @@ export default function Home() {
 
         <main>
           {/* Hero */}
-          <section className="max-w-4xl mx-auto px-6 sm:px-8 py-16 sm:py-24 text-center">
-            <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-6 border border-blue-100">
+          <section className="max-w-4xl mx-auto px-6 sm:px-8 py-20 sm:py-28 text-center">
+            <div className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 text-xs font-semibold px-3 py-1.5 rounded-full mb-6 border border-blue-200 dark:border-blue-800">
               ✨ No software to install — works in any browser
             </div>
-            <h1 className="text-4xl sm:text-5xl font-bold text-zinc-900 leading-tight tracking-tight mb-6">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[var(--fg)] leading-tight tracking-tight mb-6">
               Design &amp; print labels<br />
               <span className="text-blue-600">from anywhere</span>
             </h1>
-            <p className="text-lg sm:text-xl text-zinc-500 max-w-2xl mx-auto mb-10 leading-relaxed">
+            <p className="text-lg sm:text-xl text-[var(--fg-muted)] max-w-2xl mx-auto mb-10 leading-relaxed">
               The professional label designer that runs in your browser. Import product data,
               design once, merge thousands of unique labels, and print on any printer.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <Link
                 href="/signup"
-                className="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors text-sm shadow-sm"
+                className="w-full sm:w-auto px-7 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all text-sm shadow-sm hover:shadow-md"
               >
                 Start designing free →
               </Link>
               <Link
                 href="/templates"
-                className="w-full sm:w-auto px-6 py-3 bg-zinc-100 text-zinc-700 font-semibold rounded-xl hover:bg-zinc-200 transition-colors text-sm"
+                className="w-full sm:w-auto px-7 py-3 bg-[var(--bg-subtle)] border border-[var(--border)] text-[var(--fg)] font-semibold rounded-xl hover:border-blue-400 transition-all text-sm"
               >
                 Browse templates
               </Link>
             </div>
-            <p className="mt-4 text-xs text-zinc-400">Free plan · No credit card required</p>
-          </section>
-
-          {/* Feature grid */}
-          <section className="max-w-6xl mx-auto px-6 sm:px-8 pb-20" aria-labelledby="features-heading">
-            <h2 id="features-heading" className="text-2xl sm:text-3xl font-bold text-zinc-900 text-center mb-3">
-              Everything you need to label your products
-            </h2>
-            <p className="text-center text-zinc-500 text-sm mb-12 max-w-xl mx-auto">
-              From small batches to enterprise scale — LabelForge grows with your operation.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {features.map(f => (
-                <article key={f.title} className="bg-zinc-50 rounded-2xl p-6 border border-zinc-100 hover:border-blue-200 hover:shadow-sm transition-all">
-                  <div className="text-3xl mb-3" aria-hidden>{f.icon}</div>
-                  <h3 className="font-semibold text-zinc-900 mb-2 text-sm">{f.title}</h3>
-                  <p className="text-sm text-zinc-500 leading-relaxed">{f.desc}</p>
-                </article>
-              ))}
-            </div>
+            <p className="mt-4 text-xs text-[var(--fg-subtle)]">Free plan · No credit card required</p>
           </section>
 
           {/* Social proof strip */}
-          <section className="bg-zinc-50 border-y border-zinc-100 py-10 text-center" aria-label="Key metrics">
+          <section className="bg-[var(--bg-subtle)] border-y border-[var(--border)] py-10 text-center" aria-label="Key metrics">
             <div className="max-w-4xl mx-auto px-8 grid grid-cols-2 sm:grid-cols-4 gap-6">
               {[
                 { value: '95',   label: 'Barcode types' },
@@ -173,55 +158,76 @@ export default function Home() {
               ].map(({ value, label }) => (
                 <div key={label}>
                   <p className="text-3xl font-bold text-blue-600">{value}</p>
-                  <p className="text-sm text-zinc-500 mt-1">{label}</p>
+                  <p className="text-sm text-[var(--fg-muted)] mt-1">{label}</p>
                 </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Feature grid */}
+          <section className="max-w-6xl mx-auto px-6 sm:px-8 py-20" aria-labelledby="features-heading">
+            <h2 id="features-heading" className="text-2xl sm:text-3xl font-bold text-[var(--fg)] text-center mb-3">
+              Everything you need to label your products
+            </h2>
+            <p className="text-center text-[var(--fg-muted)] text-sm mb-12 max-w-xl mx-auto">
+              From small batches to enterprise scale — LabelForge grows with your operation.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {features.map(f => (
+                <article key={f.title} className="bg-[var(--bg-card)] rounded-2xl p-6 border border-[var(--border)] hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-md dark:hover:shadow-black/20 transition-all">
+                  <div className="text-3xl mb-3" aria-hidden>{f.icon}</div>
+                  <h3 className="font-semibold text-[var(--fg)] mb-2 text-sm">{f.title}</h3>
+                  <p className="text-sm text-[var(--fg-muted)] leading-relaxed">{f.desc}</p>
+                </article>
               ))}
             </div>
           </section>
 
           {/* Pricing */}
-          <section className="max-w-5xl mx-auto px-6 sm:px-8 py-20" aria-labelledby="pricing-heading">
-            <h2 id="pricing-heading" className="text-2xl sm:text-3xl font-bold text-zinc-900 text-center mb-3">
-              Simple, transparent pricing
-            </h2>
-            <p className="text-center text-zinc-500 text-sm mb-12">Start free. Upgrade when you need more.</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {pricing.map(p => (
-                <div
-                  key={p.plan}
-                  className={`rounded-2xl border p-6 flex flex-col ${
-                    p.highlight
-                      ? 'border-blue-400 bg-blue-600 text-white shadow-lg shadow-blue-100'
-                      : 'border-zinc-200 bg-white'
-                  }`}
-                >
-                  <p className={`text-xs font-semibold uppercase tracking-wider mb-3 ${p.highlight ? 'text-blue-200' : 'text-zinc-400'}`}>
-                    {p.plan}
-                  </p>
-                  <div className="flex items-baseline gap-1 mb-4">
-                    <span className="text-3xl font-bold">{p.price}</span>
-                    <span className={`text-sm ${p.highlight ? 'text-blue-200' : 'text-zinc-400'}`}>{p.period}</span>
-                  </div>
-                  <p className={`text-xs mb-6 flex-1 leading-relaxed ${p.highlight ? 'text-blue-100' : 'text-zinc-500'}`}>
-                    {p.limits}
-                  </p>
-                  <Link
-                    href={p.href}
-                    className={`text-center py-2 rounded-xl text-sm font-semibold transition-colors ${
+          <section className="bg-[var(--bg-subtle)] border-t border-[var(--border)]">
+            <div className="max-w-5xl mx-auto px-6 sm:px-8 py-20" aria-labelledby="pricing-heading">
+              <h2 id="pricing-heading" className="text-2xl sm:text-3xl font-bold text-[var(--fg)] text-center mb-3">
+                Simple, transparent pricing
+              </h2>
+              <p className="text-center text-[var(--fg-muted)] text-sm mb-12">Start free. Upgrade when you need more.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {pricing.map(p => (
+                  <div
+                    key={p.plan}
+                    className={`rounded-2xl border p-6 flex flex-col ${
                       p.highlight
-                        ? 'bg-white text-blue-600 hover:bg-blue-50'
-                        : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
+                        ? 'border-blue-500 bg-blue-600 text-white shadow-xl shadow-blue-500/20'
+                        : 'border-[var(--border)] bg-[var(--bg-card)]'
                     }`}
                   >
-                    {p.cta}
-                  </Link>
-                </div>
-              ))}
+                    <p className={`text-xs font-semibold uppercase tracking-wider mb-3 ${p.highlight ? 'text-blue-200' : 'text-[var(--fg-subtle)]'}`}>
+                      {p.plan}
+                    </p>
+                    <div className="flex items-baseline gap-1 mb-4">
+                      <span className={`text-3xl font-bold ${p.highlight ? 'text-white' : 'text-[var(--fg)]'}`}>{p.price}</span>
+                      <span className={`text-sm ${p.highlight ? 'text-blue-200' : 'text-[var(--fg-subtle)]'}`}>{p.period}</span>
+                    </div>
+                    <p className={`text-xs mb-6 flex-1 leading-relaxed ${p.highlight ? 'text-blue-100' : 'text-[var(--fg-muted)]'}`}>
+                      {p.limits}
+                    </p>
+                    <Link
+                      href={p.href}
+                      className={`text-center py-2 rounded-xl text-sm font-semibold transition-all ${
+                        p.highlight
+                          ? 'bg-white text-blue-600 hover:bg-blue-50 shadow-sm'
+                          : 'bg-[var(--bg-subtle)] border border-[var(--border)] text-[var(--fg-muted)] hover:text-[var(--fg)] hover:border-blue-400'
+                      }`}
+                    >
+                      {p.cta}
+                    </Link>
+                  </div>
+                ))}
+              </div>
             </div>
           </section>
 
           {/* CTA */}
-          <section className="bg-blue-600 py-16 text-center px-6" aria-labelledby="cta-heading">
+          <section className="bg-blue-600 py-20 text-center px-6" aria-labelledby="cta-heading">
             <h2 id="cta-heading" className="text-2xl sm:text-3xl font-bold text-white mb-3">
               Ready to start designing?
             </h2>
@@ -237,13 +243,13 @@ export default function Home() {
           </section>
         </main>
 
-        <footer className="py-8 px-8 border-t border-zinc-100">
+        <footer className="py-8 px-8 border-t border-[var(--border)] bg-[var(--bg)]">
           <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-zinc-400">© {YEAR} LabelForge. All rights reserved.</p>
+            <p className="text-xs text-[var(--fg-subtle)]">© {YEAR} LabelForge. All rights reserved.</p>
             <nav className="flex items-center gap-6" aria-label="Footer navigation">
-              <Link href="/templates" className="text-xs text-zinc-400 hover:text-zinc-700 transition-colors">Templates</Link>
-              <Link href="/login"     className="text-xs text-zinc-400 hover:text-zinc-700 transition-colors">Sign in</Link>
-              <Link href="/signup"    className="text-xs text-zinc-400 hover:text-zinc-700 transition-colors">Sign up</Link>
+              <Link href="/templates" className="text-xs text-[var(--fg-subtle)] hover:text-[var(--fg)] transition-colors">Templates</Link>
+              <Link href="/login"     className="text-xs text-[var(--fg-subtle)] hover:text-[var(--fg)] transition-colors">Sign in</Link>
+              <Link href="/signup"    className="text-xs text-[var(--fg-subtle)] hover:text-[var(--fg)] transition-colors">Sign up</Link>
             </nav>
           </div>
         </footer>

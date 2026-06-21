@@ -31,10 +31,12 @@ export default async function DataSourcesList() {
   if (!sources || sources.length === 0) {
     return (
       <div className="space-y-6">
-        <div className="bg-white rounded-xl border border-zinc-200 p-8 flex flex-col items-center text-center">
-          <Database className="w-10 h-10 text-zinc-300 mb-3" />
-          <p className="text-zinc-500 text-sm font-medium">No saved data sources yet.</p>
-          <p className="text-zinc-400 text-xs mt-1 max-w-sm">
+        <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] p-10 flex flex-col items-center text-center">
+          <div className="w-14 h-14 rounded-2xl bg-[var(--bg-subtle)] border border-[var(--border)] flex items-center justify-center mb-4">
+            <Database className="w-6 h-6 text-[var(--fg-subtle)]" />
+          </div>
+          <p className="text-sm font-semibold text-[var(--fg)] mb-1">No saved data sources yet</p>
+          <p className="text-xs text-[var(--fg-muted)] max-w-sm leading-relaxed">
             Open a label in the editor, click <strong>Data</strong>, then import a CSV, Excel, or
             Google Sheet. Your connection will appear here automatically.
           </p>
@@ -46,43 +48,45 @@ export default async function DataSourcesList() {
 
   return (
     <div className="space-y-4">
-      <div className="bg-white rounded-xl border border-zinc-200 overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] overflow-hidden overflow-x-auto">
+        <table className="w-full text-sm min-w-[540px]">
           <thead>
-            <tr className="border-b border-zinc-100">
-              <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Name</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Type</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Columns</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Created</th>
-              <th className="px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider text-left">Label</th>
+            <tr className="border-b border-[var(--border)] bg-[var(--bg-subtle)]">
+              <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wider">Name</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wider">Type</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wider">Columns</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wider">Created</th>
+              <th className="px-4 py-3 text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wider text-left">Label</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-100">
+          <tbody className="divide-y divide-[var(--border)]">
             {sources.map(src => {
               const Icon = TYPE_ICONS[src.type] ?? Database
               const cols: string[] = Array.isArray(src.columns) ? src.columns : []
               return (
-                <tr key={src.id} className="hover:bg-zinc-50">
-                  <td className="px-4 py-3 font-medium text-zinc-900 flex items-center gap-2">
-                    <Icon className="w-4 h-4 text-zinc-400 shrink-0" />
-                    {src.name}
+                <tr key={src.id} className="hover:bg-[var(--bg-subtle)] transition-colors">
+                  <td className="px-4 py-3 font-medium text-[var(--fg)]">
+                    <div className="flex items-center gap-2">
+                      <Icon className="w-4 h-4 text-[var(--fg-subtle)] shrink-0" />
+                      {src.name}
+                    </div>
                   </td>
-                  <td className="px-4 py-3 text-zinc-600">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-zinc-100 text-zinc-600">
+                  <td className="px-4 py-3">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--bg-subtle)] text-[var(--fg-muted)] border border-[var(--border)]">
                       {TYPE_LABELS[src.type] ?? src.type}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-zinc-500 text-xs">
+                  <td className="px-4 py-3 text-[var(--fg-subtle)] text-xs">
                     {cols.length > 0
                       ? cols.slice(0, 4).join(', ') + (cols.length > 4 ? ` +${cols.length - 4}` : '')
                       : '—'}
                   </td>
-                  <td className="px-4 py-3 text-zinc-500 text-xs">
+                  <td className="px-4 py-3 text-[var(--fg-subtle)] text-xs">
                     {new Date(src.created_at).toLocaleDateString()}
                   </td>
                   <td className="px-4 py-3">
                     {src.label_id ? (
-                      <Link href={`/editor/${src.label_id}`} className="text-blue-600 text-xs hover:underline">
+                      <Link href={`/editor/${src.label_id}`} className="text-blue-600 dark:text-blue-400 text-xs hover:underline font-medium">
                         Open editor →
                       </Link>
                     ) : '—'}
@@ -100,19 +104,19 @@ export default async function DataSourcesList() {
 
 function HowItWorks() {
   return (
-    <div className="bg-zinc-50 rounded-xl border border-zinc-200 p-5 space-y-3">
-      <h2 className="text-sm font-semibold text-zinc-900">How data sources work</h2>
-      <div className="grid grid-cols-1 gap-3 text-xs text-zinc-600">
+    <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] p-5 space-y-4">
+      <h2 className="text-sm font-semibold text-[var(--fg)]">How data sources work</h2>
+      <div className="grid grid-cols-1 gap-4 text-xs text-[var(--fg-muted)]">
         <Step n={1} title="Import data in the editor">
-          Open any label, click <strong>Data</strong> in the toolbar, and import a CSV, Excel file,
+          Open any label, click <strong className="text-[var(--fg)]">Data</strong> in the toolbar, and import a CSV, Excel file,
           or paste a Google Sheets URL.
         </Step>
         <Step n={2} title="Add merge tags">
-          Click any column tag (e.g. <code className="bg-zinc-100 px-1 rounded">{'{{name}}'}</code>) to
+          Click any column tag (e.g. <code className="bg-[var(--bg-subtle)] text-[var(--fg-muted)] px-1 rounded border border-[var(--border)]">{'{{name}}'}</code>) to
           copy it, then paste into a text or barcode element on your canvas.
         </Step>
         <Step n={3} title="Batch print">
-          Click <strong>Batch</strong> in the editor header to render one label per row and open the
+          Click <strong className="text-[var(--fg)]">Batch</strong> in the editor header to render one label per row and open the
           browser print dialog.
         </Step>
       </div>
@@ -127,8 +131,8 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
         {n}
       </span>
       <div>
-        <p className="font-medium text-zinc-900">{title}</p>
-        <p className="mt-0.5 text-zinc-500">{children}</p>
+        <p className="font-semibold text-[var(--fg)]">{title}</p>
+        <p className="mt-0.5">{children}</p>
       </div>
     </div>
   )

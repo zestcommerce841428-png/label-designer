@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, Tag } from 'lucide-react'
 import { createLabel } from '@/actions/labels'
 import { createClient } from '@/lib/supabase/server'
 import LabelList from './LabelList'
@@ -15,17 +15,17 @@ async function DashboardStats() {
   ])
 
   const stats = [
-    { label: 'Labels', value: labelCount ?? 0, href: '/dashboard' },
+    { label: 'Labels created', value: labelCount ?? 0, href: '/dashboard' },
     { label: 'Print jobs', value: printCount ?? 0, href: '/history' },
   ]
 
   return (
-    <div className="flex gap-4 mb-6">
+    <div className="flex gap-3 mb-8">
       {stats.map(s => (
         <Link key={s.label} href={s.href}
-          className="flex-1 max-w-[140px] bg-white border border-zinc-200 rounded-xl px-4 py-3 hover:border-blue-300 transition-colors">
-          <p className="text-2xl font-bold text-zinc-900">{s.value}</p>
-          <p className="text-xs text-zinc-500 mt-0.5">{s.label}</p>
+          className="flex-1 max-w-[160px] bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl px-4 py-3.5 hover:border-blue-400 dark:hover:border-blue-600 transition-colors group">
+          <p className="text-2xl font-bold text-[var(--fg)] group-hover:text-blue-600 transition-colors">{s.value}</p>
+          <p className="text-xs text-[var(--fg-muted)] mt-0.5">{s.label}</p>
         </Link>
       ))}
     </div>
@@ -34,24 +34,37 @@ async function DashboardStats() {
 
 export default function DashboardPage() {
   return (
-    <div className="px-4 py-6 sm:p-8">
-      <div className="flex items-center justify-between mb-6">
+    <div className="px-4 py-6 sm:p-8 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-900">My Labels</h1>
+          <h1 className="text-2xl font-bold text-[var(--fg)] tracking-tight">My Labels</h1>
+          <p className="text-sm text-[var(--fg-muted)] mt-0.5">Design, manage and print your labels</p>
         </div>
-        <form action={createLabel}>
-          <button
-            type="submit"
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors"
+        <div className="flex items-center gap-2">
+          <Link
+            href="/templates"
+            className="hidden sm:flex items-center gap-2 px-3.5 py-2 bg-[var(--bg-card)] border border-[var(--border)] text-[var(--fg-muted)] rounded-xl text-sm font-medium hover:text-[var(--fg)] hover:border-[var(--fg-subtle)] transition-all"
           >
-            <Plus className="w-4 h-4" />
-            New Label
-          </button>
-        </form>
+            <Tag className="w-4 h-4" aria-hidden />
+            Templates
+          </Link>
+          <form action={createLabel}>
+            <button
+              type="submit"
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-all shadow-sm hover:shadow-md"
+            >
+              <Plus className="w-4 h-4" aria-hidden />
+              New Label
+            </button>
+          </form>
+        </div>
       </div>
+
       <Suspense fallback={null}>
         <DashboardStats />
       </Suspense>
+
       <Suspense fallback={<LabelListSkeleton />}>
         <LabelList />
       </Suspense>
@@ -63,11 +76,11 @@ function LabelListSkeleton() {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
       {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="bg-white rounded-xl border border-zinc-200 overflow-hidden animate-pulse">
-          <div className="h-32 bg-zinc-100" />
+        <div key={i} className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] overflow-hidden animate-pulse">
+          <div className="h-32 bg-[var(--bg-subtle)]" />
           <div className="p-3 space-y-2">
-            <div className="h-3 bg-zinc-200 rounded w-3/4" />
-            <div className="h-2 bg-zinc-100 rounded w-1/2" />
+            <div className="h-3 bg-[var(--border)] rounded w-3/4" />
+            <div className="h-2 bg-[var(--border-subtle)] rounded w-1/2" />
           </div>
         </div>
       ))}

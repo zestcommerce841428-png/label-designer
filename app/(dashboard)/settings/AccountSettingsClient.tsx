@@ -19,14 +19,17 @@ function passwordStrength(pw: string): { score: number; label: string; color: st
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="bg-white border border-zinc-200 rounded-2xl overflow-hidden">
-      <div className="px-6 py-4 border-b border-zinc-100">
-        <h2 className="text-sm font-semibold text-zinc-900">{title}</h2>
+    <section className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl overflow-hidden">
+      <div className="px-6 py-4 border-b border-[var(--border)] bg-[var(--bg-subtle)]">
+        <h2 className="text-sm font-semibold text-[var(--fg)]">{title}</h2>
       </div>
       <div className="px-6 py-5">{children}</div>
     </section>
   )
 }
+
+const inputCls = 'w-full px-3.5 py-2.5 bg-[var(--bg-subtle)] border border-[var(--border)] rounded-xl text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow'
+const btnPrimary = 'px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 transition-all shadow-sm'
 
 export default function AccountSettingsClient({
   email,
@@ -50,7 +53,7 @@ export default function AccountSettingsClient({
   const [deleteConfirm, setDeleteConfirm] = useState('')
   const [deletePending, startDelete]      = useTransition()
 
-  const pwStrength = passwordStrength(newPw)
+  const pwStrength  = passwordStrength(newPw)
   const pwMismatch  = confirmPw && confirmPw !== newPw
 
   function handleNameSave(e: React.FormEvent) {
@@ -92,12 +95,12 @@ export default function AccountSettingsClient({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-2xl">
       {/* Profile */}
       <Card title="Profile">
         <form onSubmit={handleNameSave} className="space-y-4">
           <div>
-            <label htmlFor="display-name" className="block text-sm font-medium text-zinc-700 mb-1">
+            <label htmlFor="display-name" className="block text-sm font-medium text-[var(--fg)] mb-1.5">
               Display name
             </label>
             <input
@@ -106,26 +109,23 @@ export default function AccountSettingsClient({
               value={name}
               onChange={e => setName(e.target.value)}
               maxLength={100}
-              className="w-full max-w-sm px-3 py-2 border border-zinc-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`${inputCls} max-w-sm`}
               placeholder="Your name"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-zinc-700 mb-1">Email</label>
+            <label className="block text-sm font-medium text-[var(--fg)] mb-1.5">Email</label>
             <input
               type="email"
               value={email}
               readOnly
               disabled
-              className="w-full max-w-sm px-3 py-2 border border-zinc-200 rounded-lg text-sm bg-zinc-50 text-zinc-500 cursor-not-allowed"
+              className={`${inputCls} max-w-sm opacity-60 cursor-not-allowed`}
+              aria-label="Email address (read-only)"
             />
-            <p className="text-xs text-zinc-400 mt-1">Email changes are managed through Supabase.</p>
+            <p className="text-xs text-[var(--fg-subtle)] mt-1">Email changes are managed through Supabase.</p>
           </div>
-          <button
-            type="submit"
-            disabled={namePending || !name.trim()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
-          >
+          <button type="submit" disabled={namePending || !name.trim()} className={btnPrimary}>
             {namePending ? 'Saving…' : 'Save changes'}
           </button>
         </form>
@@ -135,7 +135,7 @@ export default function AccountSettingsClient({
       <Card title="Change Password">
         <form onSubmit={handlePasswordChange} className="space-y-4 max-w-sm">
           <div>
-            <label htmlFor="current-pw" className="block text-sm font-medium text-zinc-700 mb-1">Current password</label>
+            <label htmlFor="current-pw" className="block text-sm font-medium text-[var(--fg)] mb-1.5">Current password</label>
             <input
               id="current-pw"
               type={showPw ? 'text' : 'password'}
@@ -143,11 +143,11 @@ export default function AccountSettingsClient({
               required
               value={currentPw}
               onChange={e => setCurrentPw(e.target.value)}
-              className="w-full px-3 py-2 border border-zinc-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={inputCls}
             />
           </div>
           <div>
-            <label htmlFor="new-pw" className="block text-sm font-medium text-zinc-700 mb-1">New password</label>
+            <label htmlFor="new-pw" className="block text-sm font-medium text-[var(--fg)] mb-1.5">New password</label>
             <div className="relative">
               <input
                 id="new-pw"
@@ -157,14 +157,14 @@ export default function AccountSettingsClient({
                 minLength={8}
                 value={newPw}
                 onChange={e => setNewPw(e.target.value)}
-                className="w-full px-3 py-2 pr-10 border border-zinc-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`${inputCls} pr-11`}
                 placeholder="Min. 8 characters"
               />
               <button
                 type="button"
-                title={showPw ? 'Hide passwords' : 'Show passwords'}
+                aria-label={showPw ? 'Hide passwords' : 'Show passwords'}
                 onClick={() => setShowPw(p => !p)}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--fg-subtle)] hover:text-[var(--fg)] transition-colors"
               >
                 {showPw ? <EyeOff className="w-4 h-4" aria-hidden /> : <Eye className="w-4 h-4" aria-hidden />}
               </button>
@@ -173,15 +173,15 @@ export default function AccountSettingsClient({
               <div className="mt-2 space-y-1">
                 <div className="flex gap-1">
                   {[1,2,3,4,5].map(i => (
-                    <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${i <= pwStrength.score ? pwStrength.color : 'bg-zinc-200'}`} />
+                    <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${i <= pwStrength.score ? pwStrength.color : 'bg-[var(--border)]'}`} />
                   ))}
                 </div>
-                <p className="text-xs text-zinc-400">{pwStrength.label}</p>
+                <p className="text-xs text-[var(--fg-muted)]">{pwStrength.label}</p>
               </div>
             )}
           </div>
           <div>
-            <label htmlFor="confirm-pw" className="block text-sm font-medium text-zinc-700 mb-1">Confirm new password</label>
+            <label htmlFor="confirm-pw" className="block text-sm font-medium text-[var(--fg)] mb-1.5">Confirm new password</label>
             <input
               id="confirm-pw"
               type={showPw ? 'text' : 'password'}
@@ -189,14 +189,14 @@ export default function AccountSettingsClient({
               required
               value={confirmPw}
               onChange={e => setConfirmPw(e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${pwMismatch ? 'border-red-400' : 'border-zinc-300'}`}
+              className={`${inputCls} ${pwMismatch ? 'border-red-400 dark:border-red-700' : ''}`}
             />
-            {pwMismatch && <p className="text-xs text-red-500 mt-1">Passwords don't match</p>}
+            {pwMismatch && <p className="text-xs text-red-500 dark:text-red-400 mt-1">Passwords don&apos;t match</p>}
           </div>
           <button
             type="submit"
             disabled={pwPending || !currentPw || !newPw || !confirmPw || !!pwMismatch}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className={btnPrimary}
           >
             {pwPending ? 'Updating…' : 'Update password'}
           </button>
@@ -206,11 +206,11 @@ export default function AccountSettingsClient({
       {/* Danger zone */}
       <Card title="Danger Zone">
         <div className="space-y-4">
-          <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-100 rounded-xl">
+          <div className="flex items-start gap-3 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-xl">
             <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" aria-hidden />
             <div>
-              <p className="text-sm font-medium text-red-800">Delete account</p>
-              <p className="text-xs text-red-600 mt-0.5">
+              <p className="text-sm font-semibold text-red-800 dark:text-red-300">Delete account</p>
+              <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">
                 Permanently deletes your account and all data — labels, print history, API keys, and data sources.
                 This action cannot be undone.
               </p>
@@ -218,15 +218,15 @@ export default function AccountSettingsClient({
           </div>
           <form onSubmit={handleDeleteAccount} className="space-y-3 max-w-sm">
             <div>
-              <label htmlFor="delete-confirm" className="block text-sm font-medium text-zinc-700 mb-1">
-                Type <span className="font-mono font-bold text-red-600">DELETE</span> to confirm
+              <label htmlFor="delete-confirm" className="block text-sm font-medium text-[var(--fg)] mb-1.5">
+                Type <span className="font-mono font-bold text-red-600 dark:text-red-400">DELETE</span> to confirm
               </label>
               <input
                 id="delete-confirm"
                 type="text"
                 value={deleteConfirm}
                 onChange={e => setDeleteConfirm(e.target.value)}
-                className="w-full px-3 py-2 border border-zinc-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                className={inputCls}
                 placeholder="DELETE"
                 autoComplete="off"
               />
@@ -234,7 +234,7 @@ export default function AccountSettingsClient({
             <button
               type="submit"
               disabled={deletePending || deleteConfirm !== 'DELETE'}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50 transition-colors"
+              className="px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-700 disabled:opacity-50 transition-all shadow-sm"
             >
               {deletePending ? 'Deleting…' : 'Delete my account'}
             </button>

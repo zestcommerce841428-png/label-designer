@@ -25,10 +25,19 @@ export default function LabelCard({ label, onDelete, onDuplicate, onRename }: Pr
   const [renaming, setRenaming] = useState(false)
   const [draftName, setDraftName] = useState(label.name)
   const inputRef = useRef<HTMLInputElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (renaming) inputRef.current?.select()
   }, [renaming])
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpen(false)
+    }
+    if (open) document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [open])
 
   function commitRename() {
     const trimmed = draftName.trim()
@@ -44,9 +53,9 @@ export default function LabelCard({ label, onDelete, onDuplicate, onRename }: Pr
   }
 
   return (
-    <div className="group bg-white rounded-xl border border-zinc-200 overflow-hidden hover:border-blue-300 hover:shadow-md transition-all">
-      <Link href={`/editor/${label.id}`}>
-        <div className="h-32 bg-zinc-50 flex items-center justify-center border-b border-zinc-100 overflow-hidden">
+    <div className="group bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] overflow-hidden hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-lg dark:hover:shadow-black/30 transition-all duration-200">
+      <Link href={`/editor/${label.id}`} tabIndex={-1}>
+        <div className="h-32 bg-[var(--bg-subtle)] flex items-center justify-center border-b border-[var(--border)] overflow-hidden relative">
           {label.thumbnail ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -55,10 +64,11 @@ export default function LabelCard({ label, onDelete, onDuplicate, onRename }: Pr
               className="max-w-full max-h-full object-contain"
             />
           ) : (
-            <div className="bg-white border border-zinc-200 shadow-sm rounded-sm w-24 h-16 flex items-center justify-center text-xs text-zinc-300">
+            <div className="bg-[var(--bg-card)] border border-[var(--border)] shadow-sm rounded-sm w-24 h-16 flex items-center justify-center text-xs text-[var(--fg-subtle)]">
               {label.size_config.width}×{label.size_config.height}
             </div>
           )}
+          <div className="absolute inset-0 bg-blue-600/0 group-hover:bg-blue-600/5 transition-colors" />
         </div>
       </Link>
 
@@ -77,61 +87,65 @@ export default function LabelCard({ label, onDelete, onDuplicate, onRename }: Pr
                 }}
                 onBlur={commitRename}
                 aria-label="Label name"
-                className="flex-1 min-w-0 text-sm border border-blue-400 rounded px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="flex-1 min-w-0 text-sm border border-blue-400 rounded-lg px-1.5 py-0.5 bg-[var(--bg-card)] text-[var(--fg)] focus:outline-none focus:ring-1 focus:ring-blue-500"
                 maxLength={100}
               />
-              <button type="button" onClick={commitRename} title="Save" className="p-0.5 text-green-600 hover:text-green-700">
+              <button type="button" onClick={commitRename} title="Save" className="p-0.5 text-green-600 hover:text-green-500">
                 <Check className="w-3.5 h-3.5" aria-hidden />
               </button>
-              <button type="button" onClick={cancelRename} title="Cancel" className="p-0.5 text-zinc-400 hover:text-zinc-600">
+              <button type="button" onClick={cancelRename} title="Cancel" className="p-0.5 text-[var(--fg-subtle)] hover:text-[var(--fg)]">
                 <X className="w-3.5 h-3.5" aria-hidden />
               </button>
             </div>
           ) : (
             <Link href={`/editor/${label.id}`}>
-              <p className="text-sm font-medium text-zinc-900 truncate hover:text-blue-600 transition-colors">{label.name}</p>
+              <p className="text-sm font-semibold text-[var(--fg)] truncate hover:text-blue-600 transition-colors">{label.name}</p>
             </Link>
           )}
-          <p className="text-xs text-zinc-400 mt-0.5">
+          <p className="text-xs text-[var(--fg-subtle)] mt-0.5">
             {new Date(label.updated_at).toLocaleDateString()}
           </p>
         </div>
-        <div className="relative">
+        <div className="relative" ref={menuRef}>
           <button
             onClick={() => setOpen(p => !p)}
-            className="p-1 rounded hover:bg-zinc-100 text-zinc-400 hover:text-zinc-700 transition-colors"
+            aria-label="Label options"
+            className="p-1 rounded-lg hover:bg-[var(--bg-subtle)] text-[var(--fg-subtle)] hover:text-[var(--fg)] transition-colors"
           >
             <MoreVertical className="w-4 h-4" />
           </button>
           {open && (
-            <div className="absolute right-0 top-7 z-10 w-36 bg-white rounded-lg shadow-lg border border-zinc-200 py-1">
+            <div className="absolute right-0 top-8 z-20 w-40 bg-[var(--bg-card)] rounded-xl shadow-lg border border-[var(--border)] py-1 overflow-hidden">
               <Link
                 href={`/editor/${label.id}`}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50"
+                className="flex items-center gap-2.5 px-3.5 py-2 text-sm text-[var(--fg-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--fg)] transition-colors"
                 onClick={() => setOpen(false)}
               >
-                <Edit3 className="w-3.5 h-3.5" /> Edit
+                <Edit3 className="w-3.5 h-3.5" aria-hidden /> Edit
               </Link>
               <button
-                className="flex w-full items-center gap-2 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50"
+                className="flex w-full items-center gap-2.5 px-3.5 py-2 text-sm text-[var(--fg-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--fg)] transition-colors"
                 onClick={() => { setOpen(false); setRenaming(true) }}
               >
-                <Pencil className="w-3.5 h-3.5" /> Rename
+                <Pencil className="w-3.5 h-3.5" aria-hidden /> Rename
               </button>
               <button
-                className="flex w-full items-center gap-2 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50"
+                className="flex w-full items-center gap-2.5 px-3.5 py-2 text-sm text-[var(--fg-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--fg)] transition-colors"
                 onClick={() => { setOpen(false); startTransition(() => onDuplicate(label.id)) }}
+                disabled={isPending}
               >
-                <Copy className="w-3.5 h-3.5" /> Duplicate
+                <Copy className="w-3.5 h-3.5" aria-hidden /> Duplicate
               </button>
+              <div className="my-1 border-t border-[var(--border)]" />
               <button
-                className="flex w-full items-center gap-2 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50"
+                className="flex w-full items-center gap-2.5 px-3.5 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
                 onClick={() => {
                   setOpen(false)
                   if (confirm('Delete this label?')) startTransition(() => onDelete(label.id))
                 }}
+                disabled={isPending}
               >
-                <Trash2 className="w-3.5 h-3.5" /> Delete
+                <Trash2 className="w-3.5 h-3.5" aria-hidden /> Delete
               </button>
             </div>
           )}

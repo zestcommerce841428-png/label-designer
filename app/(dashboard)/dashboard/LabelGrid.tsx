@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Search, FileText } from 'lucide-react'
+import { Search, FileText, LayoutGrid } from 'lucide-react'
 import LabelCard from './LabelCard'
 import { deleteLabel, duplicateLabel, renameLabel } from '@/actions/labels'
+import Link from 'next/link'
 
 type Label = {
   id: string
@@ -24,44 +25,55 @@ export default function LabelGrid({ labels }: { labels: Label[] }) {
 
   return (
     <div className="space-y-4">
-      {/* Search bar */}
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" aria-hidden />
-        <input
-          type="search"
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          placeholder="Search labels…"
-          aria-label="Search labels"
-          className="w-full pl-9 pr-3 py-2 text-sm border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-        />
+      {/* Search + count bar */}
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--fg-subtle)] pointer-events-none" aria-hidden />
+          <input
+            type="search"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="Search labels…"
+            aria-label="Search labels"
+            className="w-full pl-9 pr-3 py-2 text-sm border border-[var(--border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-[var(--bg-card)] text-[var(--fg)] placeholder:text-[var(--fg-subtle)] transition-shadow"
+          />
+        </div>
+        {labels.length > 0 && (
+          <p className="text-xs text-[var(--fg-subtle)] shrink-0">
+            {query ? `${filtered.length} of ${labels.length}` : `${labels.length}`} label{labels.length !== 1 ? 's' : ''}
+          </p>
+        )}
       </div>
 
       {/* Empty state */}
       {filtered.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <FileText className="w-10 h-10 text-zinc-300 mb-3" aria-hidden />
+        <div className="flex flex-col items-center justify-center py-24 text-center">
           {query ? (
             <>
-              <p className="text-sm font-medium text-zinc-600">No labels match "{query}"</p>
+              <Search className="w-10 h-10 text-[var(--fg-subtle)] mb-3" aria-hidden />
+              <p className="text-sm font-medium text-[var(--fg-muted)]">No labels match &ldquo;{query}&rdquo;</p>
               <button
                 type="button"
                 onClick={() => setQuery('')}
-                className="mt-2 text-sm text-blue-600 hover:underline"
+                className="mt-2 text-sm text-blue-600 hover:text-blue-500 font-medium transition-colors"
               >
                 Clear search
               </button>
             </>
           ) : (
             <>
-              <h2 className="text-base font-semibold text-zinc-600 mb-1">No labels yet</h2>
-              <p className="text-zinc-400 text-sm mb-4">Create a blank label or start from a template</p>
-              <a
+              <div className="w-16 h-16 rounded-2xl bg-[var(--bg-subtle)] border border-[var(--border)] flex items-center justify-center mb-4">
+                <FileText className="w-7 h-7 text-[var(--fg-subtle)]" aria-hidden />
+              </div>
+              <h2 className="text-base font-semibold text-[var(--fg)] mb-1">No labels yet</h2>
+              <p className="text-sm text-[var(--fg-muted)] mb-5">Create a blank label or start from a template</p>
+              <Link
                 href="/templates"
-                className="px-4 py-2 bg-zinc-100 text-zinc-700 rounded-xl text-sm font-medium hover:bg-zinc-200 transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-all shadow-sm"
               >
+                <LayoutGrid className="w-4 h-4" aria-hidden />
                 Browse Templates
-              </a>
+              </Link>
             </>
           )}
         </div>
@@ -80,13 +92,6 @@ export default function LabelGrid({ labels }: { labels: Label[] }) {
             />
           ))}
         </div>
-      )}
-
-      {/* Result count when searching */}
-      {query && filtered.length > 0 && (
-        <p className="text-xs text-zinc-400">
-          {filtered.length} of {labels.length} label{labels.length !== 1 ? 's' : ''}
-        </p>
       )}
     </div>
   )
