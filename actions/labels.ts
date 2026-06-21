@@ -53,6 +53,36 @@ export async function saveLabel(
   revalidatePath(`/editor/${id}`)
 }
 
+export async function saveAsNewLabel(
+  id: string,
+  name: string,
+  canvasJson: object,
+  sizeConfig: object,
+): Promise<string> {
+  assertUUID(id)
+  assertLabelName(name)
+  assertCanvasJson(canvasJson)
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  const { data, error } = await supabase
+    .from('labels')
+    .insert({
+      user_id: user.id,
+      name: name.trim(),
+      canvas_json: canvasJson,
+      size_config: sizeConfig,
+    })
+    .select('id')
+    .single()
+
+  if (error) throw error
+  revalidatePath('/dashboard')
+  return data.id
+}
+
 export async function renameLabel(id: string, name: string) {
   assertUUID(id)
   assertLabelName(name)

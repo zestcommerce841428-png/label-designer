@@ -3,9 +3,9 @@
 import { useEffect, useCallback, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
-import { Save, Download, Printer, ChevronLeft, BarChart2, Layers, Terminal, Grid2x2, X, BookOpen, Magnet, ZoomIn, ZoomOut, FileDown } from 'lucide-react'
+import { Save, Download, Printer, ChevronLeft, BarChart2, Layers, Terminal, Grid2x2, X, BookOpen, Magnet, ZoomIn, ZoomOut, FileDown, Copy } from 'lucide-react'
 import { useEditorStore } from '@/lib/store/editor'
-import { saveLabel, logPrintJob } from '@/actions/labels'
+import { saveLabel, logPrintJob, saveAsNewLabel } from '@/actions/labels'
 import { LABEL_SIZES } from '@/lib/label-sizes'
 import { getCanvas, setZoom, getZoom } from '@/components/editor/FabricCanvas'
 import DataImportPanel from '@/components/editor/DataImportPanel'
@@ -101,6 +101,18 @@ export default function EditorClient({ label }: { label: Label }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [labelName, selectedSize])
 
+  // Warn before leaving with unsaved changes
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [isDirty])
+
   const SNAP_SIZE = 5 // mm grid size matches the visual dots
 
   const handleCanvasReady = useCallback((canvas: Canvas) => {
@@ -152,6 +164,25 @@ export default function EditorClient({ label }: { label: Label }) {
         }, thumbnail)
         setDirty(false)
         toast.success('Label saved')
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : 'Save failed')
+      }
+    })
+  }
+
+  function handleSaveAsCopy() {
+    const c = getCanvas()
+    if (!c) return
+    resetToTemplates(c)
+    const json = c.toObject(['customData', 'id'])
+    const copyName = `${labelName} (copy)`
+    startTransition(async () => {
+      try {
+        const newId = await saveAsNewLabel(label.id, copyName, json, {
+          width: selectedSize.width, height: selectedSize.height, unit: 'mm',
+        })
+        toast.success('Saved as copy')
+        router.push(`/editor/${newId}`)
       } catch (err) {
         toast.error(err instanceof Error ? err.message : 'Save failed')
       }
@@ -400,6 +431,15 @@ export default function EditorClient({ label }: { label: Label }) {
             <ZoomIn className="w-4 h-4" aria-hidden />
           </button>
         </div>
+        <button
+          type="button"
+          onClick={handleSaveAsCopy}
+          disabled={isPending}
+          title="Save a copy of this label"
+          className="flex items-center gap-1.5 px-3 py-1.5 border border-zinc-300 text-zinc-600 rounded-lg text-sm font-medium hover:bg-zinc-50 disabled:opacity-50 transition-colors"
+        >
+          <Copy className="w-4 h-4" /> Copy
+        </button>
         <button
           type="button"
           onClick={handleSave}
