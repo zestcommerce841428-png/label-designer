@@ -1,7 +1,7 @@
 'use client'
 
 import {
-  Type, AlignJustify, Square, Circle as CircleIcon, Minus, Triangle as TriangleIcon, Image as ImageIcon,
+  Type, AlignJustify, Square, Circle as CircleIcon, Minus, Triangle as TriangleIcon, Image as ImageIcon, Maximize2, Crosshair,
   QrCode, Undo2, Redo2, Trash2, Copy, AlignLeft, AlignCenter, AlignRight,
   Group, Ungroup, ChevronsUp, ChevronsDown, ChevronUp, ChevronDown,
   AlignStartVertical, AlignCenterVertical, AlignEndVertical,
@@ -15,6 +15,7 @@ import {
   groupSelected, ungroupSelected,
   bringToFront, sendToBack, bringForward, sendBackward,
   alignObjects, distributeObjects, pasteFromClipboard,
+  centerOnLabel, fitToLabel,
 } from '@/lib/canvas/elements'
 import { undo, redo } from '@/lib/canvas/history'
 
@@ -92,6 +93,10 @@ export default function Toolbar() {
       <Tool icon={ChevronUp}    label="Bring Forward"   onClick={withCanvas(bringForward)} />
       <Tool icon={ChevronDown}  label="Send Backward"   onClick={withCanvas(sendBackward)} />
       <Tool icon={ChevronsDown} label="Send to Back"    onClick={withCanvas(sendToBack)} />
+
+      <Sep />
+      <Tool icon={Crosshair}  label="Center on label"  onClick={withCanvas(centerOnLabel)} />
+      <Tool icon={Maximize2}  label="Fit to label"     onClick={withCanvas(fitToLabel)} />
 
       <Sep />
       <Tool icon={Clipboard} label="Paste Image (Ctrl+V)" onClick={withCanvas(c => pasteFromClipboard(c))} />

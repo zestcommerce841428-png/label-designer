@@ -234,6 +234,41 @@ export function distributeObjects(canvas: Canvas, axis: 'h' | 'v'): void {
   canvas.renderAll()
 }
 
+// ─── Label-relative positioning ──────────────────────────────────────────────
+
+export function centerOnLabel(canvas: Canvas): void {
+  const obj = canvas.getActiveObject()
+  if (!obj) return
+  snapshot(canvas)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const zoom = canvas.getZoom()
+  const labelW = (canvas.width  ?? 0) / zoom
+  const labelH = (canvas.height ?? 0) / zoom
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ow = ((obj as any).width  ?? 0) * ((obj as any).scaleX ?? 1)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const oh = ((obj as any).height ?? 0) * ((obj as any).scaleY ?? 1)
+  obj.set({ left: (labelW - ow) / 2, top: (labelH - oh) / 2 })
+  obj.setCoords()
+  canvas.renderAll()
+}
+
+export function fitToLabel(canvas: Canvas): void {
+  const obj = canvas.getActiveObject()
+  if (!obj) return
+  snapshot(canvas)
+  const zoom = canvas.getZoom()
+  const labelW = (canvas.width  ?? 0) / zoom
+  const labelH = (canvas.height ?? 0) / zoom
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ow = (obj as any).width  ?? 1
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const oh = (obj as any).height ?? 1
+  obj.set({ left: 0, top: 0, scaleX: labelW / ow, scaleY: labelH / oh })
+  obj.setCoords()
+  canvas.renderAll()
+}
+
 // ─── Internal copy / paste ────────────────────────────────────────────────────
 
 let _copyBuffer: import('fabric').FabricObject | null = null
