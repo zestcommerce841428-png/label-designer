@@ -55,13 +55,28 @@ Inspired by [AzureLabel](https://azurelabel.com) (Windows desktop), LabelForge b
 - 10 built-in templates: Product, Shipping, Price Tag, Inventory, Address, Food/Ingredients, Asset Tag, 3× Blank sizes
 - Gallery page cached server-side with Next.js 16 `"use cache"` + `cacheLife('hours')`
 
-### Auth & Security
+### Layer Groups
+
+- **Group selected elements** into a named layer via the Toolbar (Group Layer / Ungroup Layer)
+- **Conditional visibility** on entire layers — enter a JS expression (e.g. `row.qty > 0`) in the Properties panel; hides/shows the whole group during merge
+- Merge engine recurses into group children so each element still receives its own field values
+
+### Account & Auth
 
 - Email/password via **Supabase Auth**
+- **Forgot password** flow — `/forgot-password` sends a reset link via Supabase
+- **Reset password** page — password strength meter, show/hide toggle, auto-redirect on success
+- **Account settings** at `/settings` — change display name, change password (re-verified), delete account (type DELETE to confirm, uses service-role admin API)
+- **Password strength meter** on signup and reset (5-segment, colour-coded)
 - Row-Level Security — users only access their own rows
 - Server Action input validation (UUID format, payload size, field bounds)
 - Ownership check before every label load (prevents IDOR)
 - Auth guard via Next.js 16 `proxy.ts`
+
+### Dashboard
+
+- **Live search** — client-side filter by label name with empty-state handling
+- Clear search button when no results match
 
 ---
 
@@ -87,43 +102,56 @@ Inspired by [AzureLabel](https://azurelabel.com) (Windows desktop), LabelForge b
 label-designer/
 ├── app/
 │   ├── (auth)/
-│   │   ├── login/              # Supabase email login
-│   │   └── signup/             # Account creation
+│   │   ├── login/              # Supabase email login (show/hide pw, forgot password link)
+│   │   ├── signup/             # Account creation (password strength meter)
+│   │   ├── forgot-password/    # Email reset link request
+│   │   └── reset-password/     # New password form (strength meter, auto-redirect)
 │   ├── (dashboard)/
 │   │   ├── layout.tsx          # Sidebar (Suspense-wrapped for PPR)
-│   │   ├── dashboard/          # Label list — PPR, streamed via Suspense
+│   │   ├── dashboard/          # Label grid with live client-side search
 │   │   ├── editor/[id]/        # Canvas editor — PPR, ownership-checked
 │   │   ├── templates/          # Template gallery — "use cache" server component
 │   │   ├── history/            # Print history — PPR, streamed
+│   │   ├── settings/           # Account settings (profile, password, delete account)
 │   │   └── data/               # Data sources (Phase 2 placeholder)
-│   ├── api/export/pdf/         # PDF proxy — validates secret before forwarding
-│   └── page.tsx                # Static landing page
+│   ├── api/
+│   │   ├── export/pdf/         # PDF proxy — validates secret before forwarding
+│   │   ├── script-fetch/       # SSRF-protected httpGet proxy for formula engine
+│   │   └── health/             # Health check (DB latency + status)
+│   ├── robots.ts               # SEO robots (disallows dashboard/editor/api)
+│   ├── sitemap.ts              # XML sitemap (4 public URLs)
+│   └── page.tsx                # Landing page (JSON-LD, pricing, social proof)
 │
 ├── actions/
-│   └── labels.ts               # Server Actions: create / save / delete / duplicate / logPrint
+│   ├── labels.ts               # Server Actions: create / save / delete / duplicate / logPrint
+│   └── account.ts              # Server Actions: updateDisplayName / changePassword / deleteAccount
 │                               # All inputs validated via lib/validation.ts
 │
 ├── components/
 │   ├── editor/
 │   │   ├── FabricCanvas.tsx    # Fabric.js 6 canvas + grid + merge-tag engine
-│   │   ├── Toolbar.tsx         # Add-element toolbar (delegates to lib/canvas/)
-│   │   ├── PropertiesPanel.tsx # Element + label-size properties
+│   │   ├── Toolbar.tsx         # Add-element toolbar + Group/Ungroup layer buttons
+│   │   ├── PropertiesPanel.tsx # Element + layer-group + label-size properties
 │   │   └── DataImportPanel.tsx # CSV/Excel import + merge-tag copy
 │   ├── layout/
-│   │   └── Sidebar.tsx         # Dashboard navigation
+│   │   └── Sidebar.tsx         # Dashboard navigation (Settings link, aria-current)
+│   ├── ui/
+│   │   └── Toaster.tsx         # Fixed bottom-right toast notification panel
 │   └── ErrorBoundary.tsx       # React error boundary with retry
 │
 ├── lib/
 │   ├── canvas/
-│   │   ├── elements.ts         # Pure canvas ops: addText, addBarcode, delete…
+│   │   ├── elements.ts         # Pure canvas ops: addText, addBarcode, groupSelected, ungroupSelected…
 │   │   ├── history.ts          # snapshot / undo / redo (reads/writes Zustand)
+│   │   ├── multiup.ts          # Multi-up sheet print (tile labels into N×M grid)
 │   │   └── index.ts            # Barrel export
 │   ├── supabase/
 │   │   ├── client.ts           # Browser Supabase client
 │   │   ├── server.ts           # Server Supabase client (async cookies)
 │   │   └── schema.sql          # Tables + RLS policies — run once in SQL Editor
 │   ├── store/
-│   │   └── editor.ts           # Zustand: label state + bounded history stacks
+│   │   ├── editor.ts           # Zustand: label state + bounded history stacks
+│   │   └── toasts.ts           # Zustand: toast notification queue
 │   ├── barcode.ts              # bwip-js wrapper — generateBarcodeDataURL()
 │   ├── constants.ts            # Named constants (viewport sizes, limits, depths)
 │   ├── label-sizes.ts          # 14 size presets + mmToPx utility
@@ -248,14 +276,19 @@ Add all `.env.local` variables in **Vercel → Project → Settings → Environm
 ### Build output
 
 ```text
-○  /                (static)
-○  /login           (static)
-○  /signup          (static)
-○  /templates       (cached, revalidates every hour)
-◐  /dashboard       (partial prerender)
-◐  /editor/[id]     (partial prerender)
-◐  /history         (partial prerender)
-ƒ  /api/export/pdf  (dynamic)
+○  /                    (static)
+○  /login               (static)
+○  /signup              (static)
+○  /forgot-password     (static)
+○  /reset-password      (static)
+○  /templates           (cached, revalidates every hour)
+◐  /dashboard           (partial prerender)
+◐  /editor/[id]         (partial prerender)
+◐  /history             (partial prerender)
+◐  /settings            (partial prerender)
+ƒ  /api/export/pdf      (dynamic)
+ƒ  /api/script-fetch    (dynamic — SSRF-safe httpGet proxy)
+ƒ  /api/health          (dynamic)
 ```
 
 ---
@@ -340,6 +373,13 @@ Run `lib/supabase/schema.sql` in the Supabase SQL Editor to create tables, RLS p
 - [x] Security headers (HSTS, CSP, X-Frame-Options, Permissions-Policy)
 - [x] Rate limiting on all API routes (per-user sliding window)
 - [x] Health check endpoint (`GET /api/health`)
+- [x] Layer groups — group elements into named layers with conditional visibility formula
+- [x] Dashboard live search (client-side filter by label name)
+- [x] Account settings — display name, change password, delete account
+- [x] Forgot / reset password flows
+- [x] Password strength meter on signup + reset
+- [x] SEO — OG metadata, JSON-LD SoftwareApplication, robots.txt, sitemap.xml
+- [x] Landing page rewrite — semantic HTML, pricing grid, social proof, ARIA labels
 - [ ] MySQL / PostgreSQL direct connection
 - [ ] Print history PDF download (re-render to PDF via sidecar)
 
