@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { IText, Textbox, FabricImage, Group } from 'fabric'
+import { IText, Textbox, FabricImage, Group, Gradient } from 'fabric'
 import { AlignLeft, AlignCenter, AlignRight } from 'lucide-react'
 import { getCanvas } from './FabricCanvas'
 import { BARCODE_GROUPS, generateBarcodeDataURL } from '@/lib/barcode'
@@ -457,14 +457,69 @@ export default function PropertiesPanel() {
       {obj && !isText && !isBarcode && !(obj instanceof FabricImage) && (() => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const sObj = obj as any
+        const isGradientFill = sObj.fill instanceof Gradient
+        const gradColor1 = isGradientFill
+          ? (sObj.fill.colorStops?.[0]?.color ?? '#ffffff')
+          : (typeof sObj.fill === 'string' ? sObj.fill : '#ffffff')
+        const gradColor2 = isGradientFill
+          ? (sObj.fill.colorStops?.[1]?.color ?? '#000000')
+          : '#000000'
+
+        function applyGradient(c1: string, c2: string) {
+          const c = getCanvas()
+          if (!c || !obj) return
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const w = (sObj.width ?? 100) * (sObj.scaleX ?? 1)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const h = (sObj.height ?? 100) * (sObj.scaleY ?? 1)
+          sObj.set({ fill: new Gradient({
+            type: 'linear',
+            coords: { x1: 0, y1: 0, x2: w, y2: h },
+            colorStops: [{ offset: 0, color: c1 }, { offset: 1, color: c2 }],
+          }) })
+          c.renderAll()
+          setVersion(v => v + 1)
+        }
+
         return (
           <div className="p-4 space-y-3">
             <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Shape</h3>
+            <PRow label="Fill type">
+              <select title="Fill type"
+                className="text-xs border border-zinc-300 rounded px-1.5 py-1 focus:outline-none"
+                value={isGradientFill ? 'gradient' : 'solid'}
+                onChange={e => {
+                  if (e.target.value === 'gradient') {
+                    applyGradient(gradColor1, gradColor2)
+                  } else {
+                    updateShape({ fill: gradColor1 })
+                  }
+                }}
+              >
+                <option value="solid">Solid</option>
+                <option value="gradient">Gradient</option>
+              </select>
+            </PRow>
+            {!isGradientFill ? (
             <PRow label="Fill">
               <input type="color" title="Fill color"
                 value={String(sObj.fill ?? '#ffffff')}
                 onChange={e => updateShape({ fill: e.target.value })} />
             </PRow>
+            ) : (
+            <>
+              <PRow label="Grad start">
+                <input type="color" title="Gradient start color"
+                  value={gradColor1}
+                  onChange={e => applyGradient(e.target.value, gradColor2)} />
+              </PRow>
+              <PRow label="Grad end">
+                <input type="color" title="Gradient end color"
+                  value={gradColor2}
+                  onChange={e => applyGradient(gradColor1, e.target.value)} />
+              </PRow>
+            </>
+            )}
             <PRow label="Stroke">
               <input type="color" title="Stroke color"
                 value={String(sObj.stroke ?? '#000000')}
