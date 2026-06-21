@@ -15,6 +15,7 @@ import { batchPrint } from '@/lib/canvas/batch'
 import { MAX_BATCH_ROWS } from '@/lib/constants'
 import { canvasToZpl, canvasToTspl } from '@/lib/export/zpl'
 import { canvasToEpl } from '@/lib/export/epl'
+import { exportBatchPdf } from '@/lib/export/batchPdf'
 import { multiUpPrint, MULTIUP_PRESETS, type MultiUpLayout } from '@/lib/canvas/multiup'
 import { toast } from '@/lib/store/toasts'
 import type { Canvas } from 'fabric'
@@ -330,6 +331,26 @@ export default function EditorClient({ label }: { label: Label }) {
     }
   }
 
+  async function handleExportBatchPdf() {
+    const c = getCanvas()
+    if (!c || dataRows.length === 0) return
+    const capped = dataRows.slice(0, MAX_BATCH_ROWS)
+    if (dataRows.length > MAX_BATCH_ROWS) {
+      if (!confirm(`Only the first ${MAX_BATCH_ROWS} records will be exported. Continue?`)) return
+    }
+    resetToTemplates(c)
+    setBatchProgress({ current: 0, total: capped.length })
+    try {
+      await exportBatchPdf(c, capped, {
+        labelWidthMm: selectedSize.width,
+        labelHeightMm: selectedSize.height,
+        onProgress: (current, total) => setBatchProgress({ current, total }),
+      })
+    } finally {
+      setBatchProgress(null)
+    }
+  }
+
   function handleExportZpl(format: 'zpl' | 'tspl' | 'epl') {
     const c = getCanvas()
     if (!c) return
@@ -420,9 +441,17 @@ export default function EditorClient({ label }: { label: Label }) {
         <button type="button" onClick={handleExportJPEG} title="Export as JPEG" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
           <Download className="w-4 h-4" /> JPG
         </button>
-        <button type="button" onClick={handleExportPDF} title="Export as PDF" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
+        <button type="button" onClick={handleExportPDF} title="Export as PDF (single label)" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
           <FileDown className="w-4 h-4" /> PDF
         </button>
+        {dataRows.length > 0 && (
+          <button type="button" onClick={handleExportBatchPdf} disabled={!!batchProgress}
+            title={`Export all ${dataRows.length} rows as a multi-page PDF`}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 transition-colors">
+            <FileDown className="w-4 h-4" />
+            {batchProgress ? `PDF ${batchProgress.current}/${batchProgress.total}` : `PDF×${dataRows.length}`}
+          </button>
+        )}
         <button type="button" onClick={() => handleExportZpl('zpl')} title="Download ZPL II (Zebra printers)" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
           <Terminal className="w-4 h-4" /> ZPL
         </button>
