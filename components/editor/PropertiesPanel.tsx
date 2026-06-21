@@ -326,6 +326,11 @@ export default function PropertiesPanel() {
               value={textObj.opacity ?? 1}
               onChange={e => updateShape({ opacity: +e.target.value })} />
           </PRow>
+          <PRow label="Background">
+            <input type="color" title="Text background/highlight color"
+              value={String(textObj.backgroundColor ?? '#ffffff')}
+              onChange={e => updateShape({ backgroundColor: e.target.value === '#ffffff' ? '' : e.target.value })} />
+          </PRow>
           <PRow label="Stroke color">
             <div className="flex items-center gap-1.5">
               <input type="color" title="Text stroke color"

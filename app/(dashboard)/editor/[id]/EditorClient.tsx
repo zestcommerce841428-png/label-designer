@@ -93,6 +93,14 @@ export default function EditorClient({ label }: { label: Label }) {
     if (size) setSelectedSize(size)
   }, [label, setLabelId, setLabelName, setSelectedSize])
 
+  // Ctrl+S shortcut dispatched from FabricCanvas keyboard handler
+  useEffect(() => {
+    const handler = () => handleSave()
+    document.addEventListener('labelforge:save', handler)
+    return () => document.removeEventListener('labelforge:save', handler)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [labelName, selectedSize])
+
   const SNAP_SIZE = 5 // mm grid size matches the visual dots
 
   const handleCanvasReady = useCallback((canvas: Canvas) => {

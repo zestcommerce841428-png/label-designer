@@ -154,6 +154,9 @@ export default function FabricCanvas({ onCanvasReady }: Props) {
           c.setActiveObject(new ActiveSelection(selectables, { canvas: c }))
         }
         c.renderAll()
+      } else if (ctrl && e.key === 's') {
+        e.preventDefault()
+        document.dispatchEvent(new CustomEvent('labelforge:save'))
       } else if (!ctrl && active && ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) {
         // Nudge selected element 1px (or 10px with Shift)
         e.preventDefault()
