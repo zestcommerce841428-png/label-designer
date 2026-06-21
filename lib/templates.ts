@@ -398,7 +398,7 @@ export const BUILT_IN_TEMPLATES: Template[] = [
         rect(0, 0, px(55), px(32), '#ffffff', { stroke: '#e5e7eb', strokeWidth: 1 }),
         boldTxt(6, 6, '{{product_name}}', 12, '#111827'),
         txt(6, 26, 'Was: ₹{{original_price}}', 10, '#9ca3af'),
-        boldTxt(6, 44, 'Now: ${{price}}', 18, '#dc2626'),
+        boldTxt(6, 44, 'Now: ₹{{price}}', 18, '#dc2626'),
         txt(px(55) - 55, px(32) - 16, '{{discount}}% off', 9, '#dc2626'),
       ],
     },

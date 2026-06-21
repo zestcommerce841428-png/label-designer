@@ -21,6 +21,8 @@ import { exportBatchPdf } from '@/lib/export/batchPdf'
 import { parseAlbl } from '@/lib/import/albl'
 import { multiUpPrint, MULTIUP_PRESETS, type MultiUpLayout } from '@/lib/canvas/multiup'
 import { toast } from '@/lib/store/toasts'
+import { extractMergeTags } from '@/lib/canvas/extract-tags'
+import DataEntryFormDialog from '@/components/editor/DataEntryFormDialog'
 import type { Canvas } from 'fabric'
 
 const FabricCanvas = dynamic(() => import('@/components/editor/FabricCanvas'), { ssr: false })
@@ -46,7 +48,7 @@ const FORMULA_GROUPS: { label: string; helpers: [string, string][] }[] = [
   ]},
   { label: 'Numbers', helpers: [
     ['FormatNumber(n, decimals?, locale?)', 'Locale decimal format — e.g. 1,234.56'],
-    ['FormatCurrency(n, currency?, locale?)', 'Currency format — e.g. $1,234.56'],
+    ['FormatCurrency(n, currency?, locale?)', 'Currency format — e.g. ₹1,234.56'],
     ['CalcDiscount(price, original)', 'Discount % string — e.g. "−25%"'],
     ['Abs(n)', 'Absolute value'],
     ['Round(n, decimals?)', 'Round to N decimals'],
@@ -83,6 +85,8 @@ export default function EditorClient({ label }: { label: Label }) {
   const [zoomPct, setZoomPct] = useState(100)
   const [batchProgress, setBatchProgress] = useState<{ current: number; total: number } | null>(null)
   const [showSheetDialog, setShowSheetDialog] = useState(false)
+  const [showDataEntry, setShowDataEntry] = useState(false)
+  const [dataEntryFields, setDataEntryFields] = useState<string[]>([])
   const [sheetPresetId, setSheetPresetId] = useState('avery-5160')
   const [customLayout, setCustomLayout] = useState<MultiUpLayout>({
     cols: 3, rows: 10, marginTopMm: 12.7, marginLeftMm: 4.8,
@@ -221,6 +225,39 @@ export default function EditorClient({ label }: { label: Label }) {
         toast.error(err instanceof Error ? err.message : 'Save failed')
       }
     })
+  }
+
+  function handleOpenDataEntry() {
+    const c = getCanvas()
+    if (!c) return
+    resetToTemplates(c)
+    const json = c.toObject(['customData', 'id'])
+    const tags = extractMergeTags(json)
+    setDataEntryFields(tags)
+    setShowDataEntry(true)
+  }
+
+  async function handleDataEntryPrint(values: Record<string, string>) {
+    setShowDataEntry(false)
+    const c = getCanvas()
+    if (!c) return
+    const templateJson = (() => { resetToTemplates(c); return c.toObject(['customData', 'id']) })()
+    setBatchProgress({ current: 0, total: 1 })
+    try {
+      await batchPrint(
+        templateJson,
+        [values],
+        selectedSize.width,
+        selectedSize.height,
+        labelName,
+        (current, total) => setBatchProgress({ current, total }),
+      )
+      startTransition(async () => {
+        try { await logPrintJob(label.id, labelName, 1) } catch { /* non-critical */ }
+      })
+    } finally {
+      setBatchProgress(null)
+    }
   }
 
   async function handleBatchPrint() {
@@ -544,6 +581,9 @@ export default function EditorClient({ label }: { label: Label }) {
         <button type="button" onClick={handlePrint} title="Print single label" className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--fg-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--fg)] transition-colors shrink-0">
           <Printer className="w-3.5 h-3.5" /> Print
         </button>
+        <button type="button" onClick={handleOpenDataEntry} title="Fill & Print — enter field values before printing" className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 transition-colors shrink-0">
+          <Printer className="w-3.5 h-3.5" /> Fill &amp; Print
+        </button>
         <button type="button" onClick={() => setShowSheetDialog(true)} title="Print on label sheet (Avery / multi-up)" className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--fg-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--fg)] transition-colors shrink-0">
           <Grid2x2 className="w-3.5 h-3.5" /> Sheet
         </button>
@@ -776,6 +816,16 @@ export default function EditorClient({ label }: { label: Label }) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Data Entry Form dialog */}
+      {showDataEntry && (
+        <DataEntryFormDialog
+          fields={dataEntryFields}
+          prefill={dataRows[0] ?? {}}
+          onPrint={handleDataEntryPrint}
+          onClose={() => setShowDataEntry(false)}
+        />
       )}
     </div>
   )
