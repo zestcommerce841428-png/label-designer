@@ -48,7 +48,19 @@ export default function DataImportPanel() {
       return
     }
     const ext = file.name.split('.').pop()?.toLowerCase()
-    if (ext === 'json') {
+    if (ext === 'ods' || ext === 'odf') {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const wb = XLSX.read(e.target!.result, { type: 'binary' })
+        const ws = wb.Sheets[wb.SheetNames[0]]
+        const data = XLSX.utils.sheet_to_json<DataRow>(ws, { defval: '' })
+        const cols = data.length ? Object.keys(data[0]) : []
+        setColumns(cols)
+        setDataRows(data)
+        setPreviewRowIndex(0)
+      }
+      reader.readAsBinaryString(file)
+    } else if (ext === 'json') {
       const reader = new FileReader()
       reader.onload = (e) => {
         try {
@@ -143,7 +155,7 @@ export default function DataImportPanel() {
   function openPicker() {
     const input = document.createElement('input')
     input.type = 'file'
-    input.accept = '.csv,.xlsx,.xls,.json,.xml'
+    input.accept = '.csv,.xlsx,.xls,.ods,.json,.xml'
     input.onchange = () => { if (input.files?.[0]) processFile(input.files[0]) }
     input.click()
   }
@@ -237,6 +249,23 @@ export default function DataImportPanel() {
       {tab === 'file' && (
         <div
           className={`m-3 rounded-xl border-2 border-dashed p-5 text-center cursor-pointer transition-colors ${dragging ? 'border-blue-400 bg-blue-50' : 'border-zinc-300 hover:border-zinc-400'}`}
+          onPaste={e => {
+            // Paste TSV/CSV from clipboard (e.g. copied from Excel)
+            const text = e.clipboardData.getData('text/plain')
+            if (text && text.includes('\t')) {
+              e.preventDefault()
+              Papa.parse<DataRow>(text, {
+                header: true,
+                delimiter: '\t',
+                skipEmptyLines: true,
+                complete: (result) => {
+                  setColumns(result.meta.fields ?? [])
+                  setDataRows(result.data)
+                  setPreviewRowIndex(0)
+                },
+              })
+            }
+          }}
           onDragOver={e => { e.preventDefault(); setDragging(true) }}
           onDragLeave={() => setDragging(false)}
           onDrop={onDrop}
@@ -244,7 +273,7 @@ export default function DataImportPanel() {
         >
           <Upload className="w-6 h-6 text-zinc-400 mx-auto mb-2" />
           <p className="text-sm font-medium text-zinc-600">Drop CSV, Excel, or JSON</p>
-          <p className="text-xs text-zinc-400 mt-0.5">or click to browse</p>
+          <p className="text-xs text-zinc-400 mt-0.5">or click to browse · paste from Excel</p>
         </div>
       )}
 

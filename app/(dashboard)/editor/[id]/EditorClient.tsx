@@ -361,6 +361,9 @@ export default function EditorClient({ label }: { label: Label }) {
           className="flex-1 text-sm font-medium bg-transparent border-none outline-none text-zinc-900"
           placeholder="Label name"
         />
+        <span className="text-xs text-zinc-400 shrink-0 hidden lg:inline">
+          {selectedSize.width}×{selectedSize.height}mm
+        </span>
         {dataRows.length > 0 && (
           <span className="text-xs text-zinc-400 shrink-0">
             Preview row {previewRowIndex + 1}/{dataRows.length}
