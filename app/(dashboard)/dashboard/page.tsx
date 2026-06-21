@@ -1,7 +1,36 @@
 import { Suspense } from 'react'
-import { Plus, FileText } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { createLabel } from '@/actions/labels'
+import { createClient } from '@/lib/supabase/server'
 import LabelList from './LabelList'
+import Link from 'next/link'
+
+async function DashboardStats() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const [{ count: labelCount }, { count: printCount }] = await Promise.all([
+    supabase.from('labels').select('id', { count: 'exact', head: true }).eq('user_id', user!.id),
+    supabase.from('print_jobs').select('id', { count: 'exact', head: true }).eq('user_id', user!.id),
+  ])
+
+  const stats = [
+    { label: 'Labels', value: labelCount ?? 0, href: '/dashboard' },
+    { label: 'Print jobs', value: printCount ?? 0, href: '/history' },
+  ]
+
+  return (
+    <div className="flex gap-4 mb-6">
+      {stats.map(s => (
+        <Link key={s.label} href={s.href}
+          className="flex-1 max-w-[140px] bg-white border border-zinc-200 rounded-xl px-4 py-3 hover:border-blue-300 transition-colors">
+          <p className="text-2xl font-bold text-zinc-900">{s.value}</p>
+          <p className="text-xs text-zinc-500 mt-0.5">{s.label}</p>
+        </Link>
+      ))}
+    </div>
+  )
+}
 
 export default function DashboardPage() {
   return (
@@ -20,6 +49,9 @@ export default function DashboardPage() {
           </button>
         </form>
       </div>
+      <Suspense fallback={null}>
+        <DashboardStats />
+      </Suspense>
       <Suspense fallback={<LabelListSkeleton />}>
         <LabelList />
       </Suspense>

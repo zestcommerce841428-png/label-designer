@@ -113,6 +113,26 @@ export default function EditorClient({ label }: { label: Label }) {
     return () => window.removeEventListener('beforeunload', handler)
   }, [isDirty])
 
+  // Auto-save after 30 s of inactivity when dirty
+  useEffect(() => {
+    if (!isDirty) return
+    const timer = setTimeout(() => {
+      const c = getCanvas()
+      if (!c) return
+      resetToTemplates(c)
+      const json = c.toObject(['customData', 'id'])
+      const thumbnail = c.toDataURL({ format: 'jpeg', multiplier: 0.4, quality: 0.7 })
+      saveLabel(label.id, labelName, json, {
+        width: selectedSize.width, height: selectedSize.height, unit: 'mm',
+      }, thumbnail).then(() => {
+        setDirty(false)
+        toast.success('Auto-saved')
+      }).catch(() => { /* non-critical */ })
+    }, 30_000)
+    return () => clearTimeout(timer)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDirty, labelName, selectedSize])
+
   const SNAP_SIZE = 5 // mm grid size matches the visual dots
 
   const handleCanvasReady = useCallback((canvas: Canvas) => {
