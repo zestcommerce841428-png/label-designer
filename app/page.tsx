@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
+const YEAR = 2026
+
 export const metadata: Metadata = {
   title: 'LabelForge — Professional Web Label Designer',
   description:
@@ -237,7 +239,7 @@ export default function Home() {
 
         <footer className="py-8 px-8 border-t border-zinc-100">
           <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-zinc-400">© {new Date().getFullYear()} LabelForge. All rights reserved.</p>
+            <p className="text-xs text-zinc-400">© {YEAR} LabelForge. All rights reserved.</p>
             <nav className="flex items-center gap-6" aria-label="Footer navigation">
               <Link href="/templates" className="text-xs text-zinc-400 hover:text-zinc-700 transition-colors">Templates</Link>
               <Link href="/login"     className="text-xs text-zinc-400 hover:text-zinc-700 transition-colors">Sign in</Link>
