@@ -118,30 +118,39 @@ export default function FabricCanvas({ onCanvasReady }: Props) {
       const oRight   = oLeft + oW
       const oBottom  = oTop  + oH
 
-      // Label boundary edges (in canvas coords, no zoom needed — Fabric coords are in original scale)
-      const bounds = [
-        { pos: 0,      axis: 'x', type: 'left' },
-        { pos: labelW, axis: 'x', type: 'right' },
-        { pos: labelW / 2, axis: 'x', type: 'centerX' },
-        { pos: 0,      axis: 'y', type: 'top' },
-        { pos: labelH, axis: 'y', type: 'bottom' },
-        { pos: labelH / 2, axis: 'y', type: 'centerY' },
-      ]
+      // Snap positions: label boundaries + center lines + other objects' edges
+      const xPositions: number[] = [0, labelW / 2, labelW]
+      const yPositions: number[] = [0, labelH / 2, labelH]
+
+      for (const other of c.getObjects()) {
+        if (other === obj || !other.selectable) continue
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const ow = ((other as any).width  ?? 0) * ((other as any).scaleX ?? 1)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const oh = ((other as any).height ?? 0) * ((other as any).scaleY ?? 1)
+        const ol = other.left ?? 0
+        const ot = other.top  ?? 0
+        xPositions.push(ol, ol + ow / 2, ol + ow)
+        yPositions.push(ot, ot + oh / 2, ot + oh)
+      }
 
       let newLeft = oLeft
       let newTop  = oTop
+      let guideX: number | null = null
+      let guideY: number | null = null
 
-      for (const b of bounds) {
-        if (b.axis === 'x') {
-          if (Math.abs(oLeft    - b.pos) < threshold) { newLeft = b.pos;             drawGuide(c, b.pos, 0, b.pos, labelH) }
-          if (Math.abs(oCenterX - b.pos) < threshold) { newLeft = b.pos - oW / 2;   drawGuide(c, b.pos, 0, b.pos, labelH) }
-          if (Math.abs(oRight   - b.pos) < threshold) { newLeft = b.pos - oW;       drawGuide(c, b.pos, 0, b.pos, labelH) }
-        } else {
-          if (Math.abs(oTop     - b.pos) < threshold) { newTop = b.pos;             drawGuide(c, 0, b.pos, labelW, b.pos) }
-          if (Math.abs(oCenterY - b.pos) < threshold) { newTop = b.pos - oH / 2;   drawGuide(c, 0, b.pos, labelW, b.pos) }
-          if (Math.abs(oBottom  - b.pos) < threshold) { newTop = b.pos - oH;       drawGuide(c, 0, b.pos, labelW, b.pos) }
-        }
+      for (const pos of xPositions) {
+        if (Math.abs(oLeft    - pos) < threshold && guideX === null) { newLeft = pos;           guideX = pos }
+        if (Math.abs(oCenterX - pos) < threshold && guideX === null) { newLeft = pos - oW / 2; guideX = pos }
+        if (Math.abs(oRight   - pos) < threshold && guideX === null) { newLeft = pos - oW;     guideX = pos }
       }
+      for (const pos of yPositions) {
+        if (Math.abs(oTop     - pos) < threshold && guideY === null) { newTop = pos;           guideY = pos }
+        if (Math.abs(oCenterY - pos) < threshold && guideY === null) { newTop = pos - oH / 2; guideY = pos }
+        if (Math.abs(oBottom  - pos) < threshold && guideY === null) { newTop = pos - oH;     guideY = pos }
+      }
+      if (guideX !== null) drawGuide(c, guideX, 0, guideX, labelH)
+      if (guideY !== null) drawGuide(c, 0, guideY, labelW, guideY)
 
       obj.set({ left: newLeft, top: newTop })
       obj.setCoords()
