@@ -134,11 +134,13 @@ export default function EditorClient({ label }: { label: Label }) {
     // stored JSON always contains placeholders, not last-previewed values.
     resetToTemplates(c)
     const json = c.toObject(['customData', 'id'])
+    // Generate a small thumbnail for the dashboard card
+    const thumbnail = c.toDataURL({ format: 'jpeg', multiplier: 0.4, quality: 0.7 })
     startTransition(async () => {
       try {
         await saveLabel(label.id, labelName, json, {
           width: selectedSize.width, height: selectedSize.height, unit: 'mm',
-        })
+        }, thumbnail)
         setDirty(false)
         toast.success('Label saved')
       } catch (err) {
@@ -360,7 +362,7 @@ export default function EditorClient({ label }: { label: Label }) {
           <div className="bg-white rounded-xl shadow-xl w-[520px] max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100 sticky top-0 bg-white">
               <h2 className="text-sm font-semibold text-zinc-900">Formula Reference</h2>
-              <button type="button" onClick={() => setShowFormulas(false)} className="text-zinc-400 hover:text-zinc-700"><X className="w-4 h-4" /></button>
+              <button type="button" title="Close" aria-label="Close formula reference" onClick={() => setShowFormulas(false)} className="text-zinc-400 hover:text-zinc-700"><X className="w-4 h-4" aria-hidden /></button>
             </div>
             <div className="px-5 py-4 space-y-5 text-xs">
               <p className="text-zinc-500">Use <code className="bg-zinc-100 px-1 rounded">{'{{=expr}}'}</code> in any text element to run a JS formula. Access row data via <code className="bg-zinc-100 px-1 rounded">row.field</code>.</p>
@@ -415,8 +417,8 @@ export default function EditorClient({ label }: { label: Label }) {
           <div className="bg-white rounded-xl shadow-xl w-[440px] max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100">
               <h2 className="text-sm font-semibold text-zinc-900">Sheet / Multi-up Print</h2>
-              <button type="button" onClick={() => setShowSheetDialog(false)} className="text-zinc-400 hover:text-zinc-700">
-                <X className="w-4 h-4" />
+              <button type="button" title="Close" aria-label="Close sheet dialog" onClick={() => setShowSheetDialog(false)} className="text-zinc-400 hover:text-zinc-700">
+                <X className="w-4 h-4" aria-hidden />
               </button>
             </div>
             <div className="px-5 py-4 space-y-4">

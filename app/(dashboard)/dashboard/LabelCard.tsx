@@ -25,16 +25,19 @@ export default function LabelCard({ label, onDelete, onDuplicate }: Props) {
   return (
     <div className="group bg-white rounded-xl border border-zinc-200 overflow-hidden hover:border-blue-300 hover:shadow-md transition-all">
       <Link href={`/editor/${label.id}`}>
-        <div className="h-32 bg-zinc-50 flex items-center justify-center border-b border-zinc-100">
-          <div
-            className="bg-white border border-zinc-200 shadow-sm rounded-sm flex items-center justify-center text-xs text-zinc-300"
-            style={{
-              width: Math.min(120, label.size_config.width * 1.2),
-              height: Math.min(120, label.size_config.height * 1.2),
-            }}
-          >
-            {label.size_config.width}×{label.size_config.height}
-          </div>
+        <div className="h-32 bg-zinc-50 flex items-center justify-center border-b border-zinc-100 overflow-hidden">
+          {label.thumbnail ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={label.thumbnail}
+              alt={label.name}
+              className="max-w-full max-h-full object-contain"
+            />
+          ) : (
+            <div className="bg-white border border-zinc-200 shadow-sm rounded-sm w-24 h-16 flex items-center justify-center text-xs text-zinc-300">
+              {label.size_config.width}×{label.size_config.height}
+            </div>
+          )}
         </div>
       </Link>
 

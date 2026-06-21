@@ -20,7 +20,13 @@ export async function createLabel() {
   redirect(`/editor/${data.id}`)
 }
 
-export async function saveLabel(id: string, name: string, canvasJson: object, sizeConfig: object) {
+export async function saveLabel(
+  id: string,
+  name: string,
+  canvasJson: object,
+  sizeConfig: object,
+  thumbnail?: string | null,
+) {
   assertUUID(id)
   assertLabelName(name)
   assertCanvasJson(canvasJson)
@@ -29,9 +35,16 @@ export async function saveLabel(id: string, name: string, canvasJson: object, si
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
+  const update: Record<string, unknown> = {
+    name: name.trim(),
+    canvas_json: canvasJson,
+    size_config: sizeConfig,
+  }
+  if (thumbnail !== undefined) update.thumbnail = thumbnail
+
   const { error } = await supabase
     .from('labels')
-    .update({ name: name.trim(), canvas_json: canvasJson, size_config: sizeConfig })
+    .update(update)
     .eq('id', id)
     .eq('user_id', user.id)
 
