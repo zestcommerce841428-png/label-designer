@@ -1,11 +1,17 @@
 'use client'
 
 import { useEffect, useRef, useCallback } from 'react'
-import { Canvas, Circle } from 'fabric'
+import { Canvas, Circle, IText } from 'fabric'
 import { useEditorStore } from '@/lib/store/editor'
 import { mmToPx } from '@/lib/label-sizes'
 import { CANVAS_MAX_WIDTH_PX, CANVAS_MAX_HEIGHT_PX, CANVAS_MAX_SCALE } from '@/lib/constants'
 import { applyMerge } from '@/lib/merge'
+import {
+  deleteSelected, duplicateSelected,
+  groupSelected, ungroupSelected,
+  bringToFront, sendToBack, bringForward, sendBackward,
+} from '@/lib/canvas/elements'
+import { undo, redo } from '@/lib/canvas/history'
 
 let _canvas: Canvas | null = null
 export function getCanvas() { return _canvas }
@@ -61,8 +67,61 @@ export default function FabricCanvas({ onCanvasReady }: Props) {
     _canvas = canvas
     onCanvasReady?.(canvas)
 
+    // Keyboard shortcuts
+    function onKeyDown(e: KeyboardEvent) {
+      const c = _canvas
+      if (!c) return
+      const active = c.getActiveObject()
+      // Don't intercept when user is typing inside a text element or an input/textarea
+      if (active instanceof IText && active.isEditing) return
+      if (document.activeElement instanceof HTMLInputElement) return
+      if (document.activeElement instanceof HTMLTextAreaElement) return
+      if (document.activeElement instanceof HTMLSelectElement) return
+
+      const ctrl = e.ctrlKey || e.metaKey
+
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        e.preventDefault()
+        deleteSelected(c)
+      } else if (ctrl && e.key === 'z') {
+        e.preventDefault()
+        undo(c)
+      } else if (ctrl && (e.key === 'y' || e.key === 'Z')) {
+        e.preventDefault()
+        redo(c)
+      } else if (ctrl && e.key === 'd') {
+        e.preventDefault()
+        duplicateSelected(c)
+      } else if (ctrl && e.key === 'g') {
+        e.preventDefault()
+        if (e.shiftKey) ungroupSelected(c)
+        else groupSelected(c)
+      } else if (e.key === 'Escape') {
+        c.discardActiveObject()
+        c.renderAll()
+      } else if (ctrl && e.key === ']') {
+        e.preventDefault()
+        if (e.shiftKey) bringToFront(c)
+        else bringForward(c)
+      } else if (ctrl && e.key === '[') {
+        e.preventDefault()
+        if (e.shiftKey) sendToBack(c)
+        else sendBackward(c)
+      } else if (!ctrl && active && ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) {
+        // Nudge selected element 1px (or 10px with Shift)
+        e.preventDefault()
+        const step = e.shiftKey ? 10 : 1
+        const dx = e.key === 'ArrowLeft' ? -step : e.key === 'ArrowRight' ? step : 0
+        const dy = e.key === 'ArrowUp'   ? -step : e.key === 'ArrowDown'  ? step : 0
+        active.set({ left: (active.left ?? 0) + dx, top: (active.top ?? 0) + dy })
+        c.renderAll()
+      }
+    }
+    document.addEventListener('keydown', onKeyDown)
+
     return () => {
       canvas.dispose()
+      document.removeEventListener('keydown', onKeyDown)
       _canvas = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -121,6 +121,47 @@ function gs1(barcode: string, ai: string): string {
 function today(fmt_str = 'yyyy-MM-dd') { return fmt(new Date(), fmt_str) }
 function now(fmt_str = 'HH:mm:ss')     { return fmt(new Date(), fmt_str) }
 
+// ─── Math helpers ─────────────────────────────────────────────────────────────
+function Abs(n: number | string)   { return Math.abs(Number(n)) }
+function Round(n: number | string, decimals = 0) {
+  const factor = Math.pow(10, decimals)
+  return Math.round(Number(n) * factor) / factor
+}
+function Ceil(n: number | string, decimals = 0) {
+  const factor = Math.pow(10, decimals)
+  return Math.ceil(Number(n) * factor) / factor
+}
+function Floor(n: number | string, decimals = 0) {
+  const factor = Math.pow(10, decimals)
+  return Math.floor(Number(n) * factor) / factor
+}
+function Min(...args: (number | string)[]) { return Math.min(...args.map(Number)) }
+function Max(...args: (number | string)[]) { return Math.max(...args.map(Number)) }
+
+// ─── String helpers ───────────────────────────────────────────────────────────
+function Concat(...args: unknown[]) { return args.map(String).join('') }
+function Split(s: string, sep: string, index = 0) {
+  return String(s ?? '').split(sep)[index] ?? ''
+}
+function Contains(s: string, sub: string) {
+  return String(s ?? '').includes(sub)
+}
+function StartsWith(s: string, prefix: string) {
+  return String(s ?? '').startsWith(prefix)
+}
+function EndsWith(s: string, suffix: string) {
+  return String(s ?? '').endsWith(suffix)
+}
+function FormatNumber(n: number | string, decimals = 2, locale = 'en-US') {
+  return Number(n).toLocaleString(locale, {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  })
+}
+function FormatCurrency(n: number | string, currency = 'USD', locale = 'en-US') {
+  return Number(n).toLocaleString(locale, { style: 'currency', currency })
+}
+
 /**
  * Fetch a remote URL and return the response body as a string.
  *
@@ -149,8 +190,16 @@ async function httpGet(url: string, headers?: Record<string, string>): Promise<s
 
 // Helper bundle passed to formula scope
 const FORMULA_HELPERS = {
+  // Text
   fmt, If, Left, Right, Mid, Trim, Upper, Lower, Len, Replace, Pad,
-  CalcDiscount, gs1, today, now, httpGet,
+  Concat, Split, Contains, StartsWith, EndsWith,
+  // Number
+  FormatNumber, FormatCurrency, CalcDiscount,
+  Abs, Round, Ceil, Floor, Min, Max,
+  // Barcode / date
+  gs1, today, now,
+  // Network (SSRF-protected)
+  httpGet,
 }
 
 // ---------------------------------------------------------------------------

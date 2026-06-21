@@ -158,6 +158,20 @@ export default function PropertiesPanel() {
               <span className="text-xs text-zinc-400">°</span>
             </div>
           </PRow>
+          <PRow label="Lock">
+            <input type="checkbox" title="Lock element (prevent moving/resizing)"
+              checked={!!(anyObj.lockMovementX)}
+              onChange={e => {
+                const locked = e.target.checked
+                updateShape({
+                  lockMovementX: locked, lockMovementY: locked,
+                  lockScalingX: locked, lockScalingY: locked,
+                  lockRotation: locked,
+                  selectable: true,
+                })
+              }}
+            />
+          </PRow>
         </div>
       )}
 
@@ -235,6 +249,12 @@ export default function PropertiesPanel() {
               className="w-16 text-sm border border-zinc-300 rounded px-2 py-1"
               value={textObj.lineHeight ?? 1.16}
               onChange={e => updateShape({ lineHeight: +e.target.value })} />
+          </PRow>
+          <PRow label="Letter spacing">
+            <input type="number" min={-200} max={800} step={10} title="Letter spacing (charSpacing)"
+              className="w-16 text-sm border border-zinc-300 rounded px-2 py-1"
+              value={textObj.charSpacing ?? 0}
+              onChange={e => updateShape({ charSpacing: +e.target.value })} />
           </PRow>
           <PRow label="V-align">
             <div className="flex gap-0.5">
