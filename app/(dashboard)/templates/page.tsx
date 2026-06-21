@@ -9,8 +9,8 @@ export default async function TemplatesPage() {
   return (
     <div className="px-4 py-6 sm:p-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-zinc-900">Template Library</h1>
-        <p className="text-zinc-500 mt-1 text-sm">Choose a template to start your label design</p>
+        <h1 className="text-2xl font-bold text-[var(--fg)]">Template Library</h1>
+        <p className="text-[var(--fg-muted)] mt-1 text-sm">Choose a template to start your label design</p>
       </div>
       <TemplateGrid templates={BUILT_IN_TEMPLATES} categories={TEMPLATE_CATEGORIES} />
     </div>

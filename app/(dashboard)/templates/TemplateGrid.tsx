@@ -3,8 +3,11 @@
 import { useState, useTransition, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search } from 'lucide-react'
+import dynamic from 'next/dynamic'
 import { type Template } from '@/lib/templates'
 import { createClient } from '@/lib/supabase/client'
+
+const TemplateThumbnail = dynamic(() => import('@/components/ui/TemplateThumbnail'), { ssr: false })
 
 type Props = {
   templates: Template[]
@@ -58,14 +61,14 @@ export default function TemplateGrid({ templates, categories }: Props) {
       {/* Search + category filter */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" aria-hidden />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--fg-subtle)] pointer-events-none" aria-hidden />
           <input
             type="search"
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search templates…"
             aria-label="Search templates"
-            className="w-full pl-9 pr-3 py-2 text-sm border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            className="w-full pl-9 pr-3 py-2 text-sm border border-[var(--border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-[var(--bg-card)] text-[var(--fg)] placeholder:text-[var(--fg-subtle)] transition-shadow"
           />
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -74,7 +77,11 @@ export default function TemplateGrid({ templates, categories }: Props) {
               key={cat}
               type="button"
               onClick={() => setActiveCategory(cat)}
-              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${activeCategory === cat ? 'bg-blue-600 text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'}`}
+              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                activeCategory === cat
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'bg-[var(--bg-subtle)] border border-[var(--border)] text-[var(--fg-muted)] hover:text-[var(--fg)] hover:border-blue-400'
+              }`}
             >
               {cat}
             </button>
@@ -85,9 +92,10 @@ export default function TemplateGrid({ templates, categories }: Props) {
       {/* Empty state */}
       {filtered.length === 0 && (
         <div className="flex flex-col items-center py-16 text-center">
-          <p className="text-sm font-medium text-zinc-600">No templates match your search</p>
+          <Search className="w-10 h-10 text-[var(--fg-subtle)] mb-3" aria-hidden />
+          <p className="text-sm font-medium text-[var(--fg-muted)]">No templates match your search</p>
           <button type="button" onClick={() => { setQuery(''); setActiveCategory('All') }}
-            className="mt-2 text-sm text-blue-600 hover:underline">
+            className="mt-2 text-sm text-blue-600 hover:text-blue-500 font-medium transition-colors">
             Clear filters
           </button>
         </div>
@@ -99,21 +107,24 @@ export default function TemplateGrid({ templates, categories }: Props) {
           {filtered.map(template => (
             <div
               key={template.id}
-              className="group bg-white rounded-xl border border-zinc-200 overflow-hidden hover:border-blue-300 hover:shadow-md transition-all"
+              className="group bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] overflow-hidden hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-lg dark:hover:shadow-black/30 transition-all duration-200"
             >
-              <div className="h-32 bg-zinc-50 flex items-center justify-center border-b border-zinc-100">
-                <div className="bg-white border border-zinc-200 shadow-sm rounded-sm w-24 h-14 flex items-center justify-center text-xs text-zinc-300">
-                  {template.size.width}×{template.size.height}
-                </div>
+              <div className="h-32 bg-[var(--bg-subtle)] flex items-center justify-center border-b border-[var(--border)] overflow-hidden p-2">
+                <TemplateThumbnail
+                  canvasJson={template.canvas_json}
+                  width={template.size.width}
+                  height={template.size.height}
+                  className="w-full h-full"
+                />
               </div>
               <div className="p-3">
-                <p className="text-sm font-medium text-zinc-900 truncate">{template.name}</p>
-                <p className="text-xs text-zinc-500 mt-0.5">{template.category}</p>
+                <p className="text-sm font-semibold text-[var(--fg)] truncate">{template.name}</p>
+                <p className="text-xs text-[var(--fg-muted)] mt-0.5">{template.category} · {template.size.width}×{template.size.height}mm</p>
                 <button
                   type="button"
                   onClick={() => useTemplate(template)}
                   disabled={isPending && loadingId === template.id}
-                  className="mt-2 w-full py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                  className="mt-2.5 w-full py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-all shadow-sm hover:shadow-md"
                 >
                   {isPending && loadingId === template.id ? 'Opening…' : 'Use Template'}
                 </button>
@@ -124,7 +135,7 @@ export default function TemplateGrid({ templates, categories }: Props) {
       )}
 
       {query && filtered.length > 0 && (
-        <p className="text-xs text-zinc-400 mt-4">
+        <p className="text-xs text-[var(--fg-subtle)] mt-4">
           {filtered.length} of {templates.length} template{templates.length !== 1 ? 's' : ''}
         </p>
       )}

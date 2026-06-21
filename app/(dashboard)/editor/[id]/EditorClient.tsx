@@ -458,140 +458,145 @@ export default function EditorClient({ label }: { label: Label }) {
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       {/* Header */}
-      <header className="flex items-center gap-3 px-4 py-2 bg-white border-b border-zinc-200 shrink-0">
-        <button type="button" title="Back to dashboard" onClick={() => router.push('/dashboard')} className="text-zinc-500 hover:text-zinc-900 transition-colors">
+      <header className="flex items-center gap-1.5 px-3 py-2 bg-[var(--bg-card)] border-b border-[var(--border)] shrink-0 overflow-x-auto">
+        <button type="button" title="Back to dashboard" onClick={() => router.push('/dashboard')} className="text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors shrink-0">
           <ChevronLeft className="w-5 h-5" />
         </button>
         <input
           value={labelName}
           onChange={e => setLabelName(e.target.value)}
-          className="flex-1 text-sm font-medium bg-transparent border-none outline-none text-zinc-900"
+          className="min-w-[120px] max-w-[200px] text-sm font-semibold bg-transparent border-none outline-none text-[var(--fg)] shrink-0"
           placeholder="Label name"
         />
-        <span className="text-xs text-zinc-400 shrink-0 hidden lg:inline">
+        <span className="text-xs text-[var(--fg-subtle)] shrink-0 hidden lg:inline">
           {selectedSize.width}×{selectedSize.height}mm
         </span>
-        <label className="hidden xl:flex items-center gap-1 text-xs text-zinc-500 shrink-0">
+        <label className="hidden xl:flex items-center gap-1 text-xs text-[var(--fg-muted)] shrink-0">
           Bleed
           <input
             type="number" min="0" max="10" step="0.5"
             title="Bleed margin (mm)"
             value={bleedMm}
             onChange={e => setBleedMm(Math.max(0, +e.target.value))}
-            className="w-12 border border-zinc-300 rounded px-1 py-0.5 text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400"
+            className="w-12 border border-[var(--border)] rounded bg-[var(--bg-subtle)] text-[var(--fg)] px-1 py-0.5 text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400"
           />
           mm
         </label>
         {dataRows.length > 0 && (
-          <span className="text-xs text-zinc-400 shrink-0">
-            Preview row {previewRowIndex + 1}/{dataRows.length}
+          <span className="text-xs text-[var(--fg-subtle)] shrink-0 hidden sm:inline">
+            Row {previewRowIndex + 1}/{dataRows.length}
           </span>
         )}
-        {isDirty && <span className="text-xs text-zinc-400 shrink-0">Unsaved</span>}
+        {isDirty && <span className="text-xs text-amber-500 shrink-0">●</span>}
+        <div className="w-px h-5 bg-[var(--border)] mx-0.5 shrink-0" />
         <button
           type="button" onClick={() => setShowData(p => !p)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${showData ? 'bg-blue-100 text-blue-700' : 'text-zinc-600 hover:bg-zinc-100'}`}
+          className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors shrink-0 ${showData ? 'bg-blue-600 text-white' : 'text-[var(--fg-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--fg)]'}`}
         >
-          <BarChart2 className="w-4 h-4" /> Data
+          <BarChart2 className="w-3.5 h-3.5" /> Data
         </button>
         <button type="button" title="Formula reference" onClick={() => setShowFormulas(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
-          <BookOpen className="w-4 h-4" /> Formulas
+          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--fg-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--fg)] transition-colors shrink-0">
+          <BookOpen className="w-3.5 h-3.5" /> Formulas
         </button>
         <button type="button" onClick={() => setSnapToGrid(p => !p)} title="Snap to grid (5mm)"
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${snapToGrid ? 'bg-blue-100 text-blue-700' : 'text-zinc-600 hover:bg-zinc-100'}`}>
-          <Magnet className="w-4 h-4" /> Snap
+          className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors shrink-0 ${snapToGrid ? 'bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400' : 'text-[var(--fg-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--fg)]'}`}>
+          <Magnet className="w-3.5 h-3.5" /> Snap
         </button>
-        <button type="button" onClick={handleExportPNG} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
-          <Download className="w-4 h-4" /> PNG
+        <div className="w-px h-5 bg-[var(--border)] mx-0.5 shrink-0" />
+        <button type="button" onClick={handleExportPNG} title="Export as PNG" className="flex items-center gap-1 px-2 py-1.5 rounded text-xs font-medium text-[var(--fg-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--fg)] transition-colors shrink-0">
+          <Download className="w-3.5 h-3.5" /> PNG
         </button>
-        <button type="button" onClick={handleExportJPEG} title="Export as JPEG" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
-          <Download className="w-4 h-4" /> JPG
+        <button type="button" onClick={handleExportJPEG} title="Export as JPEG" className="flex items-center gap-1 px-2 py-1.5 rounded text-xs font-medium text-[var(--fg-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--fg)] transition-colors shrink-0">
+          <Download className="w-3.5 h-3.5" /> JPG
         </button>
-        <button type="button" onClick={handleExportPDF} title="Export as PDF (single label)" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
-          <FileDown className="w-4 h-4" /> PDF
+        <button type="button" onClick={handleExportPDF} title="Export as PDF (single label)" className="flex items-center gap-1 px-2 py-1.5 rounded text-xs font-medium text-[var(--fg-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--fg)] transition-colors shrink-0">
+          <FileDown className="w-3.5 h-3.5" /> PDF
         </button>
         {dataRows.length > 0 && (
           <button type="button" onClick={handleExportBatchPdf} disabled={!!batchProgress}
             title={`Export all ${dataRows.length} rows as a multi-page PDF`}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 transition-colors">
-            <FileDown className="w-4 h-4" />
+            className="flex items-center gap-1 px-2 py-1.5 rounded text-xs font-medium text-[var(--fg-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--fg)] disabled:opacity-50 transition-colors shrink-0">
+            <FileDown className="w-3.5 h-3.5" />
             {batchProgress ? `PDF ${batchProgress.current}/${batchProgress.total}` : `PDF×${dataRows.length}`}
           </button>
         )}
-        <button type="button" onClick={() => handleExportZpl('zpl')} title="Download ZPL II (Zebra printers)" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
-          <Terminal className="w-4 h-4" /> ZPL
+        <div className="w-px h-5 bg-[var(--border)] mx-0.5 shrink-0" />
+        <button type="button" onClick={() => handleExportZpl('zpl')} title="Download ZPL II (Zebra printers)" className="flex items-center gap-1 px-2 py-1.5 rounded text-xs font-medium text-[var(--fg-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--fg)] transition-colors shrink-0">
+          <Terminal className="w-3.5 h-3.5" /> ZPL
         </button>
-        <button type="button" onClick={() => handleExportZpl('tspl')} title="Download TSPL (TSC printers)" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
-          <Terminal className="w-4 h-4" /> TSPL
+        <button type="button" onClick={() => handleExportZpl('tspl')} title="Download TSPL (TSC printers)" className="flex items-center gap-1 px-2 py-1.5 rounded text-xs font-medium text-[var(--fg-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--fg)] transition-colors shrink-0">
+          <Terminal className="w-3.5 h-3.5" /> TSPL
         </button>
-        <button type="button" onClick={() => handleExportZpl('epl')} title="Download EPL2 (legacy Zebra LP/TLP printers)" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
-          <Terminal className="w-4 h-4" /> EPL
+        <button type="button" onClick={() => handleExportZpl('epl')} title="Download EPL2 (Zebra LP/TLP)" className="flex items-center gap-1 px-2 py-1.5 rounded text-xs font-medium text-[var(--fg-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--fg)] transition-colors shrink-0">
+          <Terminal className="w-3.5 h-3.5" /> EPL
         </button>
-        <button type="button" onClick={() => handleExportZpl('cpcl')} title="Download CPCL (Intermec / Honeywell printers)" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
-          <Terminal className="w-4 h-4" /> CPCL
+        <button type="button" onClick={() => handleExportZpl('cpcl')} title="Download CPCL (Intermec/Honeywell)" className="flex items-center gap-1 px-2 py-1.5 rounded text-xs font-medium text-[var(--fg-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--fg)] transition-colors shrink-0">
+          <Terminal className="w-3.5 h-3.5" /> CPCL
         </button>
-        <button type="button" onClick={() => handleExportZpl('dpl')} title="Download DPL (Datamax-O'Neil printers)" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
-          <Terminal className="w-4 h-4" /> DPL
+        <button type="button" onClick={() => handleExportZpl('dpl')} title="Download DPL (Datamax-O'Neil)" className="flex items-center gap-1 px-2 py-1.5 rounded text-xs font-medium text-[var(--fg-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--fg)] transition-colors shrink-0">
+          <Terminal className="w-3.5 h-3.5" /> DPL
         </button>
-        <button type="button" onClick={handleExportPrn} title="Download PRN raw print file (ZPL content, .prn extension)" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
-          <Terminal className="w-4 h-4" /> PRN
+        <button type="button" onClick={handleExportPrn} title="Download PRN raw print file (.prn)" className="flex items-center gap-1 px-2 py-1.5 rounded text-xs font-medium text-[var(--fg-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--fg)] transition-colors shrink-0">
+          <Terminal className="w-3.5 h-3.5" /> PRN
         </button>
-        <button type="button" onClick={handlePrint} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
-          <Printer className="w-4 h-4" /> Print
+        <div className="w-px h-5 bg-[var(--border)] mx-0.5 shrink-0" />
+        <button type="button" onClick={handlePrint} title="Print single label" className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--fg-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--fg)] transition-colors shrink-0">
+          <Printer className="w-3.5 h-3.5" /> Print
         </button>
-        <button type="button" onClick={() => setShowSheetDialog(true)} title="Print on label sheet (Avery / multi-up)" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
-          <Grid2x2 className="w-4 h-4" /> Sheet
+        <button type="button" onClick={() => setShowSheetDialog(true)} title="Print on label sheet (Avery / multi-up)" className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--fg-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--fg)] transition-colors shrink-0">
+          <Grid2x2 className="w-3.5 h-3.5" /> Sheet
         </button>
         <button
           type="button"
           onClick={handleBatchPrint}
           disabled={!!batchProgress}
           title={dataRows.length ? `Batch print ${dataRows.length} records` : 'Print single copy'}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 disabled:opacity-50 transition-colors"
+          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--fg-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--fg)] disabled:opacity-50 transition-colors shrink-0"
         >
-          <Layers className="w-4 h-4" />
+          <Layers className="w-3.5 h-3.5" />
           {batchProgress
             ? `${batchProgress.current}/${batchProgress.total}`
             : dataRows.length
               ? `Batch (${dataRows.length})`
               : 'Batch'}
         </button>
-        <div className="flex items-center gap-0.5 border border-zinc-200 rounded-lg overflow-hidden">
+        <div className="flex items-center gap-0 border border-[var(--border)] rounded-lg overflow-hidden shrink-0">
           <button type="button" title="Zoom out" aria-label="Zoom out" onClick={() => adjustZoom(-25)}
-            className="px-2 py-1.5 text-zinc-600 hover:bg-zinc-100 transition-colors">
-            <ZoomOut className="w-4 h-4" aria-hidden />
+            className="px-1.5 py-1.5 text-[var(--fg-muted)] hover:bg-[var(--bg-subtle)] transition-colors">
+            <ZoomOut className="w-3.5 h-3.5" aria-hidden />
           </button>
           <button type="button" title="Reset zoom to 100%" aria-label={`Zoom ${zoomPct}%`}
             onClick={() => { setZoom(1); setZoomPct(100) }}
-            className="px-2 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-100 transition-colors min-w-[3rem] text-center">
+            className="px-1.5 py-1.5 text-xs font-medium text-[var(--fg-muted)] hover:bg-[var(--bg-subtle)] transition-colors min-w-[2.5rem] text-center">
             {zoomPct}%
           </button>
           <button type="button" title="Zoom in" aria-label="Zoom in" onClick={() => adjustZoom(25)}
-            className="px-2 py-1.5 text-zinc-600 hover:bg-zinc-100 transition-colors">
-            <ZoomIn className="w-4 h-4" aria-hidden />
+            className="px-1.5 py-1.5 text-[var(--fg-muted)] hover:bg-[var(--bg-subtle)] transition-colors">
+            <ZoomIn className="w-3.5 h-3.5" aria-hidden />
           </button>
         </div>
+        <div className="w-px h-5 bg-[var(--border)] mx-0.5 shrink-0" />
         <button type="button" onClick={handleImportAlbl} title="Import AzureLabel .albl design file"
-          className="flex items-center gap-1.5 px-3 py-1.5 border border-zinc-300 text-zinc-600 rounded-lg text-sm font-medium hover:bg-zinc-50 transition-colors">
-          <Upload className="w-4 h-4" /> .albl
+          className="flex items-center gap-1 px-2.5 py-1.5 border border-[var(--border)] text-[var(--fg-muted)] rounded-lg text-xs font-medium hover:bg-[var(--bg-subtle)] hover:text-[var(--fg)] transition-colors shrink-0">
+          <Upload className="w-3.5 h-3.5" /> .albl
         </button>
         <button
           type="button"
           onClick={handleSaveAsCopy}
           disabled={isPending}
           title="Save a copy of this label"
-          className="flex items-center gap-1.5 px-3 py-1.5 border border-zinc-300 text-zinc-600 rounded-lg text-sm font-medium hover:bg-zinc-50 disabled:opacity-50 transition-colors"
+          className="flex items-center gap-1 px-2.5 py-1.5 border border-[var(--border)] text-[var(--fg-muted)] rounded-lg text-xs font-medium hover:bg-[var(--bg-subtle)] hover:text-[var(--fg)] disabled:opacity-50 transition-colors shrink-0"
         >
-          <Copy className="w-4 h-4" /> Copy
+          <Copy className="w-3.5 h-3.5" /> Copy
         </button>
         <button
           type="button"
           onClick={handleSave}
           disabled={isPending}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 disabled:opacity-50 transition-all shadow-sm shrink-0"
         >
-          <Save className="w-4 h-4" />
+          <Save className="w-3.5 h-3.5" />
           {isPending ? 'Saving…' : 'Save'}
         </button>
       </header>
@@ -617,28 +622,28 @@ export default function EditorClient({ label }: { label: Label }) {
       {/* Formula cheat sheet */}
       {showFormulas && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowFormulas(false)}>
-          <div className="bg-white rounded-xl shadow-xl w-[520px] max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100 sticky top-0 bg-white">
-              <h2 className="text-sm font-semibold text-zinc-900">Formula Reference</h2>
-              <button type="button" title="Close" aria-label="Close formula reference" onClick={() => setShowFormulas(false)} className="text-zinc-400 hover:text-zinc-700"><X className="w-4 h-4" aria-hidden /></button>
+          <div className="bg-[var(--bg-card)] rounded-xl shadow-xl w-[520px] max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)] sticky top-0 bg-[var(--bg-card)]">
+              <h2 className="text-sm font-semibold text-[var(--fg)]">Formula Reference</h2>
+              <button type="button" title="Close" aria-label="Close formula reference" onClick={() => setShowFormulas(false)} className="text-[var(--fg-subtle)] hover:text-[var(--fg)]"><X className="w-4 h-4" aria-hidden /></button>
             </div>
             <div className="px-5 py-4 space-y-5 text-xs">
-              <p className="text-zinc-500">Use <code className="bg-zinc-100 px-1 rounded">{'{{=expr}}'}</code> in any text element to run a JS formula. Access row data via <code className="bg-zinc-100 px-1 rounded">row.field</code>.</p>
+              <p className="text-[var(--fg-muted)]">Use <code className="bg-[var(--bg-subtle)] px-1 rounded border border-[var(--border)]">{'{{=expr}}'}</code> in any text element to run a JS formula. Access row data via <code className="bg-[var(--bg-subtle)] px-1 rounded border border-[var(--border)]">row.field</code>.</p>
               {FORMULA_GROUPS.map(g => (
                 <div key={g.label}>
-                  <p className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2">{g.label}</p>
+                  <p className="text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wider mb-2">{g.label}</p>
                   <div className="space-y-1.5">
                     {g.helpers.map(([sig, desc]) => (
                       <div key={sig} className="flex gap-3">
-                        <code className="text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap">{sig}</code>
-                        <span className="text-zinc-500">{desc}</span>
+                        <code className="text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap">{sig}</code>
+                        <span className="text-[var(--fg-muted)]">{desc}</span>
                       </div>
                     ))}
                   </div>
                 </div>
               ))}
               <div>
-                <p className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2">Counters</p>
+                <p className="text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wider mb-2">Counters</p>
                 <div className="space-y-1.5">
                   {[
                     ['{{#counter}}', 'Auto-incrementing serial number (1, 2, 3…)'],
@@ -648,14 +653,14 @@ export default function EditorClient({ label }: { label: Label }) {
                     ['{{#total_records}}', 'Total number of data rows'],
                   ].map(([sig, desc]) => (
                     <div key={sig} className="flex gap-3">
-                      <code className="text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap">{sig}</code>
-                      <span className="text-zinc-500">{desc}</span>
+                      <code className="text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/30 px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap">{sig}</code>
+                      <span className="text-[var(--fg-muted)]">{desc}</span>
                     </div>
                   ))}
                 </div>
               </div>
               <div>
-                <p className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2">Keyboard Shortcuts</p>
+                <p className="text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wider mb-2">Keyboard Shortcuts</p>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-1">
                   {[
                     ['Ctrl+S', 'Save label'],
@@ -673,20 +678,20 @@ export default function EditorClient({ label }: { label: Label }) {
                     ['Escape', 'Deselect'],
                   ].map(([key, desc]) => (
                     <div key={key} className="flex items-baseline gap-2">
-                      <kbd className="text-[10px] bg-zinc-100 text-zinc-700 px-1.5 py-0.5 rounded border border-zinc-200 font-mono shrink-0">{key}</kbd>
-                      <span className="text-zinc-500">{desc}</span>
+                      <kbd className="text-[10px] bg-[var(--bg-subtle)] text-[var(--fg-muted)] px-1.5 py-0.5 rounded border border-[var(--border)] font-mono shrink-0">{key}</kbd>
+                      <span className="text-[var(--fg-muted)]">{desc}</span>
                     </div>
                   ))}
                 </div>
               </div>
               <div>
-                <p className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2">HTTP Requests</p>
+                <p className="text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wider mb-2">HTTP Requests</p>
                 <div className="space-y-1.5">
                   <div className="flex gap-3">
-                    <code className="text-green-700 bg-green-50 px-1.5 py-0.5 rounded shrink-0">await httpGet(url)</code>
-                    <span className="text-zinc-500">Fetch URL and return body as text (SSRF-protected, HTTPS only)</span>
+                    <code className="text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30 px-1.5 py-0.5 rounded shrink-0">await httpGet(url)</code>
+                    <span className="text-[var(--fg-muted)]">Fetch URL and return body as text (SSRF-protected, HTTPS only)</span>
                   </div>
-                  <p className="text-zinc-400 italic">Example: <code className="bg-zinc-100 px-1 rounded">{'{{= JSON.parse(await httpGet("https://api.example.com/price?sku="+row.sku)).price }}'}</code></p>
+                  <p className="text-[var(--fg-subtle)] italic">Example: <code className="bg-[var(--bg-subtle)] border border-[var(--border)] px-1 rounded">{'{{= JSON.parse(await httpGet("https://api.example.com/price?sku="+row.sku)).price }}'}</code></p>
                 </div>
               </div>
             </div>
@@ -697,19 +702,19 @@ export default function EditorClient({ label }: { label: Label }) {
       {/* Sheet print dialog */}
       {showSheetDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-xl w-[440px] max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100">
-              <h2 className="text-sm font-semibold text-zinc-900">Sheet / Multi-up Print</h2>
-              <button type="button" title="Close" aria-label="Close sheet dialog" onClick={() => setShowSheetDialog(false)} className="text-zinc-400 hover:text-zinc-700">
+          <div className="bg-[var(--bg-card)] rounded-xl shadow-xl w-[440px] max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)]">
+              <h2 className="text-sm font-semibold text-[var(--fg)]">Sheet / Multi-up Print</h2>
+              <button type="button" title="Close" aria-label="Close sheet dialog" onClick={() => setShowSheetDialog(false)} className="text-[var(--fg-subtle)] hover:text-[var(--fg)]">
                 <X className="w-4 h-4" aria-hidden />
               </button>
             </div>
             <div className="px-5 py-4 space-y-4">
               <div>
-                <label className="text-xs font-medium text-zinc-600 block mb-1">Layout preset</label>
+                <label className="text-xs font-medium text-[var(--fg-muted)] block mb-1">Layout preset</label>
                 <select
                   title="Sheet preset"
-                  className="w-full text-sm border border-zinc-300 rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full text-sm border border-[var(--border)] rounded-xl px-2 py-1.5 bg-[var(--bg-subtle)] text-[var(--fg)] focus:outline-none focus:ring-1 focus:ring-blue-500"
                   value={sheetPresetId}
                   onChange={e => {
                     setSheetPresetId(e.target.value)
@@ -724,7 +729,6 @@ export default function EditorClient({ label }: { label: Label }) {
                 </select>
               </div>
 
-              {/* Custom layout fields — shown for all so user can tweak */}
               <div className="grid grid-cols-2 gap-3">
                 {([
                   ['Columns', 'cols', 1, 20, 1],
@@ -737,12 +741,12 @@ export default function EditorClient({ label }: { label: Label }) {
                   ['Page height (mm)', 'pageHeightMm', 50, 700, 0.1],
                 ] as [string, keyof MultiUpLayout, number, number, number][]).map(([label, key, min, max, step]) => (
                   <div key={key}>
-                    <label className="text-xs text-zinc-500 block mb-0.5">{label}</label>
+                    <label className="text-xs text-[var(--fg-subtle)] block mb-0.5">{label}</label>
                     <input
                       type="number"
                       min={min} max={max} step={step}
                       title={label}
-                      className="w-full text-sm border border-zinc-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="w-full text-sm border border-[var(--border)] rounded-lg bg-[var(--bg-subtle)] text-[var(--fg)] px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
                       value={customLayout[key]}
                       onChange={e => {
                         setSheetPresetId('custom')
@@ -753,7 +757,7 @@ export default function EditorClient({ label }: { label: Label }) {
                 ))}
               </div>
 
-              <p className="text-xs text-zinc-400">
+              <p className="text-xs text-[var(--fg-subtle)]">
                 {dataRows.length
                   ? `${dataRows.length} data row(s) → ${Math.ceil(dataRows.length / (customLayout.cols * customLayout.rows))} sheet(s)`
                   : 'No data loaded — will print 1 label per sheet.'}
@@ -761,11 +765,11 @@ export default function EditorClient({ label }: { label: Label }) {
 
               <div className="flex gap-2 pt-1">
                 <button type="button" title="Cancel" onClick={() => setShowSheetDialog(false)}
-                  className="flex-1 px-4 py-2 text-sm border border-zinc-300 rounded-lg hover:bg-zinc-50 transition-colors">
+                  className="flex-1 px-4 py-2 text-sm border border-[var(--border)] text-[var(--fg-muted)] rounded-xl hover:bg-[var(--bg-subtle)] transition-colors">
                   Cancel
                 </button>
                 <button type="button" title="Print sheet" onClick={handleSheetPrint} disabled={!!batchProgress}
-                  className="flex-1 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors font-medium">
+                  className="flex-1 px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-all font-semibold shadow-sm">
                   {batchProgress ? `${batchProgress.current}/${batchProgress.total}` : 'Print Sheet'}
                 </button>
               </div>

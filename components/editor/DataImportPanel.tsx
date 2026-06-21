@@ -290,11 +290,25 @@ export default function DataImportPanel() {
 
   const hasData = dataRows.length > 0
 
+  /** Rows with at least one blank required field (any field that's empty in >50% of rows is optional) */
+  const validationIssues = useMemo(() => {
+    if (!dataRows.length || !columns.length) return []
+    // Required = fields non-empty in >50% of rows
+    const requiredCols = columns.filter(col => {
+      const filled = dataRows.filter(r => (r[col] ?? '').toString().trim() !== '').length
+      return filled / dataRows.length > 0.5
+    })
+    return dataRows.map((row, i) => {
+      const missing = requiredCols.filter(col => !(row[col] ?? '').toString().trim())
+      return missing.length ? { row: i + 1, missing } : null
+    }).filter(Boolean) as { row: number; missing: string[] }[]
+  }, [dataRows, columns])
+
   return (
-    <div className="w-72 bg-white border-l border-zinc-200 flex flex-col shrink-0 overflow-hidden">
+    <div className="w-72 bg-[var(--bg-card)] border-l border-[var(--border)] flex flex-col shrink-0 overflow-hidden">
       {/* Header + tabs */}
-      <div className="px-4 pt-3 pb-0 border-b border-zinc-100">
-        <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Data Import</h3>
+      <div className="px-4 pt-3 pb-0 border-b border-[var(--border)]">
+        <h3 className="text-xs font-semibold text-[var(--fg-subtle)] uppercase tracking-wider mb-2">Data Import</h3>
         <div className="flex gap-0">
           <TabBtn active={tab === 'file'} onClick={() => setTab('file')}>
             <Upload className="w-3 h-3" /> File
@@ -314,7 +328,7 @@ export default function DataImportPanel() {
       {/* File tab */}
       {tab === 'file' && (
         <div
-          className={`m-3 rounded-xl border-2 border-dashed p-5 text-center cursor-pointer transition-colors ${dragging ? 'border-blue-400 bg-blue-50' : 'border-zinc-300 hover:border-zinc-400'}`}
+          className={`m-3 rounded-xl border-2 border-dashed p-5 text-center cursor-pointer transition-colors ${dragging ? 'border-blue-400 bg-blue-50 dark:bg-blue-950/20' : 'border-[var(--border)] hover:border-blue-400'}`}
           onPaste={e => {
             // Paste TSV/CSV from clipboard (e.g. copied from Excel)
             const text = e.clipboardData.getData('text/plain')
@@ -337,9 +351,9 @@ export default function DataImportPanel() {
           onDrop={onDrop}
           onClick={openPicker}
         >
-          <Upload className="w-6 h-6 text-zinc-400 mx-auto mb-2" />
-          <p className="text-sm font-medium text-zinc-600">Drop CSV, Excel, or JSON</p>
-          <p className="text-xs text-zinc-400 mt-0.5">or click to browse · paste from Excel</p>
+          <Upload className="w-6 h-6 text-[var(--fg-subtle)] mx-auto mb-2" />
+          <p className="text-sm font-medium text-[var(--fg-muted)]">Drop CSV, Excel, or JSON</p>
+          <p className="text-xs text-[var(--fg-subtle)] mt-0.5">or click to browse · paste from Excel</p>
         </div>
       )}
 
@@ -347,9 +361,9 @@ export default function DataImportPanel() {
       {tab === 'json' && (
         <div className="m-3 space-y-3">
           <div>
-            <label className="text-xs text-zinc-600 block mb-1 font-medium">Paste JSON or load .json file</label>
+            <label className="text-xs text-[var(--fg-muted)] block mb-1 font-medium">Paste JSON or load .json file</label>
             <textarea
-              className="w-full text-xs border border-zinc-300 rounded-lg px-2 py-2 resize-none font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full text-xs border border-[var(--border)] rounded-lg px-2 py-2 resize-none font-mono bg-[var(--bg-subtle)] text-[var(--fg)] focus:outline-none focus:ring-1 focus:ring-blue-500"
               rows={7}
               placeholder={`[\n  { "name": "Alice", "sku": "A001" },\n  { "name": "Bob", "sku": "B002" }\n]`}
               value={jsonText}
@@ -378,13 +392,13 @@ export default function DataImportPanel() {
                 input.onchange = () => { if (input.files?.[0]) processFile(input.files[0]) }
                 input.click()
               }}
-              className="px-3 py-2 border border-zinc-300 rounded-lg text-sm text-zinc-600 hover:bg-zinc-50 transition-colors"
+              className="px-3 py-2 border border-[var(--border)] rounded-lg text-sm text-[var(--fg-muted)] hover:bg-[var(--bg-subtle)] transition-colors"
             >
               Browse…
             </button>
           </div>
-          <p className="text-xs text-zinc-400">
-            Expects an array of objects. Also supports <code className="bg-zinc-100 px-1 rounded">{"{ data: [...] }"}</code>.
+          <p className="text-xs text-[var(--fg-subtle)]">
+            Expects an array of objects. Also supports <code className="bg-[var(--bg-subtle)] px-1 rounded">{"{ data: [...] }"}</code>.
           </p>
         </div>
       )}
@@ -393,9 +407,9 @@ export default function DataImportPanel() {
       {tab === 'xml' && (
         <div className="m-3 space-y-3">
           <div>
-            <label className="text-xs text-zinc-600 block mb-1 font-medium">Paste XML or load .xml file</label>
+            <label className="text-xs text-[var(--fg-muted)] block mb-1 font-medium">Paste XML or load .xml file</label>
             <textarea
-              className="w-full text-xs border border-zinc-300 rounded-lg px-2 py-2 resize-none font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full text-xs border border-[var(--border)] rounded-lg px-2 py-2 resize-none font-mono bg-[var(--bg-subtle)] text-[var(--fg)] focus:outline-none focus:ring-1 focus:ring-blue-500"
               rows={7}
               placeholder={`<records>\n  <record>\n    <name>Alice</name>\n    <sku>A001</sku>\n  </record>\n</records>`}
               value={xmlText}
@@ -424,12 +438,12 @@ export default function DataImportPanel() {
                 input.onchange = () => { if (input.files?.[0]) processFile(input.files[0]) }
                 input.click()
               }}
-              className="px-3 py-2 border border-zinc-300 rounded-lg text-sm text-zinc-600 hover:bg-zinc-50 transition-colors"
+              className="px-3 py-2 border border-[var(--border)] rounded-lg text-sm text-[var(--fg-muted)] hover:bg-[var(--bg-subtle)] transition-colors"
             >
               Browse…
             </button>
           </div>
-          <p className="text-xs text-zinc-400">
+          <p className="text-xs text-[var(--fg-subtle)]">
             Root element wraps repeating child elements. Each child becomes one data row; child tags become field names.
           </p>
         </div>
@@ -439,15 +453,15 @@ export default function DataImportPanel() {
       {tab === 'sheets' && (
         <div className="m-3 space-y-3">
           <div>
-            <label className="text-xs text-zinc-600 block mb-1 font-medium">Spreadsheet URL</label>
+            <label className="text-xs text-[var(--fg-muted)] block mb-1 font-medium">Spreadsheet URL</label>
             <textarea
-              className="w-full text-xs border border-zinc-300 rounded-lg px-2 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full text-xs border border-[var(--border)] rounded-lg px-2 py-2 resize-none bg-[var(--bg-subtle)] text-[var(--fg)] focus:outline-none focus:ring-1 focus:ring-blue-500"
               rows={3}
               placeholder="https://docs.google.com/spreadsheets/d/…"
               value={sheetsUrl}
               onChange={e => { setSheetsUrl(e.target.value); setSheetsError(null) }}
             />
-            <p className="text-xs text-zinc-400 mt-0.5">
+            <p className="text-xs text-[var(--fg-subtle)] mt-0.5">
               The sheet must be shared as <strong>Anyone with the link can view</strong>.
             </p>
           </div>
@@ -463,7 +477,7 @@ export default function DataImportPanel() {
             <RefreshCw className={`w-3.5 h-3.5 ${sheetsLoading ? 'animate-spin' : ''}`} />
             {sheetsLoading ? 'Loading…' : hasData ? 'Refresh from Sheets' : 'Load Sheet'}
           </button>
-          <p className="text-xs text-zinc-400">
+          <p className="text-xs text-[var(--fg-subtle)]">
             Tip: use <strong>Refresh</strong> to re-pull live data without re-pasting the URL.
           </p>
         </div>
@@ -473,27 +487,27 @@ export default function DataImportPanel() {
       {hasData && (
         <>
           {/* Filter + Sort bar */}
-          <div className="px-3 pt-2 pb-1 border-t border-zinc-100 space-y-1.5">
+          <div className="px-3 pt-2 pb-1 border-t border-[var(--border)] space-y-1.5">
             <div className="flex items-center gap-1.5">
-              <Search className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+              <Search className="w-3.5 h-3.5 text-[var(--fg-subtle)] shrink-0" />
               <input
                 type="text"
                 placeholder="Filter rows…"
                 value={filterText}
                 onChange={e => { setFilterText(e.target.value); setPreviewRowIndex(0) }}
-                className="flex-1 text-xs border border-zinc-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="flex-1 text-xs border border-[var(--border)] rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
               {filterText && (
-                <button type="button" onClick={() => setFilterText('')} className="text-xs text-zinc-400 hover:text-zinc-700">✕</button>
+                <button type="button" onClick={() => setFilterText('')} className="text-xs text-[var(--fg-subtle)] hover:text-[var(--fg)]">✕</button>
               )}
             </div>
             <div className="flex items-center gap-1.5">
-              <ArrowUpDown className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+              <ArrowUpDown className="w-3.5 h-3.5 text-[var(--fg-subtle)] shrink-0" />
               <select
                 value={sortCol}
                 onChange={e => { setSortCol(e.target.value); setPreviewRowIndex(0) }}
                 aria-label="Sort by column"
-                className="flex-1 text-xs border border-zinc-200 rounded px-1 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="flex-1 text-xs border border-[var(--border)] rounded px-1 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
               >
                 <option value="">Sort by…</option>
                 {columns.map(c => <option key={c} value={c}>{c}</option>)}
@@ -502,7 +516,7 @@ export default function DataImportPanel() {
                 <button
                   type="button"
                   onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}
-                  className="text-xs border border-zinc-200 rounded px-1.5 py-1 hover:bg-zinc-50"
+                  className="text-xs border border-[var(--border)] rounded px-1.5 py-1 hover:bg-[var(--bg-subtle)]"
                   title="Toggle sort direction"
                 >
                   {sortDir === 'asc' ? '↑ ASC' : '↓ DESC'}
@@ -511,8 +525,8 @@ export default function DataImportPanel() {
             </div>
           </div>
 
-          <div className="px-4 py-2 border-y border-zinc-100 flex items-center justify-between">
-            <span className="text-xs text-zinc-500">
+          <div className="px-4 py-2 border-y border-[var(--border)] flex items-center justify-between">
+            <span className="text-xs text-[var(--fg-subtle)]">
               {visibleRows.length !== dataRows.length
                 ? `${visibleRows.length} / ${dataRows.length} records`
                 : `${dataRows.length} records`}
@@ -524,11 +538,11 @@ export default function DataImportPanel() {
                 aria-label="Previous row"
                 onClick={() => setPreviewRowIndex(Math.max(0, previewRowIndex - 1))}
                 disabled={previewRowIndex === 0}
-                className="p-1 rounded hover:bg-zinc-100 disabled:opacity-30"
+                className="p-1 rounded hover:bg-[var(--bg-subtle)] disabled:opacity-30"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
               </button>
-              <span className="text-xs text-zinc-600 min-w-[4rem] text-center">
+              <span className="text-xs text-[var(--fg-muted)] min-w-[4rem] text-center">
                 Row {previewRowIndex + 1} of {visibleRows.length}
               </span>
               <button
@@ -537,7 +551,7 @@ export default function DataImportPanel() {
                 aria-label="Next row"
                 onClick={() => setPreviewRowIndex(Math.min(visibleRows.length - 1, previewRowIndex + 1))}
                 disabled={previewRowIndex >= visibleRows.length - 1}
-                className="p-1 rounded hover:bg-zinc-100 disabled:opacity-30"
+                className="p-1 rounded hover:bg-[var(--bg-subtle)] disabled:opacity-30"
               >
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
@@ -546,17 +560,36 @@ export default function DataImportPanel() {
 
           <div className="flex-1 overflow-y-auto px-3 py-2 space-y-1.5">
             {columns.map(col => (
-              <div key={col} className="rounded-lg bg-zinc-50 px-3 py-2">
-                <p className="text-xs font-medium text-zinc-500">{col}</p>
-                <p className="text-sm text-zinc-900 truncate">
+              <div key={col} className="rounded-lg bg-[var(--bg-subtle)] px-3 py-2">
+                <p className="text-xs font-medium text-[var(--fg-subtle)]">{col}</p>
+                <p className="text-sm text-[var(--fg)] truncate">
                   {visibleRows[previewRowIndex]?.[col] ?? '—'}
                 </p>
               </div>
             ))}
           </div>
 
-          <div className="px-4 py-3 border-t border-zinc-100">
-            <p className="text-xs text-zinc-500 mb-2 font-medium">Merge tags</p>
+          {/* Data validation summary */}
+          {validationIssues.length > 0 && (
+            <div className="mx-3 mb-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+              <p className="text-xs font-medium text-amber-800 mb-1">
+                ⚠ {validationIssues.length} row{validationIssues.length !== 1 ? 's' : ''} with missing fields
+              </p>
+              <div className="max-h-20 overflow-y-auto space-y-0.5">
+                {validationIssues.slice(0, 10).map(issue => (
+                  <p key={issue.row} className="text-xs text-amber-700">
+                    Row {issue.row}: <span className="font-medium">{issue.missing.join(', ')}</span>
+                  </p>
+                ))}
+                {validationIssues.length > 10 && (
+                  <p className="text-xs text-amber-500">…and {validationIssues.length - 10} more</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="px-4 py-3 border-t border-[var(--border)]">
+            <p className="text-xs text-[var(--fg-subtle)] mb-2 font-medium">Merge tags</p>
             <div className="flex flex-wrap gap-1">
               {columns.map(col => (
                 <code
@@ -569,7 +602,7 @@ export default function DataImportPanel() {
                 </code>
               ))}
             </div>
-            <p className="text-xs text-zinc-400 mt-1.5">Click a tag to copy, paste into text elements</p>
+            <p className="text-xs text-[var(--fg-subtle)] mt-1.5">Click a tag to copy, paste into text elements</p>
             <div className="flex gap-2 mt-2">
               {visibleRows.length !== dataRows.length && (
                 <button
@@ -584,7 +617,7 @@ export default function DataImportPanel() {
               <button
                 type="button"
                 onClick={() => { setDataRows([]); setColumns([]); setFilterText(''); setSortCol(''); setPreviewRowIndex(0) }}
-                className="flex items-center gap-1 text-xs px-2 py-1.5 border border-zinc-200 text-zinc-500 rounded-lg hover:bg-zinc-50 transition-colors"
+                className="flex items-center gap-1 text-xs px-2 py-1.5 border border-[var(--border)] text-[var(--fg-subtle)] rounded-lg hover:bg-[var(--bg-subtle)] transition-colors"
                 title="Clear all imported data"
               >
                 <Trash2 className="w-3 h-3" /> Clear
@@ -605,7 +638,7 @@ function TabBtn({ active, onClick, children }: { active: boolean; onClick: () =>
       className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border-b-2 transition-colors ${
         active
           ? 'border-blue-600 text-blue-700'
-          : 'border-transparent text-zinc-500 hover:text-zinc-700'
+          : 'border-transparent text-[var(--fg-subtle)] hover:text-[var(--fg)]'
       }`}
     >
       {children}

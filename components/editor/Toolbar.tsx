@@ -35,7 +35,7 @@ function Tool({ icon: Icon, label, onClick }: { icon: React.ElementType; label: 
       onClick={onClick}
       title={label}
       aria-label={label}
-      className="flex items-center justify-center w-8 h-8 rounded hover:bg-zinc-100 text-zinc-700 hover:text-zinc-900 transition-colors"
+      className="flex items-center justify-center w-8 h-8 rounded hover:bg-[var(--bg-subtle)] text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors"
     >
       <Icon className="w-4 h-4" />
     </button>
@@ -43,7 +43,7 @@ function Tool({ icon: Icon, label, onClick }: { icon: React.ElementType; label: 
 }
 
 function Sep() {
-  return <div className="w-px h-5 bg-zinc-200 mx-0.5" />
+  return <div className="w-px h-5 bg-[var(--border)] mx-0.5" />
 }
 
 export default function Toolbar() {
@@ -51,8 +51,8 @@ export default function Toolbar() {
   const bleedPx = mmToPx(bleedMm)
 
   return (
-    <div className="flex items-center gap-0.5 px-3 py-2 bg-white border-b border-zinc-200 flex-wrap shrink-0">
-      <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mr-2">Add</span>
+    <div className="flex items-center gap-0.5 px-3 py-2 bg-[var(--bg-card)] border-b border-[var(--border)] flex-wrap shrink-0">
+      <span className="text-xs font-semibold text-[var(--fg-subtle)] uppercase tracking-wider mr-2">Add</span>
       <Tool icon={Type}           label="Text"      onClick={withCanvas(addText)} />
       <Tool icon={AlignJustify}   label="Textbox"   onClick={withCanvas(addTextbox)} />
       <Tool icon={Square}      label="Rectangle" onClick={withCanvas(addRect)} />
@@ -67,19 +67,19 @@ export default function Toolbar() {
         onClick={withCanvas(addBarcode)}
         title="Barcode (EAN-13)"
         aria-label="Add barcode"
-        className="flex items-center gap-1 px-2 h-8 rounded hover:bg-zinc-100 text-zinc-700 text-xs font-medium transition-colors"
+        className="flex items-center gap-1 px-2 h-8 rounded hover:bg-[var(--bg-subtle)] text-[var(--fg-muted)] text-xs font-medium transition-colors"
       >
         ▮▯▮ Barcode
       </button>
 
       <Sep />
-      <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mr-1">Text</span>
+      <span className="text-xs font-semibold text-[var(--fg-subtle)] uppercase tracking-wider mr-1">Text</span>
       <Tool icon={AlignLeft}   label="Text Left"   onClick={withCanvas(c => setTextAlign(c, 'left'))} />
       <Tool icon={AlignCenter} label="Text Center" onClick={withCanvas(c => setTextAlign(c, 'center'))} />
       <Tool icon={AlignRight}  label="Text Right"  onClick={withCanvas(c => setTextAlign(c, 'right'))} />
 
       <Sep />
-      <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mr-1">Align</span>
+      <span className="text-xs font-semibold text-[var(--fg-subtle)] uppercase tracking-wider mr-1">Align</span>
       <Tool icon={AlignStartHorizontal}  label="Align Top"    onClick={withCanvas(c => alignObjects(c, 'top'))} />
       <Tool icon={AlignCenterHorizontal} label="Align Middle" onClick={withCanvas(c => alignObjects(c, 'middle'))} />
       <Tool icon={AlignEndHorizontal}    label="Align Bottom" onClick={withCanvas(c => alignObjects(c, 'bottom'))} />
@@ -94,7 +94,7 @@ export default function Toolbar() {
       <Tool icon={Ungroup} label="Ungroup Layer"  onClick={withCanvas(ungroupSelected)} />
 
       <Sep />
-      <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mr-1">Order</span>
+      <span className="text-xs font-semibold text-[var(--fg-subtle)] uppercase tracking-wider mr-1">Order</span>
       <Tool icon={ChevronsUp}   label="Bring to Front"  onClick={withCanvas(bringToFront)} />
       <Tool icon={ChevronUp}    label="Bring Forward"   onClick={withCanvas(bringForward)} />
       <Tool icon={ChevronDown}  label="Send Backward"   onClick={withCanvas(sendBackward)} />

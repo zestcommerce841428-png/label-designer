@@ -99,9 +99,9 @@ export default function PropertiesPanel() {
   const anyObj = obj as any
 
   return (
-    <aside className="w-60 bg-white border-l border-zinc-200 overflow-y-auto shrink-0">
-      <div className="p-4 border-b border-zinc-100">
-        <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Label Size</h3>
+    <aside className="w-60 bg-[var(--bg-card)] border-l border-[var(--border)] overflow-y-auto shrink-0">
+      <div className="p-4 border-b border-[var(--border)]">
+        <h3 className="text-xs font-semibold text-[var(--fg-subtle)] uppercase tracking-wider mb-2">Label Size</h3>
         <select
           title="Label size"
           value={selectedSize.id}
@@ -109,7 +109,7 @@ export default function PropertiesPanel() {
             const s = LABEL_SIZES.find(s => s.id === e.target.value)
             if (s) setSelectedSize(s)
           }}
-          className="w-full text-sm border border-zinc-300 rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-full text-sm border border-[var(--border)] rounded-md px-2 py-1.5 bg-[var(--bg-subtle)] text-[var(--fg)] focus:outline-none focus:ring-1 focus:ring-blue-500"
         >
           {LABEL_SIZES.map(s => (
             <option key={s.id} value={s.id}>{s.name}</option>
@@ -118,25 +118,25 @@ export default function PropertiesPanel() {
         {selectedSize.id === 'custom' ? (
           <div className="grid grid-cols-2 gap-2 mt-1">
             <div>
-              <label className="text-[10px] text-zinc-400 block mb-0.5">Width (mm)</label>
+              <label className="text-[10px] text-[var(--fg-subtle)] block mb-0.5">Width (mm)</label>
               <input type="number" min={5} max={500} step={0.1} title="Custom label width"
-                className="w-full text-xs border border-zinc-300 rounded px-1.5 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full text-xs border border-[var(--border)] rounded bg-[var(--bg-subtle)] text-[var(--fg)] px-1.5 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 value={selectedSize.width}
                 onChange={e => setSelectedSize({ ...selectedSize, width: +e.target.value })} />
             </div>
             <div>
-              <label className="text-[10px] text-zinc-400 block mb-0.5">Height (mm)</label>
+              <label className="text-[10px] text-[var(--fg-subtle)] block mb-0.5">Height (mm)</label>
               <input type="number" min={5} max={700} step={0.1} title="Custom label height"
-                className="w-full text-xs border border-zinc-300 rounded px-1.5 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full text-xs border border-[var(--border)] rounded bg-[var(--bg-subtle)] text-[var(--fg)] px-1.5 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 value={selectedSize.height}
                 onChange={e => setSelectedSize({ ...selectedSize, height: +e.target.value })} />
             </div>
           </div>
         ) : (
-          <p className="text-xs text-zinc-400 mt-1">{selectedSize.width} × {selectedSize.height} mm</p>
+          <p className="text-xs text-[var(--fg-subtle)] mt-1">{selectedSize.width} × {selectedSize.height} mm</p>
         )}
         <div className="flex items-center justify-between mt-3">
-          <span className="text-xs text-zinc-600">Background</span>
+          <span className="text-xs text-[var(--fg-muted)]">Background</span>
           <input
             type="color"
             title="Label background color"
@@ -153,32 +153,32 @@ export default function PropertiesPanel() {
       </div>
 
       {!obj && (
-        <div className="p-4 text-xs text-zinc-400">Select an element to edit properties.</div>
+        <div className="p-4 text-xs text-[var(--fg-subtle)]">Select an element to edit properties.</div>
       )}
 
       {/* Position / Size / Angle — shown for all selected elements */}
       {obj && (
-        <div className="p-4 border-b border-zinc-100 space-y-2">
-          <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Transform</h3>
+        <div className="p-4 border-b border-[var(--border)] space-y-2">
+          <h3 className="text-xs font-semibold text-[var(--fg-subtle)] uppercase tracking-wider">Transform</h3>
           <div className="grid grid-cols-2 gap-x-2 gap-y-1.5">
             <div>
-              <label className="text-[10px] text-zinc-400 block mb-0.5">X</label>
+              <label className="text-[10px] text-[var(--fg-subtle)] block mb-0.5">X</label>
               <input type="number" title="X position" step={1}
-                className="w-full text-xs border border-zinc-300 rounded px-1.5 py-1"
+                className="w-full text-xs border border-[var(--border)] rounded bg-[var(--bg-subtle)] text-[var(--fg)] px-1.5 py-1"
                 value={Math.round(anyObj.left ?? 0)}
                 onChange={e => updateShape({ left: +e.target.value })} />
             </div>
             <div>
-              <label className="text-[10px] text-zinc-400 block mb-0.5">Y</label>
+              <label className="text-[10px] text-[var(--fg-subtle)] block mb-0.5">Y</label>
               <input type="number" title="Y position" step={1}
-                className="w-full text-xs border border-zinc-300 rounded px-1.5 py-1"
+                className="w-full text-xs border border-[var(--border)] rounded bg-[var(--bg-subtle)] text-[var(--fg)] px-1.5 py-1"
                 value={Math.round(anyObj.top ?? 0)}
                 onChange={e => updateShape({ top: +e.target.value })} />
             </div>
             <div>
-              <label className="text-[10px] text-zinc-400 block mb-0.5">W</label>
+              <label className="text-[10px] text-[var(--fg-subtle)] block mb-0.5">W</label>
               <input type="number" title="Width" min={1} step={1}
-                className="w-full text-xs border border-zinc-300 rounded px-1.5 py-1"
+                className="w-full text-xs border border-[var(--border)] rounded bg-[var(--bg-subtle)] text-[var(--fg)] px-1.5 py-1"
                 value={Math.round((anyObj.width ?? 0) * (anyObj.scaleX ?? 1))}
                 onChange={e => {
                   const w = +e.target.value
@@ -186,9 +186,9 @@ export default function PropertiesPanel() {
                 }} />
             </div>
             <div>
-              <label className="text-[10px] text-zinc-400 block mb-0.5">H</label>
+              <label className="text-[10px] text-[var(--fg-subtle)] block mb-0.5">H</label>
               <input type="number" title="Height" min={1} step={1}
-                className="w-full text-xs border border-zinc-300 rounded px-1.5 py-1"
+                className="w-full text-xs border border-[var(--border)] rounded bg-[var(--bg-subtle)] text-[var(--fg)] px-1.5 py-1"
                 value={Math.round((anyObj.height ?? 0) * (anyObj.scaleY ?? 1))}
                 onChange={e => {
                   const h = +e.target.value
@@ -199,10 +199,10 @@ export default function PropertiesPanel() {
           <PRow label="Angle">
             <div className="flex items-center gap-1">
               <input type="number" min={-360} max={360} step={1} title="Rotation angle"
-                className="w-16 text-xs border border-zinc-300 rounded px-1.5 py-1"
+                className="w-16 text-xs border border-[var(--border)] rounded px-1.5 py-1"
                 value={Math.round(anyObj.angle ?? 0)}
                 onChange={e => updateShape({ angle: +e.target.value })} />
-              <span className="text-xs text-zinc-400">°</span>
+              <span className="text-xs text-[var(--fg-subtle)]">°</span>
             </div>
           </PRow>
           <PRow label="Lock">
@@ -224,11 +224,11 @@ export default function PropertiesPanel() {
 
       {obj && isText && textObj && (
         <div className="p-4 space-y-3">
-          <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Text</h3>
+          <h3 className="text-xs font-semibold text-[var(--fg-subtle)] uppercase tracking-wider">Text</h3>
           <div>
-            <label className="text-xs text-zinc-600 block mb-1">Content / Merge tag</label>
+            <label className="text-xs text-[var(--fg-muted)] block mb-1">Content / Merge tag</label>
             <textarea
-              className="w-full text-sm border border-zinc-300 rounded-md px-2 py-1.5 resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full text-sm border border-[var(--border)] rounded-md bg-[var(--bg-subtle)] text-[var(--fg)] placeholder:text-[var(--fg-subtle)] px-2 py-1.5 resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
               rows={3}
               value={textObj.text ?? ''}
               onChange={e => {
@@ -241,9 +241,9 @@ export default function PropertiesPanel() {
             />
           </div>
           <div>
-            <label className="text-xs text-zinc-600 block mb-1">Font</label>
+            <label className="text-xs text-[var(--fg-muted)] block mb-1">Font</label>
             <select title="Font family"
-              className="w-full text-sm border border-zinc-300 rounded-md px-2 py-1.5"
+              className="w-full text-sm border border-[var(--border)] rounded-md px-2 py-1.5"
               value={textObj.fontFamily ?? 'Arial'}
               onChange={e => updateShape({ fontFamily: e.target.value })}
             >
@@ -254,7 +254,7 @@ export default function PropertiesPanel() {
           </div>
           <PRow label="Font size">
             <input type="number" min={6} max={200} title="Font size"
-              className="w-16 text-sm border border-zinc-300 rounded px-2 py-1"
+              className="w-16 text-sm border border-[var(--border)] rounded bg-[var(--bg-subtle)] text-[var(--fg)] px-2 py-1"
               value={textObj.fontSize ?? 16}
               onChange={e => updateShape({ fontSize: +e.target.value })} />
           </PRow>
@@ -273,7 +273,7 @@ export default function PropertiesPanel() {
                     type="button"
                     title={align}
                     onClick={() => updateShape({ textAlign: align })}
-                    className={`p-1 rounded transition-colors ${textObj.textAlign === align ? 'bg-blue-100 text-blue-700' : 'text-zinc-500 hover:bg-zinc-100'}`}
+                    className={`p-1 rounded transition-colors ${textObj.textAlign === align ? 'bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400' : 'text-[var(--fg-muted)] hover:bg-[var(--bg-subtle)]'}`}
                   >
                     <Icon className="w-3.5 h-3.5" />
                   </button>
@@ -293,13 +293,13 @@ export default function PropertiesPanel() {
           </PRow>
           <PRow label="Line height">
             <input type="number" min={0.5} max={4} step={0.1} title="Line height"
-              className="w-16 text-sm border border-zinc-300 rounded px-2 py-1"
+              className="w-16 text-sm border border-[var(--border)] rounded bg-[var(--bg-subtle)] text-[var(--fg)] px-2 py-1"
               value={textObj.lineHeight ?? 1.16}
               onChange={e => updateShape({ lineHeight: +e.target.value })} />
           </PRow>
           <PRow label="Letter spacing">
             <input type="number" min={-200} max={800} step={10} title="Letter spacing (charSpacing)"
-              className="w-16 text-sm border border-zinc-300 rounded px-2 py-1"
+              className="w-16 text-sm border border-[var(--border)] rounded bg-[var(--bg-subtle)] text-[var(--fg)] px-2 py-1"
               value={textObj.charSpacing ?? 0}
               onChange={e => updateShape({ charSpacing: +e.target.value })} />
           </PRow>
@@ -308,7 +308,7 @@ export default function PropertiesPanel() {
               {(['top','middle','bottom'] as const).map(v => (
                 <button key={v} type="button" title={v}
                   onClick={() => updateShape({ textBaseline: v })}
-                  className={`px-1.5 py-0.5 text-xs rounded transition-colors ${(textObj.textBaseline ?? 'top') === v ? 'bg-blue-100 text-blue-700' : 'text-zinc-500 hover:bg-zinc-100'}`}
+                  className={`px-1.5 py-0.5 text-xs rounded transition-colors ${(textObj.textBaseline ?? 'top') === v ? 'bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400' : 'text-[var(--fg-muted)] hover:bg-[var(--bg-subtle)]'}`}
                 >
                   {v[0].toUpperCase()}
                 </button>
@@ -319,11 +319,11 @@ export default function PropertiesPanel() {
             <div className="flex gap-0.5">
               <button type="button" title="Underline"
                 onClick={() => updateShape({ underline: !textObj.underline })}
-                className={`px-1.5 py-0.5 text-xs rounded underline transition-colors ${textObj.underline ? 'bg-blue-100 text-blue-700' : 'text-zinc-500 hover:bg-zinc-100'}`}
+                className={`px-1.5 py-0.5 text-xs rounded underline transition-colors ${textObj.underline ? 'bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400' : 'text-[var(--fg-muted)] hover:bg-[var(--bg-subtle)]'}`}
               >U</button>
               <button type="button" title="Strikethrough"
                 onClick={() => updateShape({ linethrough: !textObj.linethrough })}
-                className={`px-1.5 py-0.5 text-xs rounded line-through transition-colors ${textObj.linethrough ? 'bg-blue-100 text-blue-700' : 'text-zinc-500 hover:bg-zinc-100'}`}
+                className={`px-1.5 py-0.5 text-xs rounded line-through transition-colors ${textObj.linethrough ? 'bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400' : 'text-[var(--fg-muted)] hover:bg-[var(--bg-subtle)]'}`}
               >S</button>
             </div>
           </PRow>
@@ -361,7 +361,7 @@ export default function PropertiesPanel() {
                 value={String(textObj.stroke ?? '#000000')}
                 onChange={e => updateShape({ stroke: e.target.value })} />
               <input type="number" min={0} max={10} step={0.5} title="Stroke width"
-                className="w-12 text-xs border border-zinc-300 rounded px-1.5 py-1"
+                className="w-12 text-xs border border-[var(--border)] rounded px-1.5 py-1"
                 value={textObj.strokeWidth ?? 0}
                 onChange={e => updateShape({ strokeWidth: +e.target.value })} />
             </div>
@@ -402,12 +402,12 @@ export default function PropertiesPanel() {
         const bObj = obj as AnyFabricObj
         return (
           <div className="p-4 space-y-3">
-            <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Barcode</h3>
+            <h3 className="text-xs font-semibold text-[var(--fg-subtle)] uppercase tracking-wider">Barcode</h3>
             <div>
-              <label className="text-xs text-zinc-600 block mb-1">Type</label>
+              <label className="text-xs text-[var(--fg-muted)] block mb-1">Type</label>
               <select
                 title="Barcode type"
-                className="w-full text-sm border border-zinc-300 rounded-md px-2 py-1.5"
+                className="w-full text-sm border border-[var(--border)] rounded-md bg-[var(--bg-subtle)] text-[var(--fg)] px-2 py-1.5"
                 value={bObj.customData?.barcodeType ?? 'qrcode'}
                 onChange={e => updateBarcode(bObj.customData?.template ?? '', e.target.value)}
               >
@@ -421,9 +421,9 @@ export default function PropertiesPanel() {
               </select>
             </div>
             <div>
-              <label className="text-xs text-zinc-600 block mb-1">Value / Merge tag</label>
+              <label className="text-xs text-[var(--fg-muted)] block mb-1">Value / Merge tag</label>
               <input type="text"
-                className="w-full text-sm border border-zinc-300 rounded-md px-2 py-1.5"
+                className="w-full text-sm border border-[var(--border)] rounded-md bg-[var(--bg-subtle)] text-[var(--fg)] px-2 py-1.5"
                 value={bObj.customData?.template ?? ''}
                 onChange={e => updateBarcode(e.target.value, bObj.customData?.barcodeType ?? 'qrcode')}
                 placeholder="Value or {{barcode}}"
@@ -456,12 +456,12 @@ export default function PropertiesPanel() {
       {obj && !isText && !isBarcode && obj instanceof FabricImage && (() => {
         const imgObj = obj as AnyFabricObj
         return (
-          <div className="p-4 space-y-3 border-b border-zinc-100">
-            <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Image</h3>
+          <div className="p-4 space-y-3 border-b border-[var(--border)]">
+            <h3 className="text-xs font-semibold text-[var(--fg-subtle)] uppercase tracking-wider">Image</h3>
             <div>
-              <label className="text-xs text-zinc-600 block mb-1">Source URL / Merge tag</label>
+              <label className="text-xs text-[var(--fg-muted)] block mb-1">Source URL / Merge tag</label>
               <input type="text"
-                className="w-full text-xs border border-zinc-300 rounded-md px-2 py-1.5 font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full text-xs border border-[var(--border)] rounded-md px-2 py-1.5 font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
                 placeholder="https://… or {{image_url}}"
                 value={imgObj.customData?.template ?? ''}
                 onChange={e => {
@@ -469,7 +469,7 @@ export default function PropertiesPanel() {
                   getCanvas()?.renderAll()
                 }}
               />
-              <p className="text-xs text-zinc-400 mt-1">
+              <p className="text-xs text-[var(--fg-subtle)] mt-1">
                 Use a merge tag to load a different image per data row.
               </p>
             </div>
@@ -484,7 +484,7 @@ export default function PropertiesPanel() {
                   value={String((imgObj as AnyFabricObj).stroke ?? '#000000')}
                   onChange={e => updateShape({ stroke: e.target.value })} />
                 <input type="number" min={0} max={20} step={1} title="Border width"
-                  className="w-12 text-xs border border-zinc-300 rounded px-1.5 py-1"
+                  className="w-12 text-xs border border-[var(--border)] rounded px-1.5 py-1"
                   value={(imgObj as AnyFabricObj).strokeWidth ?? 0}
                   onChange={e => updateShape({ strokeWidth: +e.target.value })} />
               </div>
@@ -522,10 +522,10 @@ export default function PropertiesPanel() {
 
         return (
           <div className="p-4 space-y-3">
-            <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Shape</h3>
+            <h3 className="text-xs font-semibold text-[var(--fg-subtle)] uppercase tracking-wider">Shape</h3>
             <PRow label="Fill type">
               <select title="Fill type"
-                className="text-xs border border-zinc-300 rounded px-1.5 py-1 focus:outline-none"
+                className="text-xs border border-[var(--border)] rounded px-1.5 py-1 focus:outline-none"
                 value={isGradientFill ? 'gradient' : 'solid'}
                 onChange={e => {
                   if (e.target.value === 'gradient') {
@@ -566,7 +566,7 @@ export default function PropertiesPanel() {
             </PRow>
             <PRow label="Stroke width">
               <input type="number" min={0} max={20} title="Stroke width"
-                className="w-16 text-sm border border-zinc-300 rounded px-2 py-1"
+                className="w-16 text-sm border border-[var(--border)] rounded bg-[var(--bg-subtle)] text-[var(--fg)] px-2 py-1"
                 value={sObj.strokeWidth ?? 1}
                 onChange={e => updateShape({ strokeWidth: +e.target.value })} />
             </PRow>
@@ -578,7 +578,7 @@ export default function PropertiesPanel() {
             {sObj.type === 'rect' && (
               <PRow label="Corner radius">
                 <input type="number" min={0} max={200} title="Corner radius"
-                  className="w-16 text-sm border border-zinc-300 rounded px-2 py-1"
+                  className="w-16 text-sm border border-[var(--border)] rounded bg-[var(--bg-subtle)] text-[var(--fg)] px-2 py-1"
                   value={sObj.rx ?? 0}
                   onChange={e => updateShape({ rx: +e.target.value, ry: +e.target.value })} />
               </PRow>
@@ -586,7 +586,7 @@ export default function PropertiesPanel() {
             {(sObj.type === 'line' || sObj.type === 'rect' || sObj.type === 'circle' || sObj.type === 'triangle') && (
               <PRow label="Dash">
                 <select title="Stroke dash pattern"
-                  className="text-xs border border-zinc-300 rounded px-1.5 py-1 focus:outline-none"
+                  className="text-xs border border-[var(--border)] rounded px-1.5 py-1 focus:outline-none"
                   value={JSON.stringify(sObj.strokeDashArray ?? [])}
                   onChange={e => updateShape({ strokeDashArray: JSON.parse(e.target.value) })}
                 >
@@ -603,35 +603,35 @@ export default function PropertiesPanel() {
       })()}
 
       {obj && isLayer && (
-        <div className="p-4 border-b border-zinc-100 space-y-2">
-          <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Layer Group</h3>
-          <p className="text-xs text-zinc-400 leading-snug">
+        <div className="p-4 border-b border-[var(--border)] space-y-2">
+          <h3 className="text-xs font-semibold text-[var(--fg-subtle)] uppercase tracking-wider">Layer Group</h3>
+          <p className="text-xs text-[var(--fg-subtle)] leading-snug">
             This group acts as a layer. Add a <em>Show when</em> condition below to hide or show all
             elements inside based on row data.
           </p>
           <PRow label="Elements">
-            <span className="text-xs text-zinc-500">{(obj as Group).getObjects().length}</span>
+            <span className="text-xs text-[var(--fg-subtle)]">{(obj as Group).getObjects().length}</span>
           </PRow>
         </div>
       )}
 
       {obj && (
-        <div className="p-4 border-t border-zinc-100 space-y-2">
-          <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Logic</h3>
+        <div className="p-4 border-t border-[var(--border)] space-y-2">
+          <h3 className="text-xs font-semibold text-[var(--fg-subtle)] uppercase tracking-wider">Logic</h3>
           <div>
-            <label className="text-xs text-zinc-600 block mb-1">
-              Show when <span className="text-zinc-400">(JS expression)</span>
+            <label className="text-xs text-[var(--fg-muted)] block mb-1">
+              Show when <span className="text-[var(--fg-subtle)]">(JS expression)</span>
             </label>
             <input
               type="text"
-              className="w-full text-xs border border-zinc-300 rounded-md px-2 py-1.5 font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full text-xs border border-[var(--border)] rounded-md px-2 py-1.5 font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
               placeholder={`row.status === "active"`}
               value={obj.customData?.condition ?? ''}
               onChange={e => updateCondition(e.target.value)}
               title="Leave empty to always show. Use row.field to reference data."
             />
-            <p className="text-xs text-zinc-400 mt-1">
-              e.g. <code className="bg-zinc-100 px-1 rounded">row.qty &gt; 0</code>
+            <p className="text-xs text-[var(--fg-subtle)] mt-1">
+              e.g. <code className="bg-[var(--bg-subtle)] px-1 rounded">row.qty &gt; 0</code>
             </p>
           </div>
         </div>
@@ -643,7 +643,7 @@ export default function PropertiesPanel() {
 function PRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <span className="text-xs text-zinc-600 shrink-0">{label}</span>
+      <span className="text-xs text-[var(--fg-muted)] shrink-0">{label}</span>
       {children}
     </div>
   )
