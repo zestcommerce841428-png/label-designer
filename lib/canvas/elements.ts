@@ -1,4 +1,4 @@
-import { IText, Rect, Circle, Line, FabricImage, Group, ActiveSelection, type Canvas, type FabricObject } from 'fabric'
+import { IText, Rect, Circle, Line, Triangle, FabricImage, Group, ActiveSelection, type Canvas, type FabricObject } from 'fabric'
 import { generateBarcodeDataURL } from '@/lib/barcode'
 import { MAX_IMAGE_BYTES } from '@/lib/constants'
 import { snapshot } from './history'
@@ -37,6 +37,18 @@ export function addCircle(canvas: Canvas): void {
     left: 30, top: 30, radius: 30,
     fill: 'transparent', stroke: '#000000', strokeWidth: 1,
   }) as Circle & { id: string }
+  obj.id = uid()
+  canvas.add(obj)
+  canvas.setActiveObject(obj)
+  canvas.renderAll()
+}
+
+export function addTriangle(canvas: Canvas): void {
+  snapshot(canvas)
+  const obj = new Triangle({
+    left: 30, top: 30, width: 70, height: 60,
+    fill: 'transparent', stroke: '#000000', strokeWidth: 1,
+  }) as Triangle & { id: string }
   obj.id = uid()
   canvas.add(obj)
   canvas.setActiveObject(obj)

@@ -326,6 +326,17 @@ export default function PropertiesPanel() {
               value={textObj.opacity ?? 1}
               onChange={e => updateShape({ opacity: +e.target.value })} />
           </PRow>
+          <PRow label="Stroke color">
+            <div className="flex items-center gap-1.5">
+              <input type="color" title="Text stroke color"
+                value={String(textObj.stroke ?? '#000000')}
+                onChange={e => updateShape({ stroke: e.target.value })} />
+              <input type="number" min={0} max={10} step={0.5} title="Stroke width"
+                className="w-12 text-xs border border-zinc-300 rounded px-1.5 py-1"
+                value={textObj.strokeWidth ?? 0}
+                onChange={e => updateShape({ strokeWidth: +e.target.value })} />
+            </div>
+          </PRow>
           <PRow label="Shrink to fit">
             <input type="checkbox" title="Shrink font to fit bounding box"
               checked={!!(obj as AnyFabricObj).customData?.shrinkToFit}

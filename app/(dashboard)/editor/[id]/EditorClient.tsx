@@ -70,7 +70,7 @@ type Label = {
 
 export default function EditorClient({ label }: { label: Label }) {
   const router = useRouter()
-  const { setLabelId, setLabelName, setSelectedSize, labelName, selectedSize, dataRows, isDirty, setDirty } = useEditorStore()
+  const { setLabelId, setLabelName, setSelectedSize, labelName, selectedSize, dataRows, previewRowIndex, isDirty, setDirty } = useEditorStore()
   const [isPending, startTransition] = useTransition()
   const [showData, setShowData] = useState(false)
   const [snapToGrid, setSnapToGrid] = useState(false)
@@ -322,7 +322,12 @@ export default function EditorClient({ label }: { label: Label }) {
           className="flex-1 text-sm font-medium bg-transparent border-none outline-none text-zinc-900"
           placeholder="Label name"
         />
-        {isDirty && <span className="text-xs text-zinc-400">Unsaved</span>}
+        {dataRows.length > 0 && (
+          <span className="text-xs text-zinc-400 shrink-0">
+            Preview row {previewRowIndex + 1}/{dataRows.length}
+          </span>
+        )}
+        {isDirty && <span className="text-xs text-zinc-400 shrink-0">Unsaved</span>}
         <button
           type="button" onClick={() => setShowData(p => !p)}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${showData ? 'bg-blue-100 text-blue-700' : 'text-zinc-600 hover:bg-zinc-100'}`}
