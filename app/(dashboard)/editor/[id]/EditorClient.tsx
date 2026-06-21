@@ -15,6 +15,7 @@ import { batchPrint } from '@/lib/canvas/batch'
 import { MAX_BATCH_ROWS } from '@/lib/constants'
 import { canvasToZpl, canvasToTspl } from '@/lib/export/zpl'
 import { canvasToEpl } from '@/lib/export/epl'
+import { canvasToCpcl } from '@/lib/export/cpcl'
 import { exportBatchPdf } from '@/lib/export/batchPdf'
 import { multiUpPrint, MULTIUP_PRESETS, type MultiUpLayout } from '@/lib/canvas/multiup'
 import { toast } from '@/lib/store/toasts'
@@ -351,7 +352,7 @@ export default function EditorClient({ label }: { label: Label }) {
     }
   }
 
-  function handleExportZpl(format: 'zpl' | 'tspl' | 'epl') {
+  function handleExportZpl(format: 'zpl' | 'tspl' | 'epl' | 'cpcl') {
     const c = getCanvas()
     if (!c) return
     resetToTemplates(c)
@@ -363,9 +364,12 @@ export default function EditorClient({ label }: { label: Label }) {
     } else if (format === 'tspl') {
       raw = canvasToTspl(c, selectedSize.width, selectedSize.height)
       ext = 'tspl'
-    } else {
+    } else if (format === 'epl') {
       raw = canvasToEpl(c, selectedSize.width, selectedSize.height)
       ext = 'epl'
+    } else {
+      raw = canvasToCpcl(c, selectedSize.width, selectedSize.height)
+      ext = 'cpcl'
     }
     const blob = new Blob([raw], { type: 'text/plain' })
     const a = document.createElement('a')
@@ -460,6 +464,9 @@ export default function EditorClient({ label }: { label: Label }) {
         </button>
         <button type="button" onClick={() => handleExportZpl('epl')} title="Download EPL2 (legacy Zebra LP/TLP printers)" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
           <Terminal className="w-4 h-4" /> EPL
+        </button>
+        <button type="button" onClick={() => handleExportZpl('cpcl')} title="Download CPCL (Intermec / Honeywell printers)" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
+          <Terminal className="w-4 h-4" /> CPCL
         </button>
         <button type="button" onClick={handlePrint} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
           <Printer className="w-4 h-4" /> Print
