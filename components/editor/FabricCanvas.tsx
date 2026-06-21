@@ -4,6 +4,7 @@ import { useEffect, useRef, useCallback } from 'react'
 import { Canvas, Circle, IText } from 'fabric'
 import { useEditorStore } from '@/lib/store/editor'
 import { mmToPx } from '@/lib/label-sizes'
+import { CANVAS_MAX_WIDTH_PX, CANVAS_MAX_HEIGHT_PX, CANVAS_MAX_SCALE } from '@/lib/constants'
 
 let _canvas: Canvas | null = null
 export function getCanvas() { return _canvas }
@@ -19,7 +20,7 @@ export default function FabricCanvas({ onCanvasReady }: Props) {
 
   const labelW = mmToPx(selectedSize.width)
   const labelH = mmToPx(selectedSize.height)
-  const SCALE = Math.min(560 / labelW, 480 / labelH, 1.5)
+  const SCALE = Math.min(CANVAS_MAX_WIDTH_PX / labelW, CANVAS_MAX_HEIGHT_PX / labelH, CANVAS_MAX_SCALE)
 
   const mergeData = useCallback((canvas: Canvas) => {
     if (!dataRows.length) return
@@ -83,12 +84,15 @@ export default function FabricCanvas({ onCanvasReady }: Props) {
 
   return (
     <div ref={containerRef} className="flex items-center justify-center flex-1 bg-zinc-100 overflow-auto p-6">
-      {/* eslint-disable-next-line react/forbid-dom-props -- dynamic label dimensions require inline size */}
+      {/*
+        CSS custom properties must be set inline — they cannot live in an external stylesheet
+        because their values are computed at runtime from label dimensions.
+        eslint-disable-next-line react/forbid-dom-props
+      */}
       <div
         className="shadow-xl ring-1 ring-zinc-300 fabric-canvas-wrapper"
-        style={
-          { '--canvas-w': `${canvasW}px`, '--canvas-h': `${canvasH}px` } as React.CSSProperties
-        }
+        // @ts-expect-error -- CSS custom properties are valid but not in React.CSSProperties
+        style={{ '--canvas-w': `${canvasW}px`, '--canvas-h': `${canvasH}px` }}
       >
         <canvas ref={canvasRef} />
       </div>

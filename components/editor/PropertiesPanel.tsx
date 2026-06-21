@@ -1,25 +1,41 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { IText, FabricImage, type FabricObject } from 'fabric'
 import { getCanvas } from './FabricCanvas'
 import { BARCODE_TYPES, generateBarcodeDataURL } from '@/lib/barcode'
 import { LABEL_SIZES } from '@/lib/label-sizes'
 import { useEditorStore } from '@/lib/store/editor'
-
-// Fabric v6 doesn't expose customData on its types — use a typed extension
-type WithCustom = { id?: string; customData?: { type?: string; barcodeType?: string; template?: string } }
-type AnyFabricObj = FabricObject & WithCustom
+import type { AnyFabricObj } from '@/types/fabric-extensions'
 
 export default function PropertiesPanel() {
   const { activeObjectId, selectedSize, setSelectedSize } = useEditorStore()
   const [obj, setObj] = useState<AnyFabricObj | null>(null)
-  const [, rerender] = useState(0)
+  const [version, setVersion] = useState(0)
 
-  useEffect(() => {
+  const syncObj = useCallback(() => {
     const active = getCanvas()?.getActiveObject()
     setObj(active ? (active as AnyFabricObj) : null)
-  }, [activeObjectId])
+  }, [])
+
+  // Sync selected object when selection changes
+  useEffect(() => {
+    syncObj()
+  }, [activeObjectId, syncObj])
+
+  // Re-read obj props after each canvas modification so controls stay in sync
+  useEffect(() => {
+    const canvas = getCanvas()
+    if (!canvas) return
+    const handler = () => setVersion(v => v + 1)
+    canvas.on('object:modified', handler)
+    return () => { canvas.off('object:modified', handler) }
+  }, [])
+
+  // Force re-read from the live canvas object when version bumps
+  useEffect(() => {
+    syncObj()
+  }, [version, syncObj])
 
   function updateShape(props: Record<string, unknown>) {
     const c = getCanvas()
@@ -27,18 +43,23 @@ export default function PropertiesPanel() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ;(obj as any).set(props)
     c.renderAll()
-    rerender(n => n + 1)
+    setVersion(v => v + 1)
   }
 
   async function updateBarcode(value: string, type: string) {
     const c = getCanvas()
     if (!c || !obj) return
-    const dataURL = await generateBarcodeDataURL(value, type as 'qrcode')
-    if (obj instanceof FabricImage) {
-      const imgObj = obj as FabricImage & WithCustom
-      await imgObj.setSrc(dataURL)
-      imgObj.customData = { ...imgObj.customData, template: value, barcodeType: type }
-      c.renderAll()
+    try {
+      const dataURL = await generateBarcodeDataURL(value, type as 'qrcode')
+      if (obj instanceof FabricImage) {
+        const imgObj = obj as FabricImage & { customData?: Record<string, unknown> }
+        await imgObj.setSrc(dataURL)
+        imgObj.customData = { ...imgObj.customData, template: value, barcodeType: type }
+        c.renderAll()
+        setVersion(v => v + 1)
+      }
+    } catch {
+      // Barcode generation can fail for invalid values (e.g. wrong EAN digit count) — silently ignore
     }
   }
 
@@ -82,8 +103,9 @@ export default function PropertiesPanel() {
               value={textObj.text ?? ''}
               onChange={e => {
                 textObj.set({ text: e.target.value })
-                ;(obj as WithCustom).customData = { ...((obj as WithCustom).customData ?? {}), template: e.target.value }
-                getCanvas()?.renderAll(); rerender(n => n + 1)
+                ;(obj as AnyFabricObj).customData = { ...obj.customData, template: e.target.value }
+                getCanvas()?.renderAll()
+                setVersion(v => v + 1)
               }}
               placeholder="Text or {{field_name}}"
             />

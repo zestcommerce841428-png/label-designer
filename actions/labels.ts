@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { assertUUID, assertLabelName, assertCanvasJson, assertRecordCount } from '@/lib/validation'
 
 export async function createLabel() {
   const supabase = await createClient()
@@ -20,13 +21,17 @@ export async function createLabel() {
 }
 
 export async function saveLabel(id: string, name: string, canvasJson: object, sizeConfig: object) {
+  assertUUID(id)
+  assertLabelName(name)
+  assertCanvasJson(canvasJson)
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
   const { error } = await supabase
     .from('labels')
-    .update({ name, canvas_json: canvasJson, size_config: sizeConfig })
+    .update({ name: name.trim(), canvas_json: canvasJson, size_config: sizeConfig })
     .eq('id', id)
     .eq('user_id', user.id)
 
@@ -36,6 +41,8 @@ export async function saveLabel(id: string, name: string, canvasJson: object, si
 }
 
 export async function deleteLabel(id: string) {
+  assertUUID(id)
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
@@ -45,16 +52,28 @@ export async function deleteLabel(id: string) {
 }
 
 export async function duplicateLabel(id: string) {
+  assertUUID(id)
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
-  const { data: src } = await supabase.from('labels').select('*').eq('id', id).single()
+  const { data: src } = await supabase
+    .from('labels')
+    .select('*')
+    .eq('id', id)
+    .eq('user_id', user.id)
+    .single()
   if (!src) throw new Error('Label not found')
 
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from('labels')
-    .insert({ user_id: user.id, name: `${src.name} (copy)`, canvas_json: src.canvas_json, size_config: src.size_config })
+    .insert({
+      user_id: user.id,
+      name: `${src.name} (copy)`,
+      canvas_json: src.canvas_json,
+      size_config: src.size_config,
+    })
     .select('id')
     .single()
 
@@ -63,6 +82,10 @@ export async function duplicateLabel(id: string) {
 }
 
 export async function logPrintJob(labelId: string, labelName: string, recordCount: number) {
+  assertUUID(labelId, 'labelId')
+  assertLabelName(labelName)
+  assertRecordCount(recordCount)
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
@@ -70,7 +93,7 @@ export async function logPrintJob(labelId: string, labelName: string, recordCoun
   await supabase.from('print_jobs').insert({
     user_id: user.id,
     label_id: labelId,
-    label_name: labelName,
+    label_name: labelName.trim(),
     record_count: recordCount,
     status: 'done',
   })

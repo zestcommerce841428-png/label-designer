@@ -9,6 +9,7 @@ import { saveLabel, logPrintJob } from '@/actions/labels'
 import { LABEL_SIZES, mmToPx } from '@/lib/label-sizes'
 import { getCanvas } from '@/components/editor/FabricCanvas'
 import DataImportPanel from '@/components/editor/DataImportPanel'
+import ErrorBoundary from '@/components/ErrorBoundary'
 import type { Canvas } from 'fabric'
 
 const FabricCanvas = dynamic(() => import('@/components/editor/FabricCanvas'), { ssr: false })
@@ -27,6 +28,7 @@ export default function EditorClient({ label }: { label: Label }) {
   const { setLabelId, setLabelName, setSelectedSize, labelName, selectedSize, dataRows, isDirty, setDirty } = useEditorStore()
   const [isPending, startTransition] = useTransition()
   const [showData, setShowData] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   useEffect(() => {
     setLabelId(label.id)
@@ -48,11 +50,16 @@ export default function EditorClient({ label }: { label: Label }) {
     const c = getCanvas()
     if (!c) return
     const json = c.toObject(['customData', 'id'])
+    setSaveError(null)
     startTransition(async () => {
-      await saveLabel(label.id, labelName, json, {
-        width: selectedSize.width, height: selectedSize.height, unit: 'mm',
-      })
-      setDirty(false)
+      try {
+        await saveLabel(label.id, labelName, json, {
+          width: selectedSize.width, height: selectedSize.height, unit: 'mm',
+        })
+        setDirty(false)
+      } catch (err) {
+        setSaveError(err instanceof Error ? err.message : 'Save failed')
+      }
     })
   }
 
@@ -61,7 +68,9 @@ export default function EditorClient({ label }: { label: Label }) {
     if (!c) return
     const dataURL = c.toDataURL({ format: 'png', multiplier: 2 })
     const a = document.createElement('a')
-    a.href = dataURL; a.download = `${labelName}.png`; a.click()
+    a.href = dataURL
+    a.download = `${labelName}.png`
+    a.click()
   }
 
   function handlePrint() {
@@ -79,7 +88,13 @@ export default function EditorClient({ label }: { label: Label }) {
       <body><img src="${dataURL}" onload="window.print();window.close()" /></body></html>
     `)
     w.document.close()
-    startTransition(() => logPrintJob(label.id, labelName, Math.max(1, dataRows.length)))
+    startTransition(async () => {
+      try {
+        await logPrintJob(label.id, labelName, Math.max(1, dataRows.length))
+      } catch {
+        // Print job logging is non-critical; don't surface the error
+      }
+    })
   }
 
   return (
@@ -96,6 +111,7 @@ export default function EditorClient({ label }: { label: Label }) {
           placeholder="Label name"
         />
         {isDirty && <span className="text-xs text-zinc-400">Unsaved</span>}
+        {saveError && <span className="text-xs text-red-500">{saveError}</span>}
         <button
           type="button" onClick={() => setShowData(p => !p)}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${showData ? 'bg-blue-100 text-blue-700' : 'text-zinc-600 hover:bg-zinc-100'}`}
@@ -119,12 +135,22 @@ export default function EditorClient({ label }: { label: Label }) {
         </button>
       </header>
 
-      <Toolbar />
+      <ErrorBoundary fallback={
+        <div className="flex items-center justify-center h-10 text-xs text-red-500 bg-red-50 border-b border-red-100 px-4">
+          Toolbar failed to load — refresh the page to retry.
+        </div>
+      }>
+        <Toolbar />
+      </ErrorBoundary>
 
       <div className="flex flex-1 overflow-hidden">
-        <FabricCanvas onCanvasReady={handleCanvasReady} />
+        <ErrorBoundary>
+          <FabricCanvas onCanvasReady={handleCanvasReady} />
+        </ErrorBoundary>
         {showData && <DataImportPanel />}
-        <PropertiesPanel />
+        <ErrorBoundary>
+          <PropertiesPanel />
+        </ErrorBoundary>
       </div>
     </div>
   )

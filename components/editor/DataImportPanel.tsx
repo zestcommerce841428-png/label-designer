@@ -5,6 +5,7 @@ import Papa from 'papaparse'
 import * as XLSX from 'xlsx'
 import { Upload, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useEditorStore, type DataRow } from '@/lib/store/editor'
+import { MAX_IMPORT_FILE_BYTES } from '@/lib/constants'
 
 export default function DataImportPanel() {
   const { dataRows, setDataRows, previewRowIndex, setPreviewRowIndex } = useEditorStore()
@@ -12,6 +13,10 @@ export default function DataImportPanel() {
   const [dragging, setDragging] = useState(false)
 
   const processFile = useCallback((file: File) => {
+    if (file.size > MAX_IMPORT_FILE_BYTES) {
+      alert('File too large. Maximum size is 10 MB.')
+      return
+    }
     const ext = file.name.split('.').pop()?.toLowerCase()
     if (ext === 'csv') {
       Papa.parse<DataRow>(file, {
@@ -77,6 +82,9 @@ export default function DataImportPanel() {
             <span className="text-xs text-zinc-500">{dataRows.length} records</span>
             <div className="flex items-center gap-1">
               <button
+                type="button"
+                title="Previous row"
+                aria-label="Previous row"
                 onClick={() => setPreviewRowIndex(Math.max(0, previewRowIndex - 1))}
                 disabled={previewRowIndex === 0}
                 className="p-1 rounded hover:bg-zinc-100 disabled:opacity-30"
@@ -87,6 +95,9 @@ export default function DataImportPanel() {
                 Row {previewRowIndex + 1} of {dataRows.length}
               </span>
               <button
+                type="button"
+                title="Next row"
+                aria-label="Next row"
                 onClick={() => setPreviewRowIndex(Math.min(dataRows.length - 1, previewRowIndex + 1))}
                 disabled={previewRowIndex >= dataRows.length - 1}
                 className="p-1 rounded hover:bg-zinc-100 disabled:opacity-30"

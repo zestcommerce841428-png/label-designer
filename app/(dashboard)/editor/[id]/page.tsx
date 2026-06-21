@@ -6,10 +6,14 @@ import EditorClient from './EditorClient'
 async function EditorLoader({ id }: { id: string }) {
   const supabase = await createClient()
 
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) notFound()
+
   const { data: label } = await supabase
     .from('labels')
     .select('*')
     .eq('id', id)
+    .eq('user_id', user.id)
     .single()
 
   if (!label) notFound()
