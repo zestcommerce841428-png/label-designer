@@ -68,12 +68,12 @@ type Label = {
   id: string
   name: string
   canvas_json: object
-  size_config: { width: number; height: number; unit: string }
+  size_config: { width: number; height: number; unit: string; bleedMm?: number }
 }
 
 export default function EditorClient({ label }: { label: Label }) {
   const router = useRouter()
-  const { setLabelId, setLabelName, setSelectedSize, labelName, selectedSize, dataRows, previewRowIndex, isDirty, setDirty } = useEditorStore()
+  const { setLabelId, setLabelName, setSelectedSize, setBleedMm, labelName, selectedSize, bleedMm, dataRows, previewRowIndex, isDirty, setDirty } = useEditorStore()
   const [isPending, startTransition] = useTransition()
   const [showData, setShowData] = useState(false)
   const [snapToGrid, setSnapToGrid] = useState(false)
@@ -94,7 +94,8 @@ export default function EditorClient({ label }: { label: Label }) {
       s.width === label.size_config.width && s.height === label.size_config.height
     )
     if (size) setSelectedSize(size)
-  }, [label, setLabelId, setLabelName, setSelectedSize])
+    setBleedMm(label.size_config.bleedMm ?? 0)
+  }, [label, setLabelId, setLabelName, setSelectedSize, setBleedMm])
 
   // Ctrl+S shortcut dispatched from FabricCanvas keyboard handler
   useEffect(() => {
@@ -126,7 +127,7 @@ export default function EditorClient({ label }: { label: Label }) {
       const json = c.toObject(['customData', 'id'])
       const thumbnail = c.toDataURL({ format: 'jpeg', multiplier: 0.4, quality: 0.7 })
       saveLabel(label.id, labelName, json, {
-        width: selectedSize.width, height: selectedSize.height, unit: 'mm',
+        width: selectedSize.width, height: selectedSize.height, unit: 'mm', bleedMm,
       }, thumbnail).then(() => {
         setDirty(false)
         toast.success('Auto-saved')
@@ -183,7 +184,7 @@ export default function EditorClient({ label }: { label: Label }) {
     startTransition(async () => {
       try {
         await saveLabel(label.id, labelName, json, {
-          width: selectedSize.width, height: selectedSize.height, unit: 'mm',
+          width: selectedSize.width, height: selectedSize.height, unit: 'mm', bleedMm,
         }, thumbnail)
         setDirty(false)
         toast.success('Label saved')
@@ -202,7 +203,7 @@ export default function EditorClient({ label }: { label: Label }) {
     startTransition(async () => {
       try {
         const newId = await saveAsNewLabel(label.id, copyName, json, {
-          width: selectedSize.width, height: selectedSize.height, unit: 'mm',
+          width: selectedSize.width, height: selectedSize.height, unit: 'mm', bleedMm,
         })
         toast.success('Saved as copy')
         router.push(`/editor/${newId}`)
@@ -419,6 +420,17 @@ export default function EditorClient({ label }: { label: Label }) {
         <span className="text-xs text-zinc-400 shrink-0 hidden lg:inline">
           {selectedSize.width}×{selectedSize.height}mm
         </span>
+        <label className="hidden xl:flex items-center gap-1 text-xs text-zinc-500 shrink-0">
+          Bleed
+          <input
+            type="number" min="0" max="10" step="0.5"
+            title="Bleed margin (mm)"
+            value={bleedMm}
+            onChange={e => setBleedMm(Math.max(0, +e.target.value))}
+            className="w-12 border border-zinc-300 rounded px-1 py-0.5 text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400"
+          />
+          mm
+        </label>
         {dataRows.length > 0 && (
           <span className="text-xs text-zinc-400 shrink-0">
             Preview row {previewRowIndex + 1}/{dataRows.length}

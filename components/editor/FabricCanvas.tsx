@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useCallback } from 'react'
-import { Canvas, Circle, Line as FabricLine, IText, ActiveSelection } from 'fabric'
+import { Canvas, Circle, Line as FabricLine, Rect as FabricRect, IText, ActiveSelection } from 'fabric'
 import { useEditorStore } from '@/lib/store/editor'
 import { mmToPx } from '@/lib/label-sizes'
 import { CANVAS_MAX_WIDTH_PX, CANVAS_MAX_HEIGHT_PX, CANVAS_MAX_SCALE } from '@/lib/constants'
@@ -39,11 +39,14 @@ type Props = {
 export default function FabricCanvas({ onCanvasReady }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const { selectedSize, setActiveObjectId, setDirty, dataRows, previewRowIndex } = useEditorStore()
+  const { selectedSize, bleedMm, setActiveObjectId, setDirty, dataRows, previewRowIndex } = useEditorStore()
 
   const labelW = mmToPx(selectedSize.width)
   const labelH = mmToPx(selectedSize.height)
-  const SCALE = Math.min(CANVAS_MAX_WIDTH_PX / labelW, CANVAS_MAX_HEIGHT_PX / labelH, CANVAS_MAX_SCALE)
+  const bleedPx = mmToPx(bleedMm)
+  const canvasW = labelW + 2 * bleedPx
+  const canvasH = labelH + 2 * bleedPx
+  const SCALE = Math.min(CANVAS_MAX_WIDTH_PX / canvasW, CANVAS_MAX_HEIGHT_PX / canvasH, CANVAS_MAX_SCALE)
 
   const mergeData = useCallback((canvas: Canvas) => {
     if (!dataRows.length) return
@@ -55,22 +58,44 @@ export default function FabricCanvas({ onCanvasReady }: Props) {
     if (!canvasRef.current) return
 
     const canvas = new Canvas(canvasRef.current, {
-      width: labelW * SCALE,
-      height: labelH * SCALE,
-      backgroundColor: '#ffffff',
+      width: canvasW * SCALE,
+      height: canvasH * SCALE,
+      backgroundColor: bleedPx > 0 ? '#e5e7eb' : '#ffffff',
     })
     _baseScale = SCALE
     _userZoom  = 1
-    _baseLabelW = labelW
-    _baseLabelH = labelH
+    _baseLabelW = canvasW
+    _baseLabelH = canvasH
     canvas.setZoom(SCALE)
 
-    // Grid dots
+    // When bleed is active, draw the label area (white) and cut mark lines
+    if (bleedPx > 0) {
+      const labelRect = new FabricRect({
+        left: bleedPx, top: bleedPx, width: labelW, height: labelH,
+        fill: '#ffffff', selectable: false, evented: false,
+      })
+      canvas.add(labelRect)
+      // Cut mark dashed lines
+      for (const [x1, y1, x2, y2] of [
+        [bleedPx, bleedPx, bleedPx + labelW, bleedPx],           // top
+        [bleedPx, bleedPx + labelH, bleedPx + labelW, bleedPx + labelH], // bottom
+        [bleedPx, bleedPx, bleedPx, bleedPx + labelH],           // left
+        [bleedPx + labelW, bleedPx, bleedPx + labelW, bleedPx + labelH], // right
+      ]) {
+        canvas.add(new FabricLine([x1, y1, x2, y2], {
+          stroke: '#ef4444', strokeWidth: 0.5,
+          strokeDashArray: [4, 4],
+          selectable: false, evented: false,
+        }))
+      }
+    }
+
+    // Grid dots (within label area)
     const gridSize = mmToPx(5)
     for (let x = gridSize; x < labelW; x += gridSize) {
       for (let y = gridSize; y < labelH; y += gridSize) {
         const dot = new Circle({
-          left: x, top: y, radius: 0.5,
+          left: x + bleedPx, top: y + bleedPx, radius: 0.5,
           fill: '#d1d5db', selectable: false, evented: false,
           originX: 'center', originY: 'center',
         })
@@ -118,9 +143,9 @@ export default function FabricCanvas({ onCanvasReady }: Props) {
       const oRight   = oLeft + oW
       const oBottom  = oTop  + oH
 
-      // Snap positions: label boundaries + center lines + other objects' edges
-      const xPositions: number[] = [0, labelW / 2, labelW]
-      const yPositions: number[] = [0, labelH / 2, labelH]
+      // Snap positions: label boundaries (accounting for bleed offset) + center lines + other objects' edges
+      const xPositions: number[] = [bleedPx, bleedPx + labelW / 2, bleedPx + labelW]
+      const yPositions: number[] = [bleedPx, bleedPx + labelH / 2, bleedPx + labelH]
 
       for (const other of c.getObjects()) {
         if (other === obj || !other.selectable) continue
@@ -149,8 +174,8 @@ export default function FabricCanvas({ onCanvasReady }: Props) {
         if (Math.abs(oCenterY - pos) < threshold && guideY === null) { newTop = pos - oH / 2; guideY = pos }
         if (Math.abs(oBottom  - pos) < threshold && guideY === null) { newTop = pos - oH;     guideY = pos }
       }
-      if (guideX !== null) drawGuide(c, guideX, 0, guideX, labelH)
-      if (guideY !== null) drawGuide(c, 0, guideY, labelW, guideY)
+      if (guideX !== null) drawGuide(c, guideX, 0, guideX, canvasH)
+      if (guideY !== null) drawGuide(c, 0, guideY, canvasW, guideY)
 
       obj.set({ left: newLeft, top: newTop })
       obj.setCoords()
@@ -258,14 +283,14 @@ export default function FabricCanvas({ onCanvasReady }: Props) {
       _canvas = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedSize.id])
+  }, [selectedSize.id, bleedMm])
 
   useEffect(() => {
     if (_canvas) mergeData(_canvas)
   }, [dataRows, previewRowIndex, mergeData])
 
-  const canvasW = labelW * SCALE
-  const canvasH = labelH * SCALE
+  const scaledW = canvasW * SCALE
+  const scaledH = canvasH * SCALE
 
   return (
     <div ref={containerRef} className="flex items-center justify-center flex-1 bg-zinc-100 overflow-auto p-6">
@@ -278,7 +303,7 @@ export default function FabricCanvas({ onCanvasReady }: Props) {
       <div
         className="shadow-xl ring-1 ring-zinc-300 fabric-canvas-wrapper"
         // @ts-expect-error -- CSS custom properties are valid but not in React.CSSProperties
-        style={{ '--canvas-w': `${canvasW}px`, '--canvas-h': `${canvasH}px` }}
+        style={{ '--canvas-w': `${scaledW}px`, '--canvas-h': `${scaledH}px` }}
       >
         <canvas ref={canvasRef} />
       </div>

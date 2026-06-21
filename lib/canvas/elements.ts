@@ -254,35 +254,38 @@ export function flipVertical(canvas: Canvas): void {
   canvas.renderAll()
 }
 
-export function centerOnLabel(canvas: Canvas): void {
+export function centerOnLabel(canvas: Canvas, bleedPx = 0): void {
   const obj = canvas.getActiveObject()
   if (!obj) return
   snapshot(canvas)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const zoom = canvas.getZoom()
-  const labelW = (canvas.width  ?? 0) / zoom
-  const labelH = (canvas.height ?? 0) / zoom
+  const totalW = (canvas.width  ?? 0) / zoom
+  const totalH = (canvas.height ?? 0) / zoom
+  const labelW = totalW - 2 * bleedPx
+  const labelH = totalH - 2 * bleedPx
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const ow = ((obj as any).width  ?? 0) * ((obj as any).scaleX ?? 1)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const oh = ((obj as any).height ?? 0) * ((obj as any).scaleY ?? 1)
-  obj.set({ left: (labelW - ow) / 2, top: (labelH - oh) / 2 })
+  obj.set({ left: bleedPx + (labelW - ow) / 2, top: bleedPx + (labelH - oh) / 2 })
   obj.setCoords()
   canvas.renderAll()
 }
 
-export function fitToLabel(canvas: Canvas): void {
+export function fitToLabel(canvas: Canvas, bleedPx = 0): void {
   const obj = canvas.getActiveObject()
   if (!obj) return
   snapshot(canvas)
   const zoom = canvas.getZoom()
-  const labelW = (canvas.width  ?? 0) / zoom
-  const labelH = (canvas.height ?? 0) / zoom
+  const totalW = (canvas.width  ?? 0) / zoom
+  const totalH = (canvas.height ?? 0) / zoom
+  const labelW = totalW - 2 * bleedPx
+  const labelH = totalH - 2 * bleedPx
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const ow = (obj as any).width  ?? 1
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const oh = (obj as any).height ?? 1
-  obj.set({ left: 0, top: 0, scaleX: labelW / ow, scaleY: labelH / oh })
+  obj.set({ left: bleedPx, top: bleedPx, scaleX: labelW / ow, scaleY: labelH / oh })
   obj.setCoords()
   canvas.renderAll()
 }

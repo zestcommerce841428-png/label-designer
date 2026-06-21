@@ -8,6 +8,7 @@ type EditorStore = {
   labelId: string | null
   labelName: string
   selectedSize: LabelSize
+  bleedMm: number
   dataRows: DataRow[]
   previewRowIndex: number
   activeObjectId: string | null
@@ -21,6 +22,7 @@ type EditorStore = {
   setLabelId: (id: string) => void
   setLabelName: (name: string) => void
   setSelectedSize: (size: LabelSize) => void
+  setBleedMm: (mm: number) => void
   setDataRows: (rows: DataRow[]) => void
   setPreviewRowIndex: (i: number) => void
   setActiveObjectId: (id: string | null) => void
@@ -38,6 +40,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   labelId: null,
   labelName: 'Untitled Label',
   selectedSize: LABEL_SIZES[1], // Avery 5160
+  bleedMm: 0,
   dataRows: [],
   previewRowIndex: 0,
   activeObjectId: null,
@@ -48,6 +51,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   setLabelId: (id) => set({ labelId: id }),
   setLabelName: (name) => set({ labelName: name, isDirty: true }),
   setSelectedSize: (size) => set({ selectedSize: size }),
+  setBleedMm: (mm) => set({ bleedMm: Math.max(0, mm), isDirty: true }),
   setDataRows: (rows) => set({ dataRows: rows }),
   setPreviewRowIndex: (i) => set({ previewRowIndex: i }),
   setActiveObjectId: (id) => set({ activeObjectId: id }),

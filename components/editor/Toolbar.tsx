@@ -18,6 +18,8 @@ import {
   centerOnLabel, fitToLabel, flipHorizontal, flipVertical,
 } from '@/lib/canvas/elements'
 import { undo, redo } from '@/lib/canvas/history'
+import { useEditorStore } from '@/lib/store/editor'
+import { mmToPx } from '@/lib/label-sizes'
 
 function withCanvas(fn: (c: ReturnType<typeof getCanvas> & object) => void) {
   return () => {
@@ -45,6 +47,9 @@ function Sep() {
 }
 
 export default function Toolbar() {
+  const { bleedMm } = useEditorStore()
+  const bleedPx = mmToPx(bleedMm)
+
   return (
     <div className="flex items-center gap-0.5 px-3 py-2 bg-white border-b border-zinc-200 flex-wrap shrink-0">
       <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mr-2">Add</span>
@@ -95,8 +100,8 @@ export default function Toolbar() {
       <Tool icon={ChevronsDown} label="Send to Back"    onClick={withCanvas(sendToBack)} />
 
       <Sep />
-      <Tool icon={Crosshair}       label="Center on label"   onClick={withCanvas(centerOnLabel)} />
-      <Tool icon={Maximize2}       label="Fit to label"      onClick={withCanvas(fitToLabel)} />
+      <Tool icon={Crosshair}       label="Center on label"   onClick={withCanvas(c => centerOnLabel(c, bleedPx))} />
+      <Tool icon={Maximize2}       label="Fit to label"      onClick={withCanvas(c => fitToLabel(c, bleedPx))} />
       <Tool icon={FlipHorizontal2} label="Flip horizontal"   onClick={withCanvas(flipHorizontal)} />
       <Tool icon={FlipVertical2}   label="Flip vertical"     onClick={withCanvas(flipVertical)} />
 
