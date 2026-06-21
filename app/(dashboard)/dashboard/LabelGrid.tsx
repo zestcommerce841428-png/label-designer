@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react'
 import { Search, FileText } from 'lucide-react'
 import LabelCard from './LabelCard'
-import { deleteLabel, duplicateLabel } from '@/actions/labels'
+import { deleteLabel, duplicateLabel, renameLabel } from '@/actions/labels'
 
 type Label = {
   id: string
@@ -76,6 +76,7 @@ export default function LabelGrid({ labels }: { labels: Label[] }) {
               label={label}
               onDelete={deleteLabel}
               onDuplicate={duplicateLabel}
+              onRename={renameLabel}
             />
           ))}
         </div>

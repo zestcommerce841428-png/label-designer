@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { MoreVertical, Edit3, Copy, Trash2 } from 'lucide-react'
-import { useState, useTransition } from 'react'
+import { MoreVertical, Edit3, Copy, Trash2, Pencil, Check, X } from 'lucide-react'
+import { useState, useTransition, useRef, useEffect } from 'react'
 
 type Label = {
   id: string
@@ -16,11 +16,32 @@ type Props = {
   label: Label
   onDelete: (id: string) => Promise<void>
   onDuplicate: (id: string) => Promise<void>
+  onRename: (id: string, name: string) => Promise<void>
 }
 
-export default function LabelCard({ label, onDelete, onDuplicate }: Props) {
+export default function LabelCard({ label, onDelete, onDuplicate, onRename }: Props) {
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const [renaming, setRenaming] = useState(false)
+  const [draftName, setDraftName] = useState(label.name)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (renaming) inputRef.current?.select()
+  }, [renaming])
+
+  function commitRename() {
+    const trimmed = draftName.trim()
+    if (trimmed && trimmed !== label.name) {
+      startTransition(() => onRename(label.id, trimmed))
+    }
+    setRenaming(false)
+  }
+
+  function cancelRename() {
+    setDraftName(label.name)
+    setRenaming(false)
+  }
 
   return (
     <div className="group bg-white rounded-xl border border-zinc-200 overflow-hidden hover:border-blue-300 hover:shadow-md transition-all">
@@ -43,9 +64,34 @@ export default function LabelCard({ label, onDelete, onDuplicate }: Props) {
 
       <div className="p-3 flex items-start gap-1">
         <div className="flex-1 min-w-0">
-          <Link href={`/editor/${label.id}`}>
-            <p className="text-sm font-medium text-zinc-900 truncate hover:text-blue-600 transition-colors">{label.name}</p>
-          </Link>
+          {renaming ? (
+            <div className="flex items-center gap-1">
+              <input
+                ref={inputRef}
+                type="text"
+                value={draftName}
+                onChange={e => setDraftName(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') commitRename()
+                  if (e.key === 'Escape') cancelRename()
+                }}
+                onBlur={commitRename}
+                aria-label="Label name"
+                className="flex-1 min-w-0 text-sm border border-blue-400 rounded px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                maxLength={100}
+              />
+              <button type="button" onClick={commitRename} title="Save" className="p-0.5 text-green-600 hover:text-green-700">
+                <Check className="w-3.5 h-3.5" aria-hidden />
+              </button>
+              <button type="button" onClick={cancelRename} title="Cancel" className="p-0.5 text-zinc-400 hover:text-zinc-600">
+                <X className="w-3.5 h-3.5" aria-hidden />
+              </button>
+            </div>
+          ) : (
+            <Link href={`/editor/${label.id}`}>
+              <p className="text-sm font-medium text-zinc-900 truncate hover:text-blue-600 transition-colors">{label.name}</p>
+            </Link>
+          )}
           <p className="text-xs text-zinc-400 mt-0.5">
             {new Date(label.updated_at).toLocaleDateString()}
           </p>
@@ -66,6 +112,12 @@ export default function LabelCard({ label, onDelete, onDuplicate }: Props) {
               >
                 <Edit3 className="w-3.5 h-3.5" /> Edit
               </Link>
+              <button
+                className="flex w-full items-center gap-2 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50"
+                onClick={() => { setOpen(false); setRenaming(true) }}
+              >
+                <Pencil className="w-3.5 h-3.5" /> Rename
+              </button>
               <button
                 className="flex w-full items-center gap-2 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50"
                 onClick={() => { setOpen(false); startTransition(() => onDuplicate(label.id)) }}

@@ -53,6 +53,23 @@ export async function saveLabel(
   revalidatePath(`/editor/${id}`)
 }
 
+export async function renameLabel(id: string, name: string) {
+  assertUUID(id)
+  assertLabelName(name)
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  await supabase
+    .from('labels')
+    .update({ name: name.trim() })
+    .eq('id', id)
+    .eq('user_id', user.id)
+
+  revalidatePath('/dashboard')
+}
+
 export async function deleteLabel(id: string) {
   assertUUID(id)
 

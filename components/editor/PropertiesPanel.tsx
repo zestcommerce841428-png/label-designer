@@ -370,6 +370,11 @@ export default function PropertiesPanel() {
                 placeholder="Value or {{barcode}}"
               />
             </div>
+            <PRow label="Opacity">
+              <input type="range" min={0} max={1} step={0.05} title="Opacity"
+                value={(bObj as AnyFabricObj).opacity ?? 1}
+                onChange={e => updateShape({ opacity: +e.target.value })} />
+            </PRow>
           </div>
         )
       })()}
@@ -394,6 +399,11 @@ export default function PropertiesPanel() {
                 Use a merge tag to load a different image per data row.
               </p>
             </div>
+            <PRow label="Opacity">
+              <input type="range" min={0} max={1} step={0.05} title="Opacity"
+                value={(imgObj as AnyFabricObj).opacity ?? 1}
+                onChange={e => updateShape({ opacity: +e.target.value })} />
+            </PRow>
           </div>
         )
       })()}
