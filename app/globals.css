@@ -75,6 +75,27 @@ body {
   height: var(--canvas-h);
 }
 
+/* ── FabricCanvas bleed layout ── */
+.lf-canvas-bleed-wrap {
+  position: relative;
+}
+.lf-canvas-bleed-active {
+  padding: var(--bleed);
+  background: #9ca3af;
+}
+.lf-canvas-inner {
+  width: var(--lw);
+  height: var(--lh);
+}
+/* Red dashed cut-mark border inset within the bleed area */
+.lf-cut-mark-overlay {
+  position: absolute;
+  inset: var(--bleed);
+  outline: 1px dashed #ef4444;
+  outline-offset: -1px;
+  pointer-events: none;
+}
+
 /* ── Focus ring ── */
 :focus-visible {
   outline: 2px solid var(--brand);

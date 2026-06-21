@@ -7,7 +7,7 @@ import { Save, Download, Printer, ChevronLeft, BarChart2, Layers, Terminal, Grid
 import { useEditorStore } from '@/lib/store/editor'
 import { saveLabel, logPrintJob, saveAsNewLabel } from '@/actions/labels'
 import { LABEL_SIZES } from '@/lib/label-sizes'
-import { getCanvas, setZoom, getZoom } from '@/components/editor/FabricCanvas'
+import { getCanvas, setZoom, getZoom, reinitGrid } from '@/components/editor/FabricCanvas'
 import DataImportPanel from '@/components/editor/DataImportPanel'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import { resetToTemplates } from '@/lib/merge'
@@ -152,7 +152,11 @@ export default function EditorClient({ label }: { label: Label }) {
 
   const handleCanvasReady = useCallback((canvas: Canvas) => {
     if (label.canvas_json && Object.keys(label.canvas_json).length) {
-      canvas.loadFromJSON(label.canvas_json).then(() => canvas.renderAll())
+      canvas.loadFromJSON(label.canvas_json).then(() => {
+        // Re-add grid dots after loadFromJSON clears all canvas objects
+        reinitGrid()
+        canvas.renderAll()
+      })
     }
     setDirty(false)
   }, [label.canvas_json, setDirty])

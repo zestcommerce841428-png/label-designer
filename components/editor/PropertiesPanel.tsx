@@ -4,9 +4,9 @@ import { useState, useEffect, useCallback } from 'react'
 import { IText, Textbox, FabricImage, Group, Gradient } from 'fabric'
 import { AlignLeft, AlignCenter, AlignRight } from 'lucide-react'
 import { getCanvas } from './FabricCanvas'
+import { useEditorStore } from '@/lib/store/editor'
 import { BARCODE_GROUPS, generateBarcodeDataURL } from '@/lib/barcode'
 import { LABEL_SIZES } from '@/lib/label-sizes'
-import { useEditorStore } from '@/lib/store/editor'
 import type { AnyFabricObj } from '@/types/fabric-extensions'
 
 const FONT_FAMILIES = [
@@ -16,7 +16,7 @@ const FONT_FAMILIES = [
 ]
 
 export default function PropertiesPanel() {
-  const { activeObjectId, selectedSize, setSelectedSize } = useEditorStore()
+  const { activeObjectId, selectedSize, setSelectedSize, setDirty } = useEditorStore()
   const [obj, setObj] = useState<AnyFabricObj | null>(null)
   const [version, setVersion] = useState(0)
   const [bgColor, setBgColor] = useState('#ffffff')
@@ -147,6 +147,7 @@ export default function PropertiesPanel() {
               c.backgroundColor = e.target.value
               c.renderAll()
               setBgColor(e.target.value)
+              setDirty(true)
             }}
           />
         </div>
