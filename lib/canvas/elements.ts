@@ -1,4 +1,4 @@
-import { IText, Textbox, Rect, Circle, Line, Triangle, FabricImage, Group, ActiveSelection, type Canvas, type FabricObject } from 'fabric'
+import { IText, Textbox, Rect, Circle, Line, Triangle, FabricImage, Group, ActiveSelection, loadSVGFromString, util, type Canvas, type FabricObject } from 'fabric'
 import { generateBarcodeDataURL } from '@/lib/barcode'
 import { MAX_IMAGE_BYTES } from '@/lib/constants'
 import { snapshot } from './history'
@@ -131,6 +131,31 @@ export function addImage(canvas: Canvas): void {
       canvas.renderAll()
     }
     reader.readAsDataURL(file)
+  }
+  input.click()
+}
+
+export function addSvg(canvas: Canvas): void {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = '.svg,image/svg+xml'
+  input.onchange = async () => {
+    const file = input.files?.[0]
+    if (!file) return
+    if (file.size > MAX_IMAGE_BYTES) {
+      alert('SVG too large. Maximum size is 5 MB.')
+      return
+    }
+    const text = await file.text()
+    snapshot(canvas)
+    const { objects, options } = await loadSVGFromString(text)
+    const group = util.groupSVGElements(objects.filter(Boolean) as FabricObject[], options) as Group & { id: string }
+    group.id = uid()
+    group.scaleToWidth(Math.min(100, canvas.width ?? 200))
+    group.set({ left: 30, top: 30 })
+    canvas.add(group)
+    canvas.setActiveObject(group)
+    canvas.renderAll()
   }
   input.click()
 }

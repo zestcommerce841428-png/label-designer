@@ -188,6 +188,36 @@ async function httpGet(url: string, headers?: Record<string, string>): Promise<s
   return res.text()
 }
 
+/**
+ * Lookup a value from a JSON array (secondary data source).
+ *
+ * Usage in a merge formula:
+ *   {{= lookup(row.sku, products, 'sku', 'price') }}
+ *   where `products` is a JSON array fetched via httpGet or pre-loaded.
+ *
+ * @param key        The value to look up (e.g. row.sku)
+ * @param dataSource JSON string or array of objects
+ * @param keyField   Field name in the source to match against key
+ * @param valueField Field name in the source to return
+ * @param fallback   Value to return when key is not found (default '')
+ */
+function lookup(
+  key: string | number,
+  dataSource: string | Record<string, string>[],
+  keyField: string,
+  valueField: string,
+  fallback = '',
+): string {
+  let rows: Record<string, string>[]
+  if (typeof dataSource === 'string') {
+    try { rows = JSON.parse(dataSource) } catch { return fallback }
+  } else {
+    rows = dataSource
+  }
+  const found = rows.find(r => String(r[keyField] ?? '') === String(key))
+  return found ? String(found[valueField] ?? fallback) : fallback
+}
+
 // Helper bundle passed to formula scope
 const FORMULA_HELPERS = {
   // Text
@@ -198,6 +228,8 @@ const FORMULA_HELPERS = {
   Abs, Round, Ceil, Floor, Min, Max,
   // Barcode / date
   gs1, today, now,
+  // Secondary data source lookup
+  lookup,
   // Network (SSRF-protected)
   httpGet,
 }

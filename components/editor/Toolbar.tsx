@@ -1,7 +1,7 @@
 'use client'
 
 import {
-  Type, AlignJustify, Square, Circle as CircleIcon, Minus, Triangle as TriangleIcon, Image as ImageIcon, Maximize2, Crosshair, FlipHorizontal2, FlipVertical2,
+  Type, AlignJustify, Square, Circle as CircleIcon, Minus, Triangle as TriangleIcon, Image as ImageIcon, FileImage, Maximize2, Crosshair, FlipHorizontal2, FlipVertical2,
   QrCode, Undo2, Redo2, Trash2, Copy, AlignLeft, AlignCenter, AlignRight,
   Group, Ungroup, ChevronsUp, ChevronsDown, ChevronUp, ChevronDown,
   AlignStartVertical, AlignCenterVertical, AlignEndVertical,
@@ -11,7 +11,7 @@ import {
 import { getCanvas } from './FabricCanvas'
 import {
   addText, addTextbox, addRect, addCircle, addTriangle, addLine, addBarcode, addQR,
-  addImage, deleteSelected, duplicateSelected, setTextAlign,
+  addImage, addSvg, deleteSelected, duplicateSelected, setTextAlign,
   groupSelected, ungroupSelected,
   bringToFront, sendToBack, bringForward, sendBackward,
   alignObjects, distributeObjects, pasteFromClipboard,
@@ -60,6 +60,7 @@ export default function Toolbar() {
       <Tool icon={TriangleIcon} label="Triangle"  onClick={withCanvas(addTriangle)} />
       <Tool icon={Minus}        label="Line"      onClick={withCanvas(addLine)} />
       <Tool icon={ImageIcon}   label="Image"     onClick={withCanvas(addImage)} />
+      <Tool icon={FileImage}   label="SVG"       onClick={withCanvas(addSvg)} />
       <Tool icon={QrCode}      label="QR Code"   onClick={withCanvas(addQR)} />
       <button
         type="button"
