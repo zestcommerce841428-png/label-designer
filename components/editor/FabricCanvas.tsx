@@ -81,6 +81,9 @@ export default function FabricCanvas({ onCanvasReady }: Props) {
     canvas.on('selection:created', (e) => {
       setActiveObjectId((e.selected?.[0] as unknown as { id?: string })?.id ?? null)
     })
+    canvas.on('selection:updated', (e) => {
+      setActiveObjectId((e.selected?.[0] as unknown as { id?: string })?.id ?? null)
+    })
     canvas.on('selection:cleared', () => setActiveObjectId(null))
     canvas.on('object:modified', () => setDirty(true))
 
@@ -176,6 +179,7 @@ export default function FabricCanvas({ onCanvasReady }: Props) {
         because their values are computed at runtime from label dimensions.
         eslint-disable-next-line react/forbid-dom-props
       */}
+      {/* eslint-disable-next-line react/forbid-dom-props -- CSS custom properties require inline style; values are runtime-computed */}
       <div
         className="shadow-xl ring-1 ring-zinc-300 fabric-canvas-wrapper"
         // @ts-expect-error -- CSS custom properties are valid but not in React.CSSProperties

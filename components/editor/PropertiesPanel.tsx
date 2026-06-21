@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { IText, FabricImage, Group, type FabricObject } from 'fabric'
+import { IText, FabricImage, Group } from 'fabric'
 import { AlignLeft, AlignCenter, AlignRight } from 'lucide-react'
 import { getCanvas } from './FabricCanvas'
 import { BARCODE_GROUPS, generateBarcodeDataURL } from '@/lib/barcode'
@@ -103,6 +103,20 @@ export default function PropertiesPanel() {
           ))}
         </select>
         <p className="text-xs text-zinc-400 mt-1">{selectedSize.width} × {selectedSize.height} mm</p>
+        <div className="flex items-center justify-between mt-3">
+          <span className="text-xs text-zinc-600">Background</span>
+          <input
+            type="color"
+            title="Label background color"
+            defaultValue="#ffffff"
+            onChange={e => {
+              const c = getCanvas()
+              if (!c) return
+              c.backgroundColor = e.target.value
+              c.renderAll()
+            }}
+          />
+        </div>
       </div>
 
       {!obj && (
