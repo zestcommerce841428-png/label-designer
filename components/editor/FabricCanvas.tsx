@@ -10,12 +10,27 @@ import {
   deleteSelected, duplicateSelected,
   groupSelected, ungroupSelected,
   bringToFront, sendToBack, bringForward, sendBackward,
-  pasteFromClipboard,
+  pasteFromClipboard, copySelected, pasteBuffer,
 } from '@/lib/canvas/elements'
 import { undo, redo } from '@/lib/canvas/history'
 
 let _canvas: Canvas | null = null
+let _baseScale = 1
+let _userZoom  = 1
 export function getCanvas() { return _canvas }
+export function getZoom()   { return _userZoom }
+export function setZoom(factor: number) {
+  const c = _canvas
+  if (!c) return
+  _userZoom = Math.max(0.25, Math.min(4, factor))
+  const z = _baseScale * _userZoom
+  c.setZoom(z)
+  c.setDimensions({ width: (c.width  ?? 0) / (_baseScale * (factor === _userZoom ? 1 : factor / _userZoom)),
+                    height:(c.height ?? 0) / (_baseScale * (factor === _userZoom ? 1 : factor / _userZoom)) })
+  // Simpler: recompute from base dimensions stored at init
+  c.setDimensions({ width: _baseLabelW * z, height: _baseLabelH * z })
+}
+let _baseLabelW = 0, _baseLabelH = 0
 
 type Props = {
   onCanvasReady?: (canvas: Canvas) => void
@@ -44,6 +59,10 @@ export default function FabricCanvas({ onCanvasReady }: Props) {
       height: labelH * SCALE,
       backgroundColor: '#ffffff',
     })
+    _baseScale = SCALE
+    _userZoom  = 1
+    _baseLabelW = labelW
+    _baseLabelH = labelH
     canvas.setZoom(SCALE)
 
     // Grid dots
@@ -108,9 +127,21 @@ export default function FabricCanvas({ onCanvasReady }: Props) {
         e.preventDefault()
         if (e.shiftKey) sendToBack(c)
         else sendBackward(c)
+      } else if (ctrl && e.key === 'c') {
+        // Copy selected element to internal buffer (not system clipboard)
+        copySelected(c)
       } else if (ctrl && e.key === 'v') {
         e.preventDefault()
-        pasteFromClipboard(c)
+        pasteBuffer(c)
+      } else if (ctrl && (e.key === '=' || e.key === '+')) {
+        e.preventDefault()
+        setZoom(Math.min(4, _userZoom + 0.25))
+      } else if (ctrl && e.key === '-') {
+        e.preventDefault()
+        setZoom(Math.max(0.25, _userZoom - 0.25))
+      } else if (ctrl && e.key === '0') {
+        e.preventDefault()
+        setZoom(1)
       } else if (!ctrl && active && ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) {
         // Nudge selected element 1px (or 10px with Shift)
         e.preventDefault()

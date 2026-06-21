@@ -210,6 +210,35 @@ export function distributeObjects(canvas: Canvas, axis: 'h' | 'v'): void {
   canvas.renderAll()
 }
 
+// ─── Internal copy / paste ────────────────────────────────────────────────────
+
+let _copyBuffer: import('fabric').FabricObject | null = null
+
+export function copySelected(canvas: Canvas): void {
+  const obj = canvas.getActiveObject()
+  if (!obj) return
+  obj.clone(['customData', 'id']).then((cloned: FabricObject) => {
+    _copyBuffer = cloned
+  })
+}
+
+export function pasteBuffer(canvas: Canvas): void {
+  if (!_copyBuffer) return
+  snapshot(canvas)
+  _copyBuffer.clone(['customData', 'id']).then((cloned: FabricObject) => {
+    const cl = cloned as FabricObject & { id: string }
+    cl.id = uid()
+    cl.set({ left: (cloned.left ?? 0) + 10, top: (cloned.top ?? 0) + 10 })
+    canvas.add(cl)
+    canvas.setActiveObject(cl)
+    canvas.renderAll()
+    // Update buffer position so repeated pastes cascade
+    if (_copyBuffer) {
+      _copyBuffer.set({ left: (_copyBuffer.left ?? 0) + 10, top: (_copyBuffer.top ?? 0) + 10 })
+    }
+  })
+}
+
 // ─── Clipboard paste ──────────────────────────────────────────────────────────
 
 export async function pasteFromClipboard(canvas: Canvas): Promise<void> {

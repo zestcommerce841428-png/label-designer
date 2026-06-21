@@ -3,11 +3,11 @@
 import { useEffect, useCallback, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
-import { Save, Download, Printer, ChevronLeft, BarChart2, Layers, Terminal, Grid2x2, X, BookOpen, Magnet } from 'lucide-react'
+import { Save, Download, Printer, ChevronLeft, BarChart2, Layers, Terminal, Grid2x2, X, BookOpen, Magnet, ZoomIn, ZoomOut } from 'lucide-react'
 import { useEditorStore } from '@/lib/store/editor'
 import { saveLabel, logPrintJob } from '@/actions/labels'
 import { LABEL_SIZES } from '@/lib/label-sizes'
-import { getCanvas } from '@/components/editor/FabricCanvas'
+import { getCanvas, setZoom, getZoom } from '@/components/editor/FabricCanvas'
 import DataImportPanel from '@/components/editor/DataImportPanel'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import { resetToTemplates } from '@/lib/merge'
@@ -75,6 +75,7 @@ export default function EditorClient({ label }: { label: Label }) {
   const [showData, setShowData] = useState(false)
   const [snapToGrid, setSnapToGrid] = useState(false)
   const [showFormulas, setShowFormulas] = useState(false)
+  const [zoomPct, setZoomPct] = useState(100)
   const [batchProgress, setBatchProgress] = useState<{ current: number; total: number } | null>(null)
   const [showSheetDialog, setShowSheetDialog] = useState(false)
   const [sheetPresetId, setSheetPresetId] = useState('avery-5160')
@@ -218,6 +219,12 @@ export default function EditorClient({ label }: { label: Label }) {
     a.click()
   }
 
+  function adjustZoom(delta: number) {
+    const next = Math.max(25, Math.min(400, Math.round(getZoom() * 100 + delta)))
+    setZoom(next / 100)
+    setZoomPct(next)
+  }
+
   function handleExportJPEG() {
     const c = getCanvas()
     if (!c) return
@@ -327,6 +334,21 @@ export default function EditorClient({ label }: { label: Label }) {
               ? `Batch (${dataRows.length})`
               : 'Batch'}
         </button>
+        <div className="flex items-center gap-0.5 border border-zinc-200 rounded-lg overflow-hidden">
+          <button type="button" title="Zoom out" aria-label="Zoom out" onClick={() => adjustZoom(-25)}
+            className="px-2 py-1.5 text-zinc-600 hover:bg-zinc-100 transition-colors">
+            <ZoomOut className="w-4 h-4" aria-hidden />
+          </button>
+          <button type="button" title="Reset zoom to 100%" aria-label={`Zoom ${zoomPct}%`}
+            onClick={() => { setZoom(1); setZoomPct(100) }}
+            className="px-2 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-100 transition-colors min-w-[3rem] text-center">
+            {zoomPct}%
+          </button>
+          <button type="button" title="Zoom in" aria-label="Zoom in" onClick={() => adjustZoom(25)}
+            className="px-2 py-1.5 text-zinc-600 hover:bg-zinc-100 transition-colors">
+            <ZoomIn className="w-4 h-4" aria-hidden />
+          </button>
+        </div>
         <button
           type="button"
           onClick={handleSave}
