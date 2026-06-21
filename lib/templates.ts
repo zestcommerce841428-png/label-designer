@@ -516,6 +516,154 @@ export const BUILT_IN_TEMPLATES: Template[] = [
     },
   },
 
+  // ── Clothing ─────────────────────────────────────────────────────────────
+  {
+    id: 'clothing-hang-tag',
+    name: 'Clothing Hang Tag',
+    category: 'Clothing',
+    thumbnail: '',
+    size: { width: 55, height: 90 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(55), px(90), '#ffffff', { stroke: '#e5e7eb', strokeWidth: 1 }),
+        boldTxt(8, 10, '{{brand}}', 14, '#111827'),
+        txt(8, 30, '{{product_name}}', 11, '#374151'),
+        { type: 'line', x1: 8, y1: 50, x2: px(55) - 8, y2: 50, stroke: '#e5e7eb', strokeWidth: 1 },
+        txt(8, 60, 'Size: {{size}}', 11, '#374151', { customData: { template: 'Size: {{size}}' } }),
+        txt(8, 76, 'Color: {{color}}', 11, '#374151', { customData: { template: 'Color: {{color}}' } }),
+        txt(8, 92, 'Material: {{material}}', 10, '#6b7280', { customData: { template: 'Material: {{material}}' } }),
+        txt(8, 108, 'Care: {{care_instructions}}', 9, '#9ca3af', { customData: { template: 'Care: {{care_instructions}}' } }),
+        boldTxt(8, px(90) - 28, '${{price}}', 20, '#2563eb'),
+        txt(px(55) - 60, px(90) - 18, 'SKU: {{sku}}', 8, '#9ca3af'),
+      ],
+    },
+  },
+  {
+    id: 'clothing-size-label',
+    name: 'Garment Size Label',
+    category: 'Clothing',
+    thumbnail: '',
+    size: { width: 50, height: 25 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(50), px(25), '#1e293b'),
+        boldTxt(10, 8, '{{size}}', 22, '#f8fafc'),
+        txt(px(50) - 70, px(25) - 16, '{{brand}}', 9, '#94a3b8'),
+      ],
+    },
+  },
+  {
+    id: 'clothing-care-label',
+    name: 'Care / Wash Label',
+    category: 'Clothing',
+    thumbnail: '',
+    size: { width: 45, height: 30 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(45), px(30), '#ffffff', { stroke: '#d1d5db', strokeWidth: 1 }),
+        boldTxt(5, 5, '{{brand}}', 10, '#111827'),
+        txt(5, 20, '{{material_composition}}', 8, '#374151'),
+        txt(5, 32, 'Wash: {{wash_instruction}}', 8, '#6b7280', { customData: { template: 'Wash: {{wash_instruction}}' } }),
+        txt(5, 46, 'Made in {{country}}', 8, '#9ca3af', { customData: { template: 'Made in {{country}}' } }),
+      ],
+    },
+  },
+
+  // ── Healthcare ────────────────────────────────────────────────────────────
+  {
+    id: 'medication-label',
+    name: 'Medication Label',
+    category: 'Healthcare',
+    thumbnail: '',
+    size: { width: 80, height: 50 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(80), px(50), '#ffffff', { stroke: '#000000', strokeWidth: 2 }),
+        boldTxt(6, 6, '{{pharmacy_name}}', 13, '#111827'),
+        txt(6, 24, 'Rx: {{rx_number}}', 10, '#374151', { customData: { template: 'Rx: {{rx_number}}' } }),
+        { type: 'line', x1: 4, y1: 38, x2: px(80) - 4, y2: 38, stroke: '#000000', strokeWidth: 1 },
+        boldTxt(6, 44, '{{patient_name}}', 13, '#111827'),
+        txt(6, 62, '{{drug_name}} {{dosage}}', 12, '#111827', { customData: { template: '{{drug_name}} {{dosage}}' } }),
+        txt(6, 78, '{{instructions}}', 10, '#374151'),
+        txt(6, 92, 'Qty: {{quantity}}  Refills: {{refills}}', 10, '#6b7280', { customData: { template: 'Qty: {{quantity}}  Refills: {{refills}}' } }),
+        txt(6, 108, 'Exp: {{expiry_date}}', 9, '#6b7280', { customData: { template: 'Exp: {{expiry_date}}' } }),
+        txt(6, px(50) - 16, 'Dr: {{doctor_name}}', 9, '#9ca3af', { customData: { template: 'Dr: {{doctor_name}}' } }),
+      ],
+    },
+  },
+  {
+    id: 'specimen-label',
+    name: 'Lab Specimen Label',
+    category: 'Healthcare',
+    thumbnail: '',
+    size: { width: 75, height: 35 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(75), px(35), '#ffffff', { stroke: '#dc2626', strokeWidth: 2 }),
+        boldTxt(6, 5, '{{patient_name}}', 13, '#111827'),
+        txt(6, 22, 'DOB: {{dob}}  ID: {{patient_id}}', 10, '#374151', { customData: { template: 'DOB: {{dob}}  ID: {{patient_id}}' } }),
+        txt(6, 38, 'Collected: {{collected_datetime}}', 10, '#374151', { customData: { template: 'Collected: {{collected_datetime}}' } }),
+        txt(6, 54, 'Test: {{test_type}}', 10, '#374151', { customData: { template: 'Test: {{test_type}}' } }),
+        txt(6, 70, 'Collector: {{collector_id}}', 9, '#9ca3af', { customData: { template: 'Collector: {{collector_id}}' } }),
+      ],
+    },
+  },
+
+  // ── Electronics ───────────────────────────────────────────────────────────
+  {
+    id: 'electronics-serial',
+    name: 'Electronics Serial Label',
+    category: 'Electronics',
+    thumbnail: '',
+    size: { width: 60, height: 30 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(60), px(30), '#f8fafc', { stroke: '#cbd5e1', strokeWidth: 1 }),
+        boldTxt(6, 5, '{{product_name}}', 11, '#0f172a'),
+        txt(6, 22, 'S/N: {{serial_number}}', 10, '#374151', { customData: { template: 'S/N: {{serial_number}}' } }),
+        txt(6, 36, 'P/N: {{part_number}}', 10, '#374151', { customData: { template: 'P/N: {{part_number}}' } }),
+        txt(6, 52, 'Mfg: {{manufacture_date}}', 9, '#64748b', { customData: { template: 'Mfg: {{manufacture_date}}' } }),
+        txt(6, px(30) - 14, 'Model: {{model}}', 9, '#94a3b8', { customData: { template: 'Model: {{model}}' } }),
+      ],
+    },
+  },
+  {
+    id: 'electronics-warranty',
+    name: 'Warranty Seal',
+    category: 'Electronics',
+    thumbnail: '',
+    size: { width: 50, height: 20 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(50), px(20), '#dc2626', { rx: 4, ry: 4 }),
+        boldTxt(8, 6, 'WARRANTY VOID', 12, '#ffffff'),
+        txt(8, 22, 'IF SEAL BROKEN', 9, '#fecaca'),
+      ],
+    },
+  },
+  {
+    id: 'electronics-cable-label',
+    name: 'Cable / Wire Label',
+    category: 'Electronics',
+    thumbnail: '',
+    size: { width: 60, height: 15 },
+    canvas_json: {
+      version: '5.3.0',
+      objects: [
+        rect(0, 0, px(60), px(15), '#dbeafe', { stroke: '#93c5fd', strokeWidth: 1 }),
+        boldTxt(6, 4, '{{cable_label}}', 12, '#1e40af'),
+        txt(px(60) - 100, 4, '{{port}}', 12, '#1d4ed8'),
+      ],
+    },
+  },
+
   // ── Blank ─────────────────────────────────────────────────────────────────
   {
     id: 'blank-80x40',
