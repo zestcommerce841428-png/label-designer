@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { IText, FabricImage, type FabricObject } from 'fabric'
+import { IText, FabricImage, Group, type FabricObject } from 'fabric'
 import { AlignLeft, AlignCenter, AlignRight } from 'lucide-react'
 import { getCanvas } from './FabricCanvas'
 import { BARCODE_GROUPS, generateBarcodeDataURL } from '@/lib/barcode'
@@ -71,8 +71,9 @@ export default function PropertiesPanel() {
     c.renderAll()
   }
 
-  const isText = obj instanceof IText
+  const isText    = obj instanceof IText
   const isBarcode = obj?.customData?.type === 'barcode'
+  const isLayer   = obj instanceof Group && obj.customData?.type === 'layer'
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const textObj = isText ? (obj as any) : null
 
@@ -321,6 +322,19 @@ export default function PropertiesPanel() {
           </div>
         )
       })()}
+
+      {obj && isLayer && (
+        <div className="p-4 border-b border-zinc-100 space-y-2">
+          <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Layer Group</h3>
+          <p className="text-xs text-zinc-400 leading-snug">
+            This group acts as a layer. Add a <em>Show when</em> condition below to hide or show all
+            elements inside based on row data.
+          </p>
+          <PRow label="Elements">
+            <span className="text-xs text-zinc-500">{(obj as Group).getObjects().length}</span>
+          </PRow>
+        </div>
+      )}
 
       {obj && (
         <div className="p-4 border-t border-zinc-100 space-y-2">

@@ -1,4 +1,4 @@
-import { IText, FabricImage, type Canvas, type FabricObject } from 'fabric'
+import { IText, FabricImage, Group, type Canvas, type FabricObject } from 'fabric'
 import { generateBarcodeDataURL } from '@/lib/barcode'
 
 export type DataRow = Record<string, string>
@@ -256,7 +256,56 @@ function evalCondition(condition: string, row: DataRow, rowIndex: number): boole
 
 const URL_RE = /^https?:\/\//i
 
-/** Applies a data row to all canvas objects. */
+/** Applies merge data to a single canvas object (shared by top-level and group children). */
+async function applyMergeToObject(
+  obj: WithCustomData,
+  row: DataRow,
+  rowIndex: number,
+  totalRows: number,
+): Promise<void> {
+  const cd = obj.customData
+
+  if (cd?.condition) {
+    obj.set({ visible: evalCondition(cd.condition, row, rowIndex) })
+  }
+
+  if (!cd?.template) return
+
+  const resolved = await resolveTemplate(cd.template, row, rowIndex, totalRows)
+
+  if (obj.type === 'i-text' || obj.type === 'text') {
+    const textObj = obj as IText
+    textObj.set({ text: resolved })
+
+    // Shrink-to-fit: reduce font size until the text fits within the stored box
+    if (cd.shrinkToFit && cd.maxFontSize && cd.fixedWidth) {
+      let size = cd.maxFontSize
+      textObj.set({ fontSize: size })
+      const maxW = cd.fixedWidth
+      const maxH = cd.fixedHeight ?? Infinity
+      while (size > 6) {
+        if ((textObj.width ?? 0) <= maxW && (textObj.height ?? 0) <= maxH) break
+        size = Math.max(6, size - 0.5)
+        textObj.set({ fontSize: size })
+      }
+    }
+  } else if (cd.type === 'barcode') {
+    try {
+      const dataURL = await generateBarcodeDataURL(resolved, (cd.barcodeType ?? 'qrcode') as 'qrcode')
+      await (obj as FabricImage).setSrc(dataURL)
+    } catch {
+      // Invalid barcode value — leave previous image intact
+    }
+  } else if (obj instanceof FabricImage && URL_RE.test(resolved)) {
+    try {
+      await (obj as FabricImage).setSrc(resolved, { crossOrigin: 'anonymous' })
+    } catch {
+      // Network failure or CORS — skip
+    }
+  }
+}
+
+/** Applies a data row to all canvas objects including objects inside Layer groups. */
 export async function applyMerge(
   canvas: Canvas,
   row: DataRow,
@@ -266,65 +315,44 @@ export async function applyMerge(
   const objects = canvas.getObjects() as WithCustomData[]
 
   for (const obj of objects) {
-    const cd = obj.customData
-
-    if (cd?.condition) {
-      obj.set({ visible: evalCondition(cd.condition, row, rowIndex) })
+    // Layer group — apply condition to the whole group, merge to children
+    if (obj instanceof Group && (obj as WithCustomData).customData?.type === 'layer') {
+      const cd = (obj as WithCustomData).customData
+      if (cd?.condition) {
+        obj.set({ visible: evalCondition(cd.condition, row, rowIndex) })
+      }
+      // Recurse into group children
+      const children = (obj as Group).getObjects() as WithCustomData[]
+      await Promise.all(children.map(child => applyMergeToObject(child, row, rowIndex, totalRows)))
+      continue
     }
 
-    if (!cd?.template) continue
-
-    const resolved = await resolveTemplate(cd.template, row, rowIndex, totalRows)
-
-    if (obj.type === 'i-text' || obj.type === 'text') {
-      const textObj = obj as IText
-      textObj.set({ text: resolved })
-
-      // Shrink-to-fit: reduce font size until the text fits within the stored box
-      if (cd.shrinkToFit && cd.maxFontSize && cd.fixedWidth) {
-        let size = cd.maxFontSize
-        textObj.set({ fontSize: size })
-        const maxW = cd.fixedWidth
-        const maxH = cd.fixedHeight ?? Infinity
-        while (size > 6) {
-          if ((textObj.width ?? 0) <= maxW && (textObj.height ?? 0) <= maxH) break
-          size = Math.max(6, size - 0.5)
-          textObj.set({ fontSize: size })
-        }
-      }
-    } else if (cd.type === 'barcode') {
-      try {
-        const dataURL = await generateBarcodeDataURL(resolved, (cd.barcodeType ?? 'qrcode') as 'qrcode')
-        await (obj as FabricImage).setSrc(dataURL)
-      } catch {
-        // Invalid barcode value — leave previous image intact
-      }
-    } else if (obj instanceof FabricImage && URL_RE.test(resolved)) {
-      try {
-        await (obj as FabricImage).setSrc(resolved, { crossOrigin: 'anonymous' })
-      } catch {
-        // Network failure or CORS — skip
-      }
-    }
+    await applyMergeToObject(obj, row, rowIndex, totalRows)
   }
 
   canvas.renderAll()
 }
 
-/** Resets text objects to raw template strings before saving. */
+function resetObject(obj: WithCustomData): void {
+  const cd = obj.customData
+  if (cd?.template && (obj.type === 'i-text' || obj.type === 'text')) {
+    const textObj = obj as IText
+    textObj.set({ text: cd.template })
+    if (cd.shrinkToFit && cd.maxFontSize) textObj.set({ fontSize: cd.maxFontSize })
+  }
+  obj.set({ visible: true })
+}
+
+/** Resets text objects to raw template strings before saving. Handles layer groups. */
 export function resetToTemplates(canvas: Canvas): void {
-  const objects = canvas.getObjects() as WithCustomData[]
-  for (const obj of objects) {
-    const cd = obj.customData
-    if (!cd?.template) continue
-    if (obj.type === 'i-text' || obj.type === 'text') {
-      const textObj = obj as IText
-      textObj.set({ text: cd.template })
-      // Restore original font size so saved JSON isn't shrunken
-      if (cd.shrinkToFit && cd.maxFontSize) {
-        textObj.set({ fontSize: cd.maxFontSize })
+  for (const obj of canvas.getObjects() as WithCustomData[]) {
+    if (obj instanceof Group && (obj as WithCustomData).customData?.type === 'layer') {
+      obj.set({ visible: true })
+      for (const child of (obj as Group).getObjects() as WithCustomData[]) {
+        resetObject(child)
       }
+    } else {
+      resetObject(obj)
     }
-    obj.set({ visible: true })
   }
 }

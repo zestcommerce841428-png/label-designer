@@ -2,12 +2,14 @@
 
 import {
   Type, Square, Circle as CircleIcon, Minus, Image as ImageIcon,
-  QrCode, Undo2, Redo2, Trash2, Copy, AlignLeft, AlignCenter, AlignRight
+  QrCode, Undo2, Redo2, Trash2, Copy, AlignLeft, AlignCenter, AlignRight,
+  Group, Ungroup,
 } from 'lucide-react'
 import { getCanvas } from './FabricCanvas'
 import {
   addText, addRect, addCircle, addLine, addBarcode, addQR,
   addImage, deleteSelected, duplicateSelected, setTextAlign,
+  groupSelected, ungroupSelected,
 } from '@/lib/canvas/elements'
 import { undo, redo } from '@/lib/canvas/history'
 
@@ -61,6 +63,10 @@ export default function Toolbar() {
       <Tool icon={AlignLeft}   label="Left"   onClick={withCanvas(c => setTextAlign(c, 'left'))} />
       <Tool icon={AlignCenter} label="Center" onClick={withCanvas(c => setTextAlign(c, 'center'))} />
       <Tool icon={AlignRight}  label="Right"  onClick={withCanvas(c => setTextAlign(c, 'right'))} />
+
+      <Sep />
+      <Tool icon={Group}   label="Group (Layer)"  onClick={withCanvas(groupSelected)} />
+      <Tool icon={Ungroup} label="Ungroup Layer"  onClick={withCanvas(ungroupSelected)} />
 
       <Sep />
       <Tool icon={Copy}   label="Duplicate" onClick={withCanvas(duplicateSelected)} />

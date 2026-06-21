@@ -1,4 +1,4 @@
-import { IText, Rect, Circle, Line, FabricImage, type Canvas, type FabricObject } from 'fabric'
+import { IText, Rect, Circle, Line, FabricImage, Group, ActiveSelection, type Canvas, type FabricObject } from 'fabric'
 import { generateBarcodeDataURL } from '@/lib/barcode'
 import { MAX_IMAGE_BYTES } from '@/lib/constants'
 import { snapshot } from './history'
@@ -138,4 +138,38 @@ export function setTextAlign(canvas: Canvas, align: 'left' | 'center' | 'right')
     obj.set({ textAlign: align })
     canvas.renderAll()
   }
+}
+
+/**
+ * Group the currently selected objects into a single Layer group.
+ * The group inherits the "Show when" condition field from PropertiesPanel,
+ * letting you hide/show the entire group based on a merge-row expression.
+ */
+export function groupSelected(canvas: Canvas): void {
+  const active = canvas.getActiveObject()
+  if (!active || active.type !== 'activeSelection') return
+  snapshot(canvas)
+  const sel = active as ActiveSelection
+  if (sel.getObjects().length < 2) return
+  // Fabric.js 6: toGroup() converts the ActiveSelection in-place
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const group = (sel as any).toGroup() as Group & { id: string; customData: { type: string; condition: string } }
+  group.id = uid()
+  group.customData = { type: 'layer', condition: '' }
+  canvas.setActiveObject(group)
+  canvas.renderAll()
+}
+
+/**
+ * Break a Layer group back into individual objects and select them all.
+ */
+export function ungroupSelected(canvas: Canvas): void {
+  const active = canvas.getActiveObject()
+  if (!active || active.type !== 'group') return
+  snapshot(canvas)
+  // Fabric.js 6: toActiveSelection() breaks the group in-place
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sel = (active as any).toActiveSelection() as ActiveSelection
+  canvas.setActiveObject(sel)
+  canvas.renderAll()
 }
