@@ -19,6 +19,7 @@ export default function PropertiesPanel() {
   const { activeObjectId, selectedSize, setSelectedSize } = useEditorStore()
   const [obj, setObj] = useState<AnyFabricObj | null>(null)
   const [version, setVersion] = useState(0)
+  const [bgColor, setBgColor] = useState('#ffffff')
 
   const syncObj = useCallback(() => {
     const active = getCanvas()?.getActiveObject()
@@ -43,6 +44,12 @@ export default function PropertiesPanel() {
   useEffect(() => {
     syncObj()
   }, [version, syncObj])
+
+  // Sync background color from canvas when it changes
+  useEffect(() => {
+    const c = getCanvas()
+    if (c) setBgColor(typeof c.backgroundColor === 'string' ? c.backgroundColor : '#ffffff')
+  }, [version, activeObjectId])
 
   function updateShape(props: Record<string, unknown>) {
     const c = getCanvas()
@@ -108,12 +115,13 @@ export default function PropertiesPanel() {
           <input
             type="color"
             title="Label background color"
-            defaultValue="#ffffff"
+            value={bgColor}
             onChange={e => {
               const c = getCanvas()
               if (!c) return
               c.backgroundColor = e.target.value
               c.renderAll()
+              setBgColor(e.target.value)
             }}
           />
         </div>

@@ -419,6 +419,31 @@ export default function EditorClient({ label }: { label: Label }) {
                 </div>
               </div>
               <div>
+                <p className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2">Keyboard Shortcuts</p>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                  {[
+                    ['Ctrl+S', 'Save label'],
+                    ['Ctrl+Z / Ctrl+Y', 'Undo / Redo'],
+                    ['Ctrl+C / Ctrl+V', 'Copy / Paste element'],
+                    ['Ctrl+D', 'Duplicate element'],
+                    ['Ctrl+A', 'Select all elements'],
+                    ['Ctrl+G / Ctrl+Shift+G', 'Group / Ungroup layer'],
+                    ['Ctrl+] / Ctrl+[', 'Bring forward / Send back'],
+                    ['Ctrl+Shift+] / [', 'Bring to front / Send to back'],
+                    ['Ctrl+= / Ctrl+-', 'Zoom in / Zoom out'],
+                    ['Ctrl+0', 'Reset zoom to 100%'],
+                    ['Arrow keys', 'Nudge 1px (Shift = 10px)'],
+                    ['Delete / Backspace', 'Delete selected'],
+                    ['Escape', 'Deselect'],
+                  ].map(([key, desc]) => (
+                    <div key={key} className="flex items-baseline gap-2">
+                      <kbd className="text-[10px] bg-zinc-100 text-zinc-700 px-1.5 py-0.5 rounded border border-zinc-200 font-mono shrink-0">{key}</kbd>
+                      <span className="text-zinc-500">{desc}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
                 <p className="text-xs font-semibold text-zinc-700 uppercase tracking-wider mb-2">HTTP Requests</p>
                 <div className="space-y-1.5">
                   <div className="flex gap-3">

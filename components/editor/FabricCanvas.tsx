@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useCallback } from 'react'
-import { Canvas, Circle, IText } from 'fabric'
+import { Canvas, Circle, IText, ActiveSelection } from 'fabric'
 import { useEditorStore } from '@/lib/store/editor'
 import { mmToPx } from '@/lib/label-sizes'
 import { CANVAS_MAX_WIDTH_PX, CANVAS_MAX_HEIGHT_PX, CANVAS_MAX_SCALE } from '@/lib/constants'
@@ -145,6 +145,15 @@ export default function FabricCanvas({ onCanvasReady }: Props) {
       } else if (ctrl && e.key === '0') {
         e.preventDefault()
         setZoom(1)
+      } else if (ctrl && e.key === 'a') {
+        e.preventDefault()
+        const selectables = c.getObjects().filter(o => o.selectable !== false && o.evented !== false)
+        if (selectables.length === 1) {
+          c.setActiveObject(selectables[0])
+        } else if (selectables.length > 1) {
+          c.setActiveObject(new ActiveSelection(selectables, { canvas: c }))
+        }
+        c.renderAll()
       } else if (!ctrl && active && ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) {
         // Nudge selected element 1px (or 10px with Shift)
         e.preventDefault()
