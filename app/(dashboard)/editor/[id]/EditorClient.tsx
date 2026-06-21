@@ -3,7 +3,7 @@
 import { useEffect, useCallback, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
-import { Save, Download, Printer, ChevronLeft, BarChart2, Layers, Terminal, Grid2x2, X, BookOpen, Magnet, ZoomIn, ZoomOut } from 'lucide-react'
+import { Save, Download, Printer, ChevronLeft, BarChart2, Layers, Terminal, Grid2x2, X, BookOpen, Magnet, ZoomIn, ZoomOut, FileDown } from 'lucide-react'
 import { useEditorStore } from '@/lib/store/editor'
 import { saveLabel, logPrintJob } from '@/actions/labels'
 import { LABEL_SIZES } from '@/lib/label-sizes'
@@ -235,6 +235,41 @@ export default function EditorClient({ label }: { label: Label }) {
     a.click()
   }
 
+  async function handleExportPDF() {
+    const c = getCanvas()
+    if (!c) return
+    resetToTemplates(c)
+    const dataURL = c.toDataURL({ format: 'png', multiplier: 3 })
+    const html = `<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+  @page { margin: 0; size: ${selectedSize.width}mm ${selectedSize.height}mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { margin: 0; }
+  img { width: ${selectedSize.width}mm; height: ${selectedSize.height}mm; display: block; }
+</style></head>
+<body><img src="${dataURL}" /></body></html>`
+    try {
+      const res = await fetch('/api/export/pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ html, width: selectedSize.width, height: selectedSize.height }),
+      })
+      if (!res.ok) throw new Error('PDF service unavailable')
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${labelName}.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      // Fallback: open as printable HTML
+      const w = window.open('', '_blank')
+      if (w) { w.document.write(html); w.document.close() }
+    }
+  }
+
   function handleExportZpl(format: 'zpl' | 'tspl') {
     const c = getCanvas()
     if (!c) return
@@ -307,6 +342,9 @@ export default function EditorClient({ label }: { label: Label }) {
         </button>
         <button type="button" onClick={handleExportJPEG} title="Export as JPEG" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
           <Download className="w-4 h-4" /> JPG
+        </button>
+        <button type="button" onClick={handleExportPDF} title="Export as PDF" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
+          <FileDown className="w-4 h-4" /> PDF
         </button>
         <button type="button" onClick={() => handleExportZpl('zpl')} title="Download ZPL II (Zebra printers)" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors">
           <Terminal className="w-4 h-4" /> ZPL

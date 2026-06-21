@@ -109,7 +109,26 @@ export default function PropertiesPanel() {
             <option key={s.id} value={s.id}>{s.name}</option>
           ))}
         </select>
-        <p className="text-xs text-zinc-400 mt-1">{selectedSize.width} × {selectedSize.height} mm</p>
+        {selectedSize.id === 'custom' ? (
+          <div className="grid grid-cols-2 gap-2 mt-1">
+            <div>
+              <label className="text-[10px] text-zinc-400 block mb-0.5">Width (mm)</label>
+              <input type="number" min={5} max={500} step={0.1} title="Custom label width"
+                className="w-full text-xs border border-zinc-300 rounded px-1.5 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                value={selectedSize.width}
+                onChange={e => setSelectedSize({ ...selectedSize, width: +e.target.value })} />
+            </div>
+            <div>
+              <label className="text-[10px] text-zinc-400 block mb-0.5">Height (mm)</label>
+              <input type="number" min={5} max={700} step={0.1} title="Custom label height"
+                className="w-full text-xs border border-zinc-300 rounded px-1.5 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                value={selectedSize.height}
+                onChange={e => setSelectedSize({ ...selectedSize, height: +e.target.value })} />
+            </div>
+          </div>
+        ) : (
+          <p className="text-xs text-zinc-400 mt-1">{selectedSize.width} × {selectedSize.height} mm</p>
+        )}
         <div className="flex items-center justify-between mt-3">
           <span className="text-xs text-zinc-600">Background</span>
           <input
