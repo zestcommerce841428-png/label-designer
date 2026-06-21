@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useCallback } from 'react'
-import { Canvas, Circle, IText, ActiveSelection } from 'fabric'
+import { Canvas, Circle, Line as FabricLine, IText, ActiveSelection } from 'fabric'
 import { useEditorStore } from '@/lib/store/editor'
 import { mmToPx } from '@/lib/label-sizes'
 import { CANVAS_MAX_WIDTH_PX, CANVAS_MAX_HEIGHT_PX, CANVAS_MAX_SCALE } from '@/lib/constants'
@@ -78,6 +78,76 @@ export default function FabricCanvas({ onCanvasReady }: Props) {
       }
     }
 
+    // Smart edge snapping: snap to label edges + other object edges
+    const SNAP_THRESHOLD_PX = 8 // screen pixels (pre-zoom)
+    let guideLines: import('fabric').Line[] = []
+
+    function clearGuides(c: Canvas) {
+      for (const g of guideLines) c.remove(g)
+      guideLines = []
+    }
+
+    function drawGuide(c: Canvas, x1: number, y1: number, x2: number, y2: number) {
+      const g = new FabricLine([x1, y1, x2, y2], {
+        stroke: '#3b82f6', strokeWidth: 0.5,
+        selectable: false, evented: false,
+        strokeDashArray: [3, 3],
+      })
+      guideLines.push(g)
+      c.add(g)
+    }
+
+    canvas.on('object:moving', (e) => {
+      const obj = e.target
+      if (!obj) return
+      const c = _canvas
+      if (!c) return
+      clearGuides(c)
+
+      const z = c.getZoom()
+      const threshold = SNAP_THRESHOLD_PX / z
+
+      const oLeft  = obj.left  ?? 0
+      const oTop   = obj.top   ?? 0
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const oW     = ((obj as any).width  ?? 0) * ((obj as any).scaleX ?? 1)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const oH     = ((obj as any).height ?? 0) * ((obj as any).scaleY ?? 1)
+      const oCenterX = oLeft + oW / 2
+      const oCenterY = oTop  + oH / 2
+      const oRight   = oLeft + oW
+      const oBottom  = oTop  + oH
+
+      // Label boundary edges (in canvas coords, no zoom needed — Fabric coords are in original scale)
+      const bounds = [
+        { pos: 0,      axis: 'x', type: 'left' },
+        { pos: labelW, axis: 'x', type: 'right' },
+        { pos: labelW / 2, axis: 'x', type: 'centerX' },
+        { pos: 0,      axis: 'y', type: 'top' },
+        { pos: labelH, axis: 'y', type: 'bottom' },
+        { pos: labelH / 2, axis: 'y', type: 'centerY' },
+      ]
+
+      let newLeft = oLeft
+      let newTop  = oTop
+
+      for (const b of bounds) {
+        if (b.axis === 'x') {
+          if (Math.abs(oLeft    - b.pos) < threshold) { newLeft = b.pos;             drawGuide(c, b.pos, 0, b.pos, labelH) }
+          if (Math.abs(oCenterX - b.pos) < threshold) { newLeft = b.pos - oW / 2;   drawGuide(c, b.pos, 0, b.pos, labelH) }
+          if (Math.abs(oRight   - b.pos) < threshold) { newLeft = b.pos - oW;       drawGuide(c, b.pos, 0, b.pos, labelH) }
+        } else {
+          if (Math.abs(oTop     - b.pos) < threshold) { newTop = b.pos;             drawGuide(c, 0, b.pos, labelW, b.pos) }
+          if (Math.abs(oCenterY - b.pos) < threshold) { newTop = b.pos - oH / 2;   drawGuide(c, 0, b.pos, labelW, b.pos) }
+          if (Math.abs(oBottom  - b.pos) < threshold) { newTop = b.pos - oH;       drawGuide(c, 0, b.pos, labelW, b.pos) }
+        }
+      }
+
+      obj.set({ left: newLeft, top: newTop })
+      obj.setCoords()
+      c.renderAll()
+    })
+
     canvas.on('selection:created', (e) => {
       setActiveObjectId((e.selected?.[0] as unknown as { id?: string })?.id ?? null)
     })
@@ -85,7 +155,11 @@ export default function FabricCanvas({ onCanvasReady }: Props) {
       setActiveObjectId((e.selected?.[0] as unknown as { id?: string })?.id ?? null)
     })
     canvas.on('selection:cleared', () => setActiveObjectId(null))
-    canvas.on('object:modified', () => setDirty(true))
+    canvas.on('object:modified', () => {
+      clearGuides(canvas)
+      canvas.renderAll()
+      setDirty(true)
+    })
 
     _canvas = canvas
     onCanvasReady?.(canvas)
